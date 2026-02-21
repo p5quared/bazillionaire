@@ -7,7 +7,7 @@ public record GameMessage(GameEvent event, Audience audience) {
     public static GameMessage broadcast(GameEvent gameEvent){
         return new GameMessage(gameEvent, new Audience.Everyone());
     }
-    public static GameMessage quiet(GameEvent gameEvent, String playerId){
+    public static GameMessage send(GameEvent gameEvent, String playerId){
         return new GameMessage(gameEvent, new Audience.Only(playerId));
     }
 }

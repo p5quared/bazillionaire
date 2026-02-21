@@ -3,7 +3,7 @@ package net.peterv.bazillionaire.game.domain;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
-import net.peterv.bazillionaire.game.port.in.FillResult;
+import net.peterv.bazillionaire.game.domain.order.FillResult;
 
 import java.util.HashMap;
 import java.util.Map;

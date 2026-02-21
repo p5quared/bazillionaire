@@ -1,4 +1,4 @@
-package net.peterv.bazillionaire.game.port.in;
+package net.peterv.bazillionaire.game.domain.order;
 
 public sealed interface FillResult {
     record Filled() implements FillResult {}

@@ -1,11 +1,13 @@
 package net.peterv.bazillionaire.game.service;
 
-import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.port.in.PlaceOrderCommand;
 import net.peterv.bazillionaire.game.port.in.PlaceOrderUseCase;
+import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
+
+import java.util.List;
 
 public class PlaceOrderService implements PlaceOrderUseCase {
     private final GameRepository gameRepository;
@@ -15,10 +17,13 @@ public class PlaceOrderService implements PlaceOrderUseCase {
     }
 
     @Override
-    public OrderResult placeOrder(PlaceOrderCommand cmd) {
+    public UseCaseResult<OrderResult> placeOrder(PlaceOrderCommand cmd) {
         Order order = cmd.toOrder();
-        return gameRepository.withGame(cmd.toGameId(), game ->
-                game.placeOrder(order, cmd.toPlayerId())
-        );
+         return gameRepository.withGame(cmd.toGameId(), game -> {
+             OrderResult orderResult = game.placeOrder(order, cmd.toPlayerId());
+             List<GameMessage> gameMessages = game.drainMessages();
+             return new UseCaseResult<>(orderResult, gameMessages);
+         }
+         );
     }
 }
