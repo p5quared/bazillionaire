@@ -16,10 +16,9 @@ public class PlaceOrderService implements PlaceOrderUseCase {
 
     @Override
     public OrderResult placeOrder(PlaceOrderCommand cmd) {
-        Game game = this.gameRepository.loadGame(cmd.toGameId());
         Order order = cmd.toOrder();
-        OrderResult result = game.placeOrder(order, cmd.toPlayerId());
-        this.gameRepository.saveGame(cmd.toGameId(), game);
-        return result;
+        return gameRepository.withGame(cmd.toGameId(), game ->
+                game.placeOrder(order, cmd.toPlayerId())
+        );
     }
 }
