@@ -3,7 +3,6 @@ package net.peterv.bazillionaire.game.domain;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
-import net.peterv.bazillionaire.game.domain.ticker.event.OrderMarketImpactPolicy;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import net.peterv.bazillionaire.game.service.GameEvent;
@@ -15,13 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Game {
-	private final OrderMarketImpactPolicy impactPolicy;
 	private final Map<PlayerId, Portfolio> players;
 	private final Map<Symbol, Ticker> tickers;
 	private final List<GameMessage> pendingMessages = new ArrayList<>();
 
-	public Game(OrderMarketImpactPolicy policy, Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers) {
-		this.impactPolicy = policy;
+	public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers) {
 		this.players = new HashMap<>(players);
 		this.tickers = new HashMap<>(tickers);
 	}
@@ -47,7 +44,6 @@ public class Game {
 			case OrderResult.Rejected r -> r;
 			case OrderResult.InvalidOrder i -> i;
 			case OrderResult.Filled f -> {
-				ticker.applyOrder(order, this.impactPolicy);
 				emit(GameMessage.broadcast(
 						new GameEvent.OrderFilled(order, playerId)));
 				yield f;

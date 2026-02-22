@@ -1,6 +1,5 @@
 package net.peterv.bazillionaire.game.domain.ticker.strategy;
 
-import net.peterv.bazillionaire.game.domain.ticker.MarketForce;
 import net.peterv.bazillionaire.game.domain.types.Money;
 
 public class CyclePricingStrategy implements PricingStrategy {
@@ -29,7 +28,7 @@ public class CyclePricingStrategy implements PricingStrategy {
 	}
 
 	@Override
-	public Money nextPrice(MarketForce marketForce) {
+	public Money nextPrice() {
 		this.ticks++;
 		if (isExhausted()) {
 			return new Money(currentCents);

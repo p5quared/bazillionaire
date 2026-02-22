@@ -1,6 +1,5 @@
 package net.peterv.bazillionaire.game.domain.ticker.strategy;
 
-import net.peterv.bazillionaire.game.domain.ticker.MarketForce;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,7 @@ class CyclePricingStrategyTest {
 		var strategy = new CyclePricingStrategy(initialPrice, amplitudeCents, cycleDuration, direction);
 
 		boolean allWithinRange = IntStream.range(0, cycleDuration)
-				.mapToObj(i -> strategy.nextPrice(MarketForce.neutral()))
+				.mapToObj(i -> strategy.nextPrice())
 				.map(Money::cents)
 				.allMatch(p -> p <= maxExpected && p >= minExpected);
 
