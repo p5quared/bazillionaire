@@ -51,6 +51,14 @@ public class Game {
 		};
 	}
 
+	public void tick() {
+		tickers.forEach((symbol, ticker) -> {
+			ticker.tick();
+			emit(GameMessage.broadcast(
+					new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
+		});
+	}
+
 	public List<GameMessage> drainMessages() {
 		List<GameMessage> messages = List.copyOf(pendingMessages);
 		pendingMessages.clear();
