@@ -6,5 +6,5 @@ import net.peterv.bazillionaire.game.domain.types.GameId;
 import java.util.function.Function;
 
 public interface GameRepository {
-    <T> T withGame(GameId gameId, Function<Game, T> action);
+	<T> T withGame(GameId gameId, Function<Game, T> action);
 }

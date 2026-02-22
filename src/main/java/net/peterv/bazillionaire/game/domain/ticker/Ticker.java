@@ -11,43 +11,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Ticker {
-    private Money currentPrice;
-    private PricingStrategy strategy;
-    private final PricingStrategyFactory strategyFactory;
-    private final List<MarketEvent> marketEvents; // always mutable
+	private Money currentPrice;
+	private PricingStrategy strategy;
+	private final PricingStrategyFactory strategyFactory;
+	private final List<MarketEvent> marketEvents; // always mutable
 
-    public Ticker(Money initialPrice, PricingStrategy strategy,
-                  PricingStrategyFactory strategyFactory, List<MarketEvent> marketEvents) {
-        this.currentPrice = initialPrice;
-        this.strategy = strategy;
-        this.strategyFactory = strategyFactory;
-        this.marketEvents = new ArrayList<>(marketEvents);
-    }
+	public Ticker(Money initialPrice, PricingStrategy strategy,
+			PricingStrategyFactory strategyFactory, List<MarketEvent> marketEvents) {
+		this.currentPrice = initialPrice;
+		this.strategy = strategy;
+		this.strategyFactory = strategyFactory;
+		this.marketEvents = new ArrayList<>(marketEvents);
+	}
 
-    public boolean canFill(Order order) {
-        return true;
-    }
+	public boolean canFill(Order order) {
+		return true;
+	}
 
-    public Money currentPrice() {
-        return currentPrice;
-    }
+	public Money currentPrice() {
+		return currentPrice;
+	}
 
-    public void applyOrder(Order order, OrderMarketImpactPolicy policy) {
-        this.marketEvents.add(policy.impactOf(order, this));
-    }
+	public void applyOrder(Order order, OrderMarketImpactPolicy policy) {
+		this.marketEvents.add(policy.impactOf(order, this));
+	}
 
-    public void tick() {
-        marketEvents.removeIf(MarketEvent::isExpired);
-        marketEvents.replaceAll(MarketEvent::tick);
+	public void tick() {
+		marketEvents.removeIf(MarketEvent::isExpired);
+		marketEvents.replaceAll(MarketEvent::tick);
 
-        if (strategy.isExhausted()) {
-            strategy = strategyFactory.nextStrategy();
-        }
+		if (strategy.isExhausted()) {
+			strategy = strategyFactory.nextStrategy();
+		}
 
-        MarketForce force = marketEvents.stream()
-                .map(e -> e.apply(strategy.kind()))
-                .reduce(MarketForce.neutral(), MarketForce::combine);
+		MarketForce force = marketEvents.stream()
+				.map(e -> e.apply(strategy.kind()))
+				.reduce(MarketForce.neutral(), MarketForce::combine);
 
-        currentPrice = strategy.nextPrice(force);
-    }
+		currentPrice = strategy.nextPrice(force);
+	}
 }
