@@ -18,7 +18,10 @@ public class Ticker {
 	}
 
 	public boolean canFill(Order order) {
-		return true;
+		return switch (order) {
+			case Order.Buy o -> o.price().isGreaterThanOrEqualTo(this.currentPrice());
+			case Order.Sell o -> this.currentPrice().isGreaterThanOrEqualTo(o.price());
+		};
 	}
 
 	public Money currentPrice() {
