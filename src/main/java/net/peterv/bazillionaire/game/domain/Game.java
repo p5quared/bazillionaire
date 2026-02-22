@@ -6,7 +6,6 @@ import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.event.OrderMarketImpactPolicy;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
-import net.peterv.bazillionaire.game.domain.order.FillResult;
 import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
 
@@ -42,15 +41,16 @@ public class Game {
 			return new OrderResult.Rejected("Ticker cannot fill order");
 		}
 
-		FillResult result = player.fill(order);
+		OrderResult result = player.fill(order);
 
 		return switch (result) {
-			case FillResult.Rejected r -> new OrderResult.Rejected(r.reason());
-			case FillResult.Filled ignored -> {
+			case OrderResult.Rejected r -> r;
+			case OrderResult.InvalidOrder i -> i;
+			case OrderResult.Filled f -> {
 				ticker.applyOrder(order, this.impactPolicy);
 				emit(GameMessage.broadcast(
 						new GameEvent.OrderFilled(order, playerId)));
-				yield new OrderResult.Filled();
+				yield f;
 			}
 		};
 	}

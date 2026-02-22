@@ -3,7 +3,7 @@ package net.peterv.bazillionaire.game.domain;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
-import net.peterv.bazillionaire.game.domain.order.FillResult;
+import net.peterv.bazillionaire.game.domain.order.OrderResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,29 +17,29 @@ public class Portfolio {
 		this.holdings = new HashMap<>();
 	}
 
-	public FillResult fill(Order order) {
+	public OrderResult fill(Order order) {
 		return switch (order) {
 			case Order.Buy buy -> tryBuy(buy);
 			case Order.Sell sell -> trySell(sell);
 		};
 	}
 
-	private FillResult tryBuy(Order.Buy buy) {
+	private OrderResult tryBuy(Order.Buy buy) {
 		if (!cashBalance.isGreaterThanOrEqualTo(buy.price())) {
-			return new FillResult.Rejected("Insufficient funds");
+			return new OrderResult.Rejected("Insufficient funds");
 		}
 		holdings.merge(buy.symbol(), 1, Integer::sum);
 		cashBalance = cashBalance.subtract(buy.price());
-		return new FillResult.Filled();
+		return new OrderResult.Filled();
 	}
 
-	private FillResult trySell(Order.Sell sell) {
+	private OrderResult trySell(Order.Sell sell) {
 		if (holdingsOf(sell.symbol()) < 1) {
-			return new FillResult.Rejected("No shares of %s to sell".formatted(sell.symbol().value()));
+			return new OrderResult.Rejected("No shares of %s to sell".formatted(sell.symbol().value()));
 		}
 		holdings.merge(sell.symbol(), -1, Integer::sum);
 		cashBalance = cashBalance.add(sell.price());
-		return new FillResult.Filled();
+		return new OrderResult.Filled();
 	}
 
 	public int holdingsOf(Symbol symbol) {
