@@ -12,13 +12,13 @@ class CyclePricingStrategyTest {
 
 	private void check(
 			Money initialPrice,
-			int stepCents,
+			int amplitudeCents,
 			int cycleDuration,
 			int direction,
 			int minExpected,
 			int maxExpected
 	) {
-		var strategy = new CyclePricingStrategy(initialPrice, stepCents, cycleDuration, direction);
+		var strategy = new CyclePricingStrategy(initialPrice, amplitudeCents, cycleDuration, direction);
 
 		boolean allWithinRange = IntStream.range(0, cycleDuration)
 				.mapToObj(i -> strategy.nextPrice(MarketForce.neutral()))
@@ -33,20 +33,20 @@ class CyclePricingStrategyTest {
 	@Test
 	void pricesStayWithinBoundedRange() {
 		var initialPrice = new Money(100_00);
-		int stepCents = 1_00;
+		int amplitudeCents = 50_00;
 		int cycleDuration = 100;
-		check(initialPrice, stepCents, cycleDuration, 1,
-				initialPrice.cents(),
-				initialPrice.cents() + stepCents * cycleDuration);
+		check(initialPrice, amplitudeCents, cycleDuration, 1,
+				initialPrice.cents() - amplitudeCents,
+				initialPrice.cents() + amplitudeCents);
 	}
 
 	@Test
 	void pricesStayWithinBoundedRangeNegative() {
 		var initialPrice = new Money(100_00);
-		int stepCents = 1_00;
+		int amplitudeCents = 50_00;
 		int cycleDuration = 100;
-		check(initialPrice, stepCents, cycleDuration, -1,
-				initialPrice.cents() - stepCents * cycleDuration,
-				initialPrice.cents());
+		check(initialPrice, amplitudeCents, cycleDuration, -1,
+				initialPrice.cents() - amplitudeCents,
+				initialPrice.cents() + amplitudeCents);
 	}
 }

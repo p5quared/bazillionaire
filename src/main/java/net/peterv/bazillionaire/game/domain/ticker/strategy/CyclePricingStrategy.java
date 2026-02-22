@@ -5,23 +5,25 @@ import net.peterv.bazillionaire.game.domain.types.Money;
 
 public class CyclePricingStrategy implements PricingStrategy {
 
-	private final int stepCents;
+	private final int amplitudeCents;
+	private final int initialCents;
 	private int currentCents;
-	private int direction;
+	private final int direction;
 	private final int waveLength;
 
 	private int ticks = 0;
 
 	/**
-	 * Determinstically cycles price up and down or down and up.
-	 * @param initialPrice
-	 * @param stepCents
-	 * @param waveLength
-	 * @param direction
+	 * Determinstically cycles price using a sine wave.
+	 * @param initialPrice the center price the wave oscillates around
+	 * @param amplitudeCents peak deviation from initialPrice in cents
+	 * @param waveLength number of ticks for one full cycle
+	 * @param direction 1 to start moving up, -1 to start moving down
 	 */
-	public CyclePricingStrategy(Money initialPrice, int stepCents, int waveLength, int direction) {
+	public CyclePricingStrategy(Money initialPrice, int amplitudeCents, int waveLength, int direction) {
+		this.initialCents = initialPrice.cents();
 		this.currentCents = initialPrice.cents();
-		this.stepCents = stepCents;
+		this.amplitudeCents = amplitudeCents;
 		this.waveLength = waveLength;
 		this.direction = direction;
 	}
@@ -33,10 +35,8 @@ public class CyclePricingStrategy implements PricingStrategy {
 			return new Money(currentCents);
 		}
 
-		currentCents += direction * stepCents;
-		if (ticks == waveLength / 2) {
-			this.direction *= -1;
-		}
+		double phase = 2 * Math.PI * ticks / waveLength + (direction == -1 ? Math.PI : 0);
+		currentCents = initialCents + (int) (amplitudeCents * Math.sin(phase));
 		return new Money(currentCents);
 	}
 
