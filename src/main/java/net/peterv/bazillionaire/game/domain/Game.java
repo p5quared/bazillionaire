@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.game.domain;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import net.peterv.bazillionaire.game.service.GameEvent;
@@ -12,11 +13,49 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class Game {
 	private final Map<PlayerId, Portfolio> players;
 	private final Map<Symbol, Ticker> tickers;
 	private final List<GameMessage> pendingMessages = new ArrayList<>();
+
+	public static Game create(
+			List<PlayerId> playerIds,
+			int tickerCount,
+			Money initialBalance,
+			Money initialPrice,
+			int totalDuration,
+			int strategyDuration,
+			Random random) {
+		Map<PlayerId, Portfolio> players = new HashMap<>();
+		for (PlayerId id : playerIds) {
+			players.put(id, new Portfolio(initialBalance));
+		}
+
+		Map<Symbol, Ticker> tickers = new HashMap<>();
+		for (int i = 0; i < tickerCount; i++) {
+			Symbol symbol;
+			do {
+				symbol = randomSymbol(random);
+			} while (tickers.containsKey(symbol));
+			tickers.put(symbol, new Ticker(initialPrice, totalDuration, strategyDuration, random));
+		}
+
+		Game game = new Game(players, tickers);
+		game.emit(GameMessage.broadcast(
+				new GameEvent.GameCreated(List.copyOf(tickers.keySet()))));
+		return game;
+	}
+
+	private static Symbol randomSymbol(Random random) {
+		int length = 3 + random.nextInt(2);
+		StringBuilder sb = new StringBuilder(length);
+		for (int i = 0; i < length; i++) {
+			sb.append((char) ('A' + random.nextInt(26)));
+		}
+		return new Symbol(sb.toString());
+	}
 
 	public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers) {
 		this.players = new HashMap<>(players);
