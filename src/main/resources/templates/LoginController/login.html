@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Bazillionaire</title>
+</head>
+<body>
+    <h1>Bazillionaire</h1>
+    {#if flash:error}
+    <p style="color: red;">{flash:error}</p>
+    {/if}
+    <form action="{uri:LoginController.login()}" method="post">
+        {#authenticityToken/}
+        <label for="username">Choose a username:</label>
+        <input type="text" id="username" name="username" required>
+        <button type="submit">Join</button>
+    </form>
+</body>
+</html>
