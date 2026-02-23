@@ -11,14 +11,18 @@ import net.peterv.bazillionaire.game.service.GameMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class Game {
 	private final Map<PlayerId, Portfolio> players;
 	private final Map<Symbol, Ticker> tickers;
 	private final List<GameMessage> pendingMessages = new ArrayList<>();
+	private final Set<PlayerId> readyPlayers = new HashSet<>();
+	private GameStatus status = GameStatus.PENDING;
 
 	public static Game create(
 			List<PlayerId> playerIds,
@@ -102,6 +106,40 @@ public class Game {
 		List<GameMessage> messages = List.copyOf(pendingMessages);
 		pendingMessages.clear();
 		return messages;
+	}
+
+	public JoinResult join(PlayerId playerId) {
+		if (!players.containsKey(playerId)) {
+			return new JoinResult.InvalidJoin("Unknown player: " + playerId.value());
+		}
+
+		if (status == GameStatus.READY) {
+			emit(GameMessage.send(
+					new GameEvent.GameState(List.copyOf(tickers.keySet()), currentPrices()),
+					playerId.value()));
+			return new JoinResult.GameInProgress();
+		}
+
+		if (readyPlayers.contains(playerId)) {
+			return new JoinResult.AlreadyReady();
+		}
+
+		readyPlayers.add(playerId);
+		emit(GameMessage.broadcast(new GameEvent.PlayerJoined(playerId)));
+
+		if (readyPlayers.size() == players.size()) {
+			status = GameStatus.READY;
+			emit(GameMessage.broadcast(new GameEvent.AllPlayersReady()));
+			return new JoinResult.AllReady();
+		}
+
+		return new JoinResult.Joined();
+	}
+
+	public Map<Symbol, Money> currentPrices() {
+		Map<Symbol, Money> prices = new HashMap<>();
+		tickers.forEach((symbol, ticker) -> prices.put(symbol, ticker.currentPrice()));
+		return prices;
 	}
 
 	private void emit(GameMessage message) {

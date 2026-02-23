@@ -6,8 +6,10 @@ import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 import java.util.List;
+import java.util.Map;
 
-public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.TickerTicked, GameEvent.GameCreated {
+public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.TickerTicked, GameEvent.GameCreated,
+		GameEvent.PlayerJoined, GameEvent.AllPlayersReady, GameEvent.GameState {
 	record OrderFilled(Order order, PlayerId playerId) implements GameEvent {
 	}
 
@@ -15,5 +17,14 @@ public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.Ticke
 	}
 
 	record GameCreated(List<Symbol> symbols) implements GameEvent {
+	}
+
+	record PlayerJoined(PlayerId playerId) implements GameEvent {
+	}
+
+	record AllPlayersReady() implements GameEvent {
+	}
+
+	record GameState(List<Symbol> symbols, Map<Symbol, Money> prices) implements GameEvent {
 	}
 }
