@@ -28,15 +28,6 @@ import java.util.Map;
 @WebSocket(path = "/game/{gameId}")
 public class StockGameWebSocketAdapter {
 
-	record ClientMessage(String type, Map<String, Object> payload) {
-	}
-
-	record JoinPayload(String playerId) {
-	}
-
-	record OrderPayload(String ticker, int price) {
-	}
-
 	@Inject
 	JoinGameUseCase joinGameUseCase;
 
@@ -86,7 +77,7 @@ public class StockGameWebSocketAdapter {
 			case JoinResult.InvalidJoin inv -> sendError(connection, "INVALID_JOIN", inv.reason());
 			default -> {
 				registry.associatePlayer(connection.id(), new PlayerId(playerIdStr));
-				sendMessage(connection, "JOINED", Map.of("playerId", playerIdStr));
+				sendMessage(connection, new ServerMessage("JOINED", new JoinedData(playerIdStr)));
 			}
 		}
 		dispatchMessages(gameId, result.messages());
@@ -108,7 +99,8 @@ public class StockGameWebSocketAdapter {
 		switch (result.result()) {
 			case OrderResult.Filled ignored -> {
 				String sideStr = side == PlaceOrderCommand.OrderSide.BUY ? "BUY" : "SELL";
-				sendMessage(connection, "ORDER_FILLED", Map.of("symbol", ticker, "price", price, "side", sideStr));
+				sendMessage(connection, new ServerMessage("ORDER_FILLED",
+						new OrderFilledResponseData(ticker, price, sideStr)));
 			}
 			case OrderResult.Rejected rej -> sendError(connection, "ORDER_REJECTED", rej.reason());
 			case OrderResult.InvalidOrder inv -> sendError(connection, "INVALID_ORDER", inv.reason());
@@ -118,10 +110,10 @@ public class StockGameWebSocketAdapter {
 
 	public void dispatchMessages(String gameId, List<GameMessage> messages) {
 		for (GameMessage message : messages) {
-			Map<String, Object> serialized = serializeEvent(message.event());
+			ServerMessage serverMessage = toServerMessage(message.event());
 			String json;
 			try {
-				json = objectMapper.writeValueAsString(serialized);
+				json = objectMapper.writeValueAsString(serverMessage);
 			} catch (Exception e) {
 				continue;
 			}
@@ -136,46 +128,34 @@ public class StockGameWebSocketAdapter {
 		}
 	}
 
-	private Map<String, Object> serializeEvent(GameEvent event) {
+	private ServerMessage toServerMessage(GameEvent event) {
 		return switch (event) {
-			case GameEvent.TickerTicked tt -> Map.of(
-					"type", "TICKER_TICKED",
-					"data", Map.of("symbol", tt.symbol().value(), "price", tt.price().cents()));
+			case GameEvent.TickerTicked tt -> new ServerMessage("TICKER_TICKED",
+					new TickerTickedData(tt.symbol().value(), tt.price().cents()));
 			case GameEvent.OrderFilled of -> {
 				Order order = of.order();
 				String side = order instanceof Order.Buy ? "BUY" : "SELL";
-				yield Map.of(
-						"type", "ORDER_FILLED",
-						"data", Map.of(
-								"symbol", order.symbol().value(),
-								"price", order.price().cents(),
-								"side", side,
-								"playerId", of.playerId().value()));
+				yield new ServerMessage("ORDER_FILLED",
+						new OrderFilledData(order.symbol().value(), order.price().cents(), side, of.playerId().value()));
 			}
-			case GameEvent.PlayerJoined pj -> Map.of(
-					"type", "PLAYER_JOINED",
-					"data", Map.of("playerId", pj.playerId().value()));
-			case GameEvent.AllPlayersReady ignored -> Map.of(
-					"type", "ALL_PLAYERS_READY",
-					"data", Map.of());
-			case GameEvent.GameCreated gc -> Map.of(
-					"type", "GAME_CREATED",
-					"data", Map.of("symbols", gc.symbols().stream().map(s -> s.value()).toList()));
+			case GameEvent.PlayerJoined pj -> new ServerMessage("PLAYER_JOINED",
+					new PlayerJoinedData(pj.playerId().value()));
+			case GameEvent.AllPlayersReady ignored -> new ServerMessage("ALL_PLAYERS_READY",
+					new AllPlayersReadyData());
+			case GameEvent.GameCreated gc -> new ServerMessage("GAME_CREATED",
+					new GameCreatedData(gc.symbols().stream().map(s -> s.value()).toList()));
 			case GameEvent.GameState gs -> {
 				Map<String, Integer> prices = new LinkedHashMap<>();
 				gs.prices().forEach((sym, money) -> prices.put(sym.value(), money.cents()));
-				yield Map.of(
-						"type", "GAME_STATE",
-						"data", Map.of(
-								"symbols", gs.symbols().stream().map(s -> s.value()).toList(),
-								"prices", prices));
+				yield new ServerMessage("GAME_STATE",
+						new GameStateData(gs.symbols().stream().map(s -> s.value()).toList(), prices));
 			}
 		};
 	}
 
-	private void sendMessage(WebSocketConnection connection, String type, Object data) {
+	private void sendMessage(WebSocketConnection connection, ServerMessage message) {
 		try {
-			String json = objectMapper.writeValueAsString(Map.of("type", type, "data", data));
+			String json = objectMapper.writeValueAsString(message);
 			connection.sendTextAndAwait(json);
 		} catch (Exception e) {
 			// best-effort
@@ -183,6 +163,41 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private void sendError(WebSocketConnection connection, String code, String message) {
-		sendMessage(connection, "ERROR", Map.of("code", code, "message", message));
+		sendMessage(connection, new ServerMessage("ERROR", new ErrorData(code, message)));
+	}
+
+	// Inbound message types
+	record ClientMessage(String type, Map<String, Object> payload) {
+	}
+
+	// Outbound wire format
+	private record ServerMessage(String type, Object data) {
+	}
+
+	private record TickerTickedData(String symbol, int price) {
+	}
+
+	private record OrderFilledData(String symbol, int price, String side, String playerId) {
+	}
+
+	private record PlayerJoinedData(String playerId) {
+	}
+
+	private record AllPlayersReadyData() {
+	}
+
+	private record GameCreatedData(List<String> symbols) {
+	}
+
+	private record GameStateData(List<String> symbols, Map<String, Integer> prices) {
+	}
+
+	private record JoinedData(String playerId) {
+	}
+
+	private record OrderFilledResponseData(String symbol, int price, String side) {
+	}
+
+	private record ErrorData(String code, String message) {
 	}
 }
