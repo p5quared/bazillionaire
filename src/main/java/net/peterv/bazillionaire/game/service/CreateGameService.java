@@ -1,5 +1,6 @@
 package net.peterv.bazillionaire.game.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
@@ -9,6 +10,7 @@ import net.peterv.bazillionaire.game.port.out.GameRepository;
 
 import java.util.Random;
 
+@ApplicationScoped
 public class CreateGameService implements CreateGameUseCase {
 	private final static int DEFAULT_BALANCE = 100_000_00;
 	private final static int DEFAULT_TICKER_PRICE = 100_00;

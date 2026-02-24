@@ -1,5 +1,6 @@
 package net.peterv.bazillionaire.game.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import net.peterv.bazillionaire.game.domain.JoinResult;
 import net.peterv.bazillionaire.game.port.in.JoinGameCommand;
 import net.peterv.bazillionaire.game.port.in.JoinGameUseCase;
@@ -8,6 +9,7 @@ import net.peterv.bazillionaire.game.port.out.GameRepository;
 
 import java.util.List;
 
+@ApplicationScoped
 public class JoinGameService implements JoinGameUseCase {
 	private final GameRepository gameRepository;
 

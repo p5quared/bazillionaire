@@ -1,5 +1,6 @@
 package net.peterv.bazillionaire.game.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.port.in.PlaceOrderCommand;
@@ -9,6 +10,7 @@ import net.peterv.bazillionaire.game.port.out.GameRepository;
 
 import java.util.List;
 
+@ApplicationScoped
 public class PlaceOrderService implements PlaceOrderUseCase {
 	private final GameRepository gameRepository;
 
