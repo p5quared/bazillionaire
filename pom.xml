@@ -32,6 +32,11 @@
     </dependencyManagement>
 
     <dependencies>
+		<dependency>
+		  <groupId>io.quarkus</groupId>
+		  <artifactId>quarkus-jacoco</artifactId>
+		  <scope>test</scope>
+		</dependency>
         <dependency>
             <groupId>io.quarkiverse.renarde</groupId>
             <artifactId>quarkus-renarde</artifactId>
