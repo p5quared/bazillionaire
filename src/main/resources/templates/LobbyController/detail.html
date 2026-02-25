@@ -28,6 +28,10 @@
         {#authenticityToken/}
         <button type="submit">Leave</button>
     </form>
+    <form action="/lobby/{lobby.id}/delete" method="post">
+        {#authenticityToken/}
+        <button type="submit">Delete Lobby</button>
+    </form>
     {/if}
 
     <a href="/lobby">Back to Lobbies</a>

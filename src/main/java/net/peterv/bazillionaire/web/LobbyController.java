@@ -101,6 +101,18 @@ public class LobbyController extends Controller {
 		throw new RedirectException(Response.seeOther(URI.create("/game/" + id)).build());
 	}
 
+	@POST
+	@Path("/{id}/delete")
+	public void delete(@PathParam("id") String id) {
+		try {
+			lobbyService.deleteLobby(id);
+		} catch (Lobby.LobbyNotOpenException e) {
+			flash("error", "Cannot delete a lobby that has already started");
+			throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
+		}
+		throw new RedirectException(Response.seeOther(URI.create("/lobby")).build());
+	}
+
 	@GET
 	@Path("/{id}/status")
 	@Produces(MediaType.APPLICATION_JSON)

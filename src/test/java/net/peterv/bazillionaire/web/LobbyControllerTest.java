@@ -20,7 +20,9 @@ class LobbyControllerTest {
 		return result.token();
 	}
 
-	/** Creates a lobby and returns its 6-char ID extracted from the Location header. */
+	/**
+	 * Creates a lobby and returns its 6-char ID extracted from the Location header.
+	 */
 	private String createLobby(String token, String name) {
 		var response = given()
 				.cookie("SESSION_TOKEN", token)
@@ -225,6 +227,52 @@ class LobbyControllerTest {
 				.then()
 				.statusCode(303)
 				.header("Location", endsWith("/game/" + lobbyId));
+	}
+
+	@Test
+	void delete_deletesLobbyAndRedirects() {
+		String token = sessionCookie("deleter-" + UUID.randomUUID());
+		String lobbyId = createLobby(token, "Delete Me Lobby");
+
+		given()
+				.cookie("SESSION_TOKEN", token)
+				.redirects().follow(false)
+				.when()
+				.post("/lobby/" + lobbyId + "/delete")
+				.then()
+				.statusCode(303)
+				.header("Location", endsWith("/lobby"));
+
+		given()
+				.cookie("SESSION_TOKEN", token)
+				.redirects().follow(false)
+				.when()
+				.get("/lobby/" + lobbyId)
+				.then()
+				.statusCode(303)
+				.header("Location", endsWith("/lobby"));
+	}
+
+	@Test
+	void delete_cannotDeleteStartedLobby() {
+		String aliceToken = sessionCookie("alice8-" + UUID.randomUUID());
+		String bobToken = sessionCookie("bob8-" + UUID.randomUUID());
+		String lobbyId = createLobby(aliceToken, "Started Delete Lobby");
+
+		given().cookie("SESSION_TOKEN", bobToken).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/join");
+
+		given().cookie("SESSION_TOKEN", aliceToken).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/start");
+
+		given()
+				.cookie("SESSION_TOKEN", aliceToken)
+				.redirects().follow(false)
+				.when()
+				.post("/lobby/" + lobbyId + "/delete")
+				.then()
+				.statusCode(303)
+				.header("Location", endsWith("/lobby/" + lobbyId));
 	}
 
 	@Test

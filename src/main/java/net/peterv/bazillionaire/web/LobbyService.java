@@ -28,7 +28,8 @@ public class LobbyService {
 	@Transactional
 	public void joinLobby(String lobbyId, String playerId) {
 		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null) return;
+		if (lobby == null)
+			return;
 		try {
 			lobby.addMember(playerId, playerId);
 		} catch (Lobby.AlreadyInLobbyException ignored) {
@@ -39,17 +40,29 @@ public class LobbyService {
 	@Transactional
 	public void leaveLobby(String lobbyId, String playerId) {
 		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null) return;
+		if (lobby == null)
+			return;
 		lobby.removeMember(playerId);
 	}
 
 	@Transactional
 	public CreateGameCommand startLobby(String lobbyId) {
 		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null) throw new NotFoundException("Lobby not found");
+		if (lobby == null)
+			throw new NotFoundException("Lobby not found");
 		lobby.start();
 		var playerIds = lobby.members.stream().map(m -> m.playerId).toList();
 		return new CreateGameCommand(lobbyId, playerIds, 3);
+	}
+
+	@Transactional
+	public void deleteLobby(String lobbyId) {
+		Lobby lobby = Lobby.findById(lobbyId);
+		if (lobby == null)
+			return;
+		if (lobby.status != Lobby.LobbyStatus.WAITING)
+			throw new Lobby.LobbyNotOpenException();
+		lobby.delete();
 	}
 
 	private String generateId() {
