@@ -1,6 +1,7 @@
 package net.peterv.bazillionaire.web;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.response.ValidatableResponse;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
@@ -37,6 +38,52 @@ class LobbyControllerTest {
 				.response();
 		String location = response.getHeader("Location");
 		return location.substring(location.lastIndexOf('/') + 1);
+	}
+
+	private void joinLobby(String token, String lobbyId) {
+		given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/join");
+	}
+
+	private void startLobby(String token, String lobbyId) {
+		given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/start");
+	}
+
+	private void checkJoin(String token, String lobbyId, String locationSuffix) {
+		given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/join")
+				.then().statusCode(303).header("Location", endsWith(locationSuffix));
+	}
+
+	private void checkLeave(String token, String lobbyId, String locationSuffix) {
+		given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/leave")
+				.then().statusCode(303).header("Location", endsWith(locationSuffix));
+	}
+
+	private void checkStart(String token, String lobbyId, String locationSuffix) {
+		given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/start")
+				.then().statusCode(303).header("Location", endsWith(locationSuffix));
+	}
+
+	private void checkDelete(String token, String lobbyId, String locationSuffix) {
+		given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().post("/lobby/" + lobbyId + "/delete")
+				.then().statusCode(303).header("Location", endsWith(locationSuffix));
+	}
+
+	private ValidatableResponse checkGetLobby(String token, String lobbyId) {
+		return given().cookie("SESSION_TOKEN", token).redirects().follow(false)
+				.when().get("/lobby/" + lobbyId)
+				.then();
+	}
+
+	private ValidatableResponse checkGetStatus(String token, String lobbyId) {
+		return given().cookie("SESSION_TOKEN", token)
+				.when().get("/lobby/" + lobbyId + "/status")
+				.then().statusCode(200).contentType(containsString("application/json"));
 	}
 
 	@Test
@@ -95,13 +142,7 @@ class LobbyControllerTest {
 	void detail_showsWaitingRoom() {
 		String token = sessionCookie("detail-user-" + UUID.randomUUID());
 		String lobbyId = createLobby(token, "Detail Test Lobby");
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.when()
-				.get("/lobby/" + lobbyId)
-				.then()
-				.statusCode(200)
-				.body(containsString("Detail Test Lobby"));
+		checkGetLobby(token, lobbyId).statusCode(200).body(containsString("Detail Test Lobby"));
 	}
 
 	@Test
@@ -110,21 +151,9 @@ class LobbyControllerTest {
 		String bobToken = sessionCookie("bob-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Started Lobby");
 
-		given().cookie("SESSION_TOKEN", bobToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/join");
-
-		given().cookie("SESSION_TOKEN", aliceToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/start")
-				.then().statusCode(303).header("Location", endsWith("/game/" + lobbyId));
-
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.redirects().follow(false)
-				.when()
-				.get("/lobby/" + lobbyId)
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/game/" + lobbyId));
+		joinLobby(bobToken, lobbyId);
+		checkStart(aliceToken, lobbyId, "/game/" + lobbyId);
+		checkGetLobby(aliceToken, lobbyId).statusCode(303).header("Location", endsWith("/game/" + lobbyId));
 	}
 
 	@Test
@@ -134,22 +163,8 @@ class LobbyControllerTest {
 		String bobToken = sessionCookie(bobUsername);
 		String lobbyId = createLobby(aliceToken, "Join Test Lobby");
 
-		given()
-				.cookie("SESSION_TOKEN", bobToken)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/join")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby/" + lobbyId));
-
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.when()
-				.get("/lobby/" + lobbyId)
-				.then()
-				.statusCode(200)
-				.body(containsString(bobUsername));
+		checkJoin(bobToken, lobbyId, "/lobby/" + lobbyId);
+		checkGetLobby(aliceToken, lobbyId).statusCode(200).body(containsString(bobUsername));
 	}
 
 	@Test
@@ -157,14 +172,7 @@ class LobbyControllerTest {
 		String aliceToken = sessionCookie("alice3-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Idempotent Lobby");
 
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/join")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby/" + lobbyId));
+		checkJoin(aliceToken, lobbyId, "/lobby/" + lobbyId);
 	}
 
 	@Test
@@ -174,25 +182,9 @@ class LobbyControllerTest {
 		String bobToken = sessionCookie(bobUsername);
 		String lobbyId = createLobby(aliceToken, "Leave Test Lobby");
 
-		given().cookie("SESSION_TOKEN", bobToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/join");
-
-		given()
-				.cookie("SESSION_TOKEN", bobToken)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/leave")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby"));
-
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.when()
-				.get("/lobby/" + lobbyId)
-				.then()
-				.statusCode(200)
-				.body(not(containsString(bobUsername)));
+		joinLobby(bobToken, lobbyId);
+		checkLeave(bobToken, lobbyId, "/lobby");
+		checkGetLobby(aliceToken, lobbyId).statusCode(200).body(not(containsString(bobUsername)));
 	}
 
 	@Test
@@ -200,14 +192,7 @@ class LobbyControllerTest {
 		String aliceToken = sessionCookie("alice5-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Min Players Lobby");
 
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/start")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby/" + lobbyId));
+		checkStart(aliceToken, lobbyId, "/lobby/" + lobbyId);
 	}
 
 	@Test
@@ -216,17 +201,8 @@ class LobbyControllerTest {
 		String bobToken = sessionCookie("bob6-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Start Game Lobby");
 
-		given().cookie("SESSION_TOKEN", bobToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/join");
-
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/start")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/game/" + lobbyId));
+		joinLobby(bobToken, lobbyId);
+		checkStart(aliceToken, lobbyId, "/game/" + lobbyId);
 	}
 
 	@Test
@@ -234,23 +210,8 @@ class LobbyControllerTest {
 		String token = sessionCookie("deleter-" + UUID.randomUUID());
 		String lobbyId = createLobby(token, "Delete Me Lobby");
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/delete")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby"));
-
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.redirects().follow(false)
-				.when()
-				.get("/lobby/" + lobbyId)
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby"));
+		checkDelete(token, lobbyId, "/lobby");
+		checkGetLobby(token, lobbyId).statusCode(303).header("Location", endsWith("/lobby"));
 	}
 
 	@Test
@@ -259,20 +220,9 @@ class LobbyControllerTest {
 		String bobToken = sessionCookie("bob8-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Started Delete Lobby");
 
-		given().cookie("SESSION_TOKEN", bobToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/join");
-
-		given().cookie("SESSION_TOKEN", aliceToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/start");
-
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.redirects().follow(false)
-				.when()
-				.post("/lobby/" + lobbyId + "/delete")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/lobby/" + lobbyId));
+		joinLobby(bobToken, lobbyId);
+		startLobby(aliceToken, lobbyId);
+		checkDelete(aliceToken, lobbyId, "/lobby/" + lobbyId);
 	}
 
 	@Test
@@ -280,13 +230,7 @@ class LobbyControllerTest {
 		String token = sessionCookie("status-user-" + UUID.randomUUID());
 		String lobbyId = createLobby(token, "Status Lobby");
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.when()
-				.get("/lobby/" + lobbyId + "/status")
-				.then()
-				.statusCode(200)
-				.contentType(containsString("application/json"))
+		checkGetStatus(token, lobbyId)
 				.body("id", is(lobbyId))
 				.body("status", is("WAITING"))
 				.body("members", hasSize(1));
@@ -298,18 +242,8 @@ class LobbyControllerTest {
 		String bobToken = sessionCookie("bob7-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Status Started Lobby");
 
-		given().cookie("SESSION_TOKEN", bobToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/join");
-
-		given().cookie("SESSION_TOKEN", aliceToken).redirects().follow(false)
-				.when().post("/lobby/" + lobbyId + "/start");
-
-		given()
-				.cookie("SESSION_TOKEN", aliceToken)
-				.when()
-				.get("/lobby/" + lobbyId + "/status")
-				.then()
-				.statusCode(200)
-				.body("redirectUrl", is("/game/" + lobbyId));
+		joinLobby(bobToken, lobbyId);
+		startLobby(aliceToken, lobbyId);
+		checkGetStatus(aliceToken, lobbyId).body("redirectUrl", is("/game/" + lobbyId));
 	}
 }
