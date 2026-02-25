@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{lobby.name} - Bazillionaire</title>
+</head>
+<body>
+    <h1>{lobby.name}</h1>
+    <p>Status: {lobby.status}</p>
+    {#if flash:error}
+    <p style="color: red;">{flash:error}</p>
+    {/if}
+
+    <h2>Players ({lobby.members.size} / {lobby.maxPlayers})</h2>
+    <ul>
+    {#for member in lobby.members}
+    <li>{member.displayName}</li>
+    {/for}
+    </ul>
+
+    <p>Waiting for players... ({minPlayers} minimum to start)</p>
+
+    {#if lobby.status.name == "WAITING"}
+    <form action="/lobby/{lobby.id}/start" method="post">
+        {#authenticityToken/}
+        <button type="submit">Start Game</button>
+    </form>
+    <form action="/lobby/{lobby.id}/leave" method="post">
+        {#authenticityToken/}
+        <button type="submit">Leave</button>
+    </form>
+    {/if}
+
+    <a href="/lobby">Back to Lobbies</a>
+
+    <div id="lobby-data" data-lobby-id="{lobby.id}"></div>
+    <script>
+    (function() {
+        var el = document.getElementById('lobby-data');
+        var lobbyId = el.dataset.lobbyId;
+        setInterval(function() {
+            fetch('/lobby/' + lobbyId + '/status')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    }
+                });
+        }, 2000);
+    })();
+    </script>
+</body>
+</html>

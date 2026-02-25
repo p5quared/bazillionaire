@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lobbies - Bazillionaire</title>
+</head>
+<body>
+    <h1>Lobbies</h1>
+    {#if flash:error}
+    <p style="color: red;">{flash:error}</p>
+    {/if}
+
+    <h2>Open Lobbies</h2>
+    {#if lobbies.empty}
+    <p>No open lobbies.</p>
+    {#else}
+    <ul>
+    {#for lobby in lobbies}
+    <li>
+        <a href="/lobby/{lobby.id}">{lobby.name}</a>
+        ({lobby.members.size}/{lobby.maxPlayers} players)
+        {#if !lobby.full}
+        <form action="/lobby/{lobby.id}/join" method="post" style="display:inline">
+            {#authenticityToken/}
+            <button type="submit">Join</button>
+        </form>
+        {/if}
+    </li>
+    {/for}
+    </ul>
+    {/if}
+
+    <h2>Create a Lobby</h2>
+    <form action="/lobby" method="post">
+        {#authenticityToken/}
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+        <label for="maxPlayers">Max Players (2–16):</label>
+        <input type="number" id="maxPlayers" name="maxPlayers" min="2" max="16" value="8">
+        <button type="submit">Create</button>
+    </form>
+
+    <a href="/">Home</a>
+</body>
+</html>
