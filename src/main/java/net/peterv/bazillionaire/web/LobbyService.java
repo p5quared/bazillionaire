@@ -3,9 +3,9 @@ package net.peterv.bazillionaire.web;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -45,14 +45,17 @@ public class LobbyService {
 		lobby.removeMember(playerId);
 	}
 
+	public record StartedLobby(String gameId, List<String> playerIds, int tickerCount) {
+	}
+
 	@Transactional
-	public CreateGameCommand startLobby(String lobbyId) {
+	public StartedLobby startLobby(String lobbyId) {
 		Lobby lobby = Lobby.findById(lobbyId);
 		if (lobby == null)
 			throw new NotFoundException("Lobby not found");
 		lobby.start();
 		var playerIds = lobby.members.stream().map(m -> m.playerId).toList();
-		return new CreateGameCommand(lobbyId, playerIds, 3);
+		return new StartedLobby(lobbyId, playerIds, 3);
 	}
 
 	@Transactional

@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
 import net.peterv.bazillionaire.game.port.in.CreateGameUseCase;
 import org.jboss.resteasy.reactive.RestForm;
 
@@ -89,8 +90,8 @@ public class LobbyController extends Controller {
 	@Path("/{id}/start")
 	public void start(@PathParam("id") String id) {
 		try {
-			var cmd = lobbyService.startLobby(id);
-			createGameUseCase.createGame(cmd);
+			var result = lobbyService.startLobby(id);
+			createGameUseCase.createGame(new CreateGameCommand(result.gameId(), result.playerIds(), result.tickerCount()));
 		} catch (Lobby.NotEnoughPlayersException e) {
 			flash("error", "Need at least " + Lobby.MIN_PLAYERS + " players to start");
 			throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
