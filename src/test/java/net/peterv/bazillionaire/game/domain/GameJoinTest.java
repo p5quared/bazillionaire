@@ -73,7 +73,23 @@ class GameJoinTest {
 		var game = createGame(List.of(PLAYER_1, PLAYER_2));
 		readyPlayer(game, PLAYER_1);
 		readyPlayer(game, PLAYER_2);
+		game.start();
 		assertJoin(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
+	}
+
+	@Test
+	void startTransitionsGameToReady() {
+		var game = createGame(List.of(PLAYER_1));
+		readyPlayer(game, PLAYER_1);
+		// Before start(), tick should produce no events
+		game.tick();
+		assertEquals(0, game.drainMessages().size());
+		// After start(), tick produces ticker events
+		game.start();
+		game.tick();
+		var messages = game.drainMessages();
+		assertFalse(messages.isEmpty());
+		assertInstanceOf(GameEvent.TickerTicked.class, messages.getFirst().event());
 	}
 
 	@SafeVarargs

@@ -17,6 +17,8 @@ import net.peterv.bazillionaire.game.port.in.JoinGameCommand;
 import net.peterv.bazillionaire.game.port.in.JoinGameUseCase;
 import net.peterv.bazillionaire.game.port.in.PlaceOrderCommand;
 import net.peterv.bazillionaire.game.port.in.PlaceOrderUseCase;
+import net.peterv.bazillionaire.game.port.in.StartGameCommand;
+import net.peterv.bazillionaire.game.port.in.StartGameUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
@@ -33,6 +35,9 @@ public class StockGameWebSocketAdapter {
 
 	@Inject
 	PlaceOrderUseCase placeOrderUseCase;
+
+	@Inject
+	StartGameUseCase startGameUseCase;
 
 	@Inject
 	GameSessionRegistry registry;
@@ -81,6 +86,10 @@ public class StockGameWebSocketAdapter {
 			}
 		}
 		dispatchMessages(gameId, result.messages());
+		if (result.result() instanceof JoinResult.AllReady) {
+			UseCaseResult<Void> startResult = startGameUseCase.startGame(new StartGameCommand(gameId));
+			dispatchMessages(gameId, startResult.messages());
+		}
 	}
 
 	private void handleOrder(WebSocketConnection connection, String gameId, Map<String, Object> payload,

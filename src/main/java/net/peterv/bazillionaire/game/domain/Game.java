@@ -130,12 +130,15 @@ public class Game {
 		emit(GameMessage.broadcast(new GameEvent.PlayerJoined(playerId)));
 
 		if (readyPlayers.size() == players.size()) {
-			status = GameStatus.READY;
 			emit(GameMessage.broadcast(new GameEvent.AllPlayersReady()));
 			return new JoinResult.AllReady();
 		}
 
 		return new JoinResult.Joined();
+	}
+
+	public void start() {
+		status = GameStatus.READY;
 	}
 
 	public Map<Symbol, Money> currentPrices() {
