@@ -96,6 +96,15 @@ class TickerTest {
 	}
 
 	@Test
+	void tickBeyondDurationDoesNotThrow() {
+		var ticker = createTicker();
+		for (int i = 0; i < TOTAL_DURATION + 10; i++) {
+			ticker.tick();
+		}
+		assertDoesNotThrow(ticker::currentPrice);
+	}
+
+	@Test
 	void canFillSellOrderAtOrAboveCurrentPrice() {
 		var ticker = createTicker();
 		var symbol = new Symbol("TEST");

@@ -33,7 +33,9 @@ public class Ticker {
 	}
 
 	public void tick() {
-		cursor++;
+		if (cursor < prices.size() - 1) {
+			cursor++;
+		}
 	}
 
 	public List<Money> peek(int n) {
