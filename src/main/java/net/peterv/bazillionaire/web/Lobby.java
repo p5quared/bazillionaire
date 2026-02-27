@@ -11,7 +11,7 @@ import java.util.List;
 @Table(name = "lobbies")
 public class Lobby extends PanacheEntityBase {
 
-	public static final int MIN_PLAYERS = 2;
+	public static final int MIN_PLAYERS = 1;
 	public static final int DEFAULT_MAX = 8;
 	public static final int MAX_HARD_CAP = 16;
 

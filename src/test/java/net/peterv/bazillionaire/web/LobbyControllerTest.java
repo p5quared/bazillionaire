@@ -192,7 +192,7 @@ class LobbyControllerTest {
 		String aliceToken = sessionCookie("alice5-" + UUID.randomUUID());
 		String lobbyId = createLobby(aliceToken, "Min Players Lobby");
 
-		checkStart(aliceToken, lobbyId, "/lobby/" + lobbyId);
+		checkStart(aliceToken, lobbyId, "/game/" + lobbyId);
 	}
 
 	@Test

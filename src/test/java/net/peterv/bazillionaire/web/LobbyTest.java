@@ -78,7 +78,6 @@ class LobbyTest {
 	@Test
 	void start_throwsWhenTooFewPlayers() {
 		var lobby = lobby(4);
-		lobby.addMember("alice", "Alice");
 		assertThrows(Lobby.NotEnoughPlayersException.class, lobby::start);
 	}
 
