@@ -3,28 +3,85 @@
 <head>
     <title>Game - Bazillionaire</title>
     <style>
-        #log {
+        body {
+            margin: 0;
+            font-family: monospace;
+            background: #f0f0f0;
+            color: #111;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #status {
+            padding: 6px 10px;
+            font-weight: bold;
+            background: #fff;
+            border-bottom: 3px solid #111;
+        }
+        #tickers {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .ticker-box {
+            background: #fff;
+            border: 3px solid #111;
+            margin-bottom: -3px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .ticker-symbol {
+            font-size: 14px;
+            font-weight: bold;
+            align-self: flex-start;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .ticker-price {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1;
+            padding: 8px 0 4px;
+        }
+        .ticker-price.up { color: #0a8f3f; }
+        .ticker-price.down { color: #d62828; }
+        #logs {
+            display: flex;
+            height: 200px;
+            min-height: 100px;
+            border-top: 3px solid #111;
+        }
+        #log-events, #log-tickers {
+            flex: 1;
             background: #111;
-            color: #0f0;
             font-family: monospace;
             font-size: 13px;
             padding: 10px;
-            height: 80vh;
             overflow-y: auto;
             white-space: pre-wrap;
             word-break: break-all;
         }
-        #status {
-            padding: 6px 10px;
-            font-family: monospace;
-            font-weight: bold;
+        #log-events {
+            color: #0f0;
+            border-right: 2px solid #333;
+        }
+        #log-tickers {
+            color: #aaa;
         }
     </style>
 </head>
 <body>
-    <h1>Game {gameId}</h1>
     <p id="status">Connecting...</p>
-    <div id="log"></div>
+    <div id="tickers"></div>
+    <div id="logs">
+        <div id="log-events"></div>
+        <div id="log-tickers"></div>
+    </div>
 
     <div id="game-data" data-game-id="{gameId}" data-player-id="{playerId}"></div>
     <script>
@@ -32,8 +89,49 @@
         var el = document.getElementById('game-data');
         var gameId = el.dataset.gameId;
         var playerId = el.dataset.playerId;
-        var log = document.getElementById('log');
+        var logEvents = document.getElementById('log-events');
+        var logTickers = document.getElementById('log-tickers');
         var status = document.getElementById('status');
+        var tickersEl = document.getElementById('tickers');
+
+        var prices = {};
+        var prevPrices = {};
+
+        function formatPrice(cents) {
+            return '$' + (cents / 100).toFixed(2);
+        }
+
+        function renderTickers() {
+            tickersEl.innerHTML = '';
+            var symbols = Object.keys(prices).sort();
+            for (var i = 0; i < symbols.length; i++) {
+                var sym = symbols[i];
+                var box = document.createElement('div');
+                box.className = 'ticker-box';
+
+                var nameEl = document.createElement('span');
+                nameEl.className = 'ticker-symbol';
+                nameEl.textContent = sym;
+
+                var priceEl = document.createElement('span');
+                priceEl.className = 'ticker-price';
+                var prev = prevPrices[sym];
+                if (prev !== undefined && prices[sym] > prev) priceEl.classList.add('up');
+                else if (prev !== undefined && prices[sym] < prev) priceEl.classList.add('down');
+                priceEl.textContent = formatPrice(prices[sym]);
+
+                box.appendChild(nameEl);
+                box.appendChild(priceEl);
+                tickersEl.appendChild(box);
+            }
+        }
+
+        function appendLog(target, text) {
+            var line = document.createElement('div');
+            line.textContent = text;
+            target.appendChild(line);
+            target.scrollTop = target.scrollHeight;
+        }
 
         var protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
         var ws = new WebSocket(protocol + '//' + location.host + '/game/' + gameId);
@@ -45,10 +143,21 @@
 
         ws.onmessage = function(event) {
             status.textContent = 'Connected';
-            var line = document.createElement('div');
-            line.textContent = event.data;
-            log.appendChild(line);
-            log.scrollTop = log.scrollHeight;
+            var msg = JSON.parse(event.data);
+
+            if (msg.type === 'GAME_STATE') {
+                prevPrices = Object.assign({}, prices);
+                prices = msg.data.prices;
+                renderTickers();
+                appendLog(logTickers, event.data);
+            } else if (msg.type === 'TICKER_TICKED') {
+                prevPrices[msg.data.symbol] = prices[msg.data.symbol];
+                prices[msg.data.symbol] = msg.data.price;
+                renderTickers();
+                appendLog(logTickers, msg.data.symbol + ' → ' + formatPrice(msg.data.price));
+            } else {
+                appendLog(logEvents, event.data);
+            }
         };
 
         ws.onclose = function() {
