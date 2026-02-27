@@ -95,11 +95,13 @@ public class Game {
 	}
 
 	public void tick() {
-		tickers.forEach((symbol, ticker) -> {
-			ticker.tick();
-			emit(GameMessage.broadcast(
-					new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
-		});
+		if (this.status == GameStatus.READY) {
+		  tickers.forEach((symbol, ticker) -> {
+			  ticker.tick();
+			  emit(GameMessage.broadcast(
+					  new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
+		  });
+		}
 	}
 
 	public List<GameMessage> drainMessages() {
