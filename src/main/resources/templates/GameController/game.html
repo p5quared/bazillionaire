@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game - Bazillionaire</title>
+    <style>
+        #log {
+            background: #111;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 10px;
+            height: 80vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        #status {
+            padding: 6px 10px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game {gameId}</h1>
+    <p id="status">Connecting...</p>
+    <div id="log"></div>
+
+    <div id="game-data" data-game-id="{gameId}" data-player-id="{playerId}"></div>
+    <script>
+    (function() {
+        var el = document.getElementById('game-data');
+        var gameId = el.dataset.gameId;
+        var playerId = el.dataset.playerId;
+        var log = document.getElementById('log');
+        var status = document.getElementById('status');
+
+        var protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var ws = new WebSocket(protocol + '//' + location.host + '/game/' + gameId);
+
+        ws.onopen = function() {
+            status.textContent = 'Connected. Joining...';
+            ws.send(JSON.stringify({ type: 'JOIN', payload: { playerId: playerId } }));
+        };
+
+        ws.onmessage = function(event) {
+            status.textContent = 'Connected';
+            var line = document.createElement('div');
+            line.textContent = event.data;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        };
+
+        ws.onclose = function() {
+            status.textContent = 'Disconnected';
+        };
+
+        ws.onerror = function() {
+            status.textContent = 'Connection error';
+        };
+    })();
+    </script>
+</body>
+</html>
