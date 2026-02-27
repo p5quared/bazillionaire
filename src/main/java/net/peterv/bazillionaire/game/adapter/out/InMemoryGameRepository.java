@@ -19,6 +19,11 @@ public class InMemoryGameRepository implements GameRepository {
 	}
 
 	@Override
+	public void removeGame(GameId gameId) {
+		games.remove(gameId);
+	}
+
+	@Override
 	public <T> T withGame(GameId gameId, Function<Game, T> action) {
 		Game game = games.get(gameId);
 		if (game == null) {

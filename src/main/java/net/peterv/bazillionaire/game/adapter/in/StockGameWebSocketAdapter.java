@@ -159,6 +159,8 @@ public class StockGameWebSocketAdapter {
 				yield new ServerMessage("GAME_STATE",
 						new GameStateData(gs.symbols().stream().map(s -> s.value()).toList(), prices));
 			}
+			case GameEvent.GameFinished ignored -> new ServerMessage("GAME_FINISHED",
+					new GameFinishedData());
 		};
 	}
 
@@ -205,6 +207,9 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private record OrderFilledResponseData(String symbol, int price, String side) {
+	}
+
+	private record GameFinishedData() {
 	}
 
 	private record ErrorData(String code, String message) {

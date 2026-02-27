@@ -65,6 +65,17 @@ public class GameSessionRegistry {
 				.findFirst();
 	}
 
+	public void deregisterGame(String gameId) {
+		Set<String> connectionIds = connectionsByGame.remove(gameId);
+		if (connectionIds != null) {
+			for (String connectionId : connectionIds) {
+				connectionById.remove(connectionId);
+				gameIdByConnection.remove(connectionId);
+				playerIdByConnection.remove(connectionId);
+			}
+		}
+	}
+
 	public Set<String> activeGameIds() {
 		return Collections.unmodifiableSet(connectionsByGame.keySet());
 	}

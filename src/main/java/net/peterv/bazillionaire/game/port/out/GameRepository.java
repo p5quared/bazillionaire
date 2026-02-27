@@ -9,4 +9,6 @@ public interface GameRepository {
 	<T> T withGame(GameId gameId, Function<Game, T> action);
 
 	void saveGame(GameId gameId, Game game);
+
+	void removeGame(GameId gameId);
 }

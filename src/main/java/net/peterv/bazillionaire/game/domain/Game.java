@@ -22,6 +22,8 @@ public class Game {
 	private final Map<Symbol, Ticker> tickers;
 	private final List<GameMessage> pendingMessages = new ArrayList<>();
 	private final Set<PlayerId> readyPlayers = new HashSet<>();
+	private final int totalDuration;
+	private int tickCount = 0;
 	private GameStatus status = GameStatus.PENDING;
 
 	public static Game create(
@@ -46,7 +48,7 @@ public class Game {
 			tickers.put(symbol, new Ticker(initialPrice, totalDuration, strategyDuration, random));
 		}
 
-		Game game = new Game(players, tickers);
+		Game game = new Game(players, tickers, totalDuration);
 		game.emit(GameMessage.broadcast(
 				new GameEvent.GameCreated(List.copyOf(tickers.keySet()))));
 		return game;
@@ -61,9 +63,10 @@ public class Game {
 		return new Symbol(sb.toString());
 	}
 
-	public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers) {
+	public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers, int totalDuration) {
 		this.players = new HashMap<>(players);
 		this.tickers = new HashMap<>(tickers);
+		this.totalDuration = totalDuration;
 	}
 
 	public OrderResult placeOrder(Order order, PlayerId playerId) {
@@ -101,6 +104,11 @@ public class Game {
 			  emit(GameMessage.broadcast(
 					  new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
 		  });
+		  tickCount++;
+		  if (tickCount >= totalDuration) {
+			  status = GameStatus.FINISHED;
+			  emit(GameMessage.broadcast(new GameEvent.GameFinished()));
+		  }
 		}
 	}
 
