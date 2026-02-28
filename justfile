@@ -1,3 +1,8 @@
 get-coverage:
   ./mvnw verify && open ./target/jacoco-report/index.html
 
+build:
+  ./mvnw package
+
+deploy: build
+  fly deploy
