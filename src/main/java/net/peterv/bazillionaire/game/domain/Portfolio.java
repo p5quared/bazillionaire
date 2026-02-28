@@ -5,6 +5,7 @@ import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,5 +45,13 @@ public class Portfolio {
 
 	public int holdingsOf(Symbol symbol) {
 		return holdings.getOrDefault(symbol, 0);
+	}
+
+	public Money cashBalance() {
+		return cashBalance;
+	}
+
+	public Map<Symbol, Integer> holdings() {
+		return Collections.unmodifiableMap(holdings);
 	}
 }

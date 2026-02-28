@@ -92,6 +92,8 @@ public class Game {
 			case OrderResult.Filled f -> {
 				emit(GameMessage.broadcast(
 						new GameEvent.OrderFilled(order, playerId)));
+				emit(GameMessage.broadcast(
+						new GameEvent.PlayersState(playerPortfolios())));
 				yield f;
 			}
 		};
@@ -125,7 +127,7 @@ public class Game {
 
 		if (status == GameStatus.READY) {
 			emit(GameMessage.send(
-					new GameEvent.GameState(List.copyOf(tickers.keySet()), currentPrices()),
+					new GameEvent.GameState(List.copyOf(tickers.keySet()), currentPrices(), playerPortfolios()),
 					playerId.value()));
 			return new JoinResult.GameInProgress();
 		}
@@ -147,6 +149,14 @@ public class Game {
 
 	public void start() {
 		status = GameStatus.READY;
+		emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
+	}
+
+	private Map<PlayerId, GameEvent.PlayerPortfolio> playerPortfolios() {
+		Map<PlayerId, GameEvent.PlayerPortfolio> result = new HashMap<>();
+		players.forEach((id, p) ->
+				result.put(id, new GameEvent.PlayerPortfolio(p.cashBalance(), Map.copyOf(p.holdings()))));
+		return result;
 	}
 
 	public Map<Symbol, Money> currentPrices() {

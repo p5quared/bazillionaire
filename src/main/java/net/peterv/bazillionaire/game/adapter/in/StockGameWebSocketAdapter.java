@@ -153,15 +153,29 @@ public class StockGameWebSocketAdapter {
 					new AllPlayersReadyData());
 			case GameEvent.GameCreated gc -> new ServerMessage("GAME_CREATED",
 					new GameCreatedData(gc.symbols().stream().map(s -> s.value()).toList()));
+			case GameEvent.PlayersState ps -> new ServerMessage("PLAYERS_STATE",
+					new PlayersStateData(serializePlayers(ps.players())));
 			case GameEvent.GameState gs -> {
 				Map<String, Integer> prices = new LinkedHashMap<>();
 				gs.prices().forEach((sym, money) -> prices.put(sym.value(), money.cents()));
 				yield new ServerMessage("GAME_STATE",
-						new GameStateData(gs.symbols().stream().map(s -> s.value()).toList(), prices));
+						new GameStateData(gs.symbols().stream().map(s -> s.value()).toList(), prices,
+								serializePlayers(gs.players())));
 			}
 			case GameEvent.GameFinished ignored -> new ServerMessage("GAME_FINISHED",
 					new GameFinishedData());
 		};
+	}
+
+	private Map<String, PlayerSnapshotData> serializePlayers(
+			Map<net.peterv.bazillionaire.game.domain.types.PlayerId, net.peterv.bazillionaire.game.service.GameEvent.PlayerPortfolio> players) {
+		Map<String, PlayerSnapshotData> result = new LinkedHashMap<>();
+		players.forEach((pid, portfolio) -> {
+			Map<String, Integer> holdings = new LinkedHashMap<>();
+			portfolio.holdings().forEach((sym, qty) -> holdings.put(sym.value(), qty));
+			result.put(pid.value(), new PlayerSnapshotData(portfolio.cashBalance().cents(), holdings));
+		});
+		return result;
 	}
 
 	private void sendMessage(WebSocketConnection connection, ServerMessage message) {
@@ -200,7 +214,14 @@ public class StockGameWebSocketAdapter {
 	private record GameCreatedData(List<String> symbols) {
 	}
 
-	private record GameStateData(List<String> symbols, Map<String, Integer> prices) {
+	private record PlayerSnapshotData(int cashBalance, Map<String, Integer> holdings) {
+	}
+
+	private record PlayersStateData(Map<String, PlayerSnapshotData> players) {
+	}
+
+	private record GameStateData(List<String> symbols, Map<String, Integer> prices,
+			Map<String, PlayerSnapshotData> players) {
 	}
 
 	private record JoinedData(String playerId) {

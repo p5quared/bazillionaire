@@ -18,6 +18,36 @@
             background: #fff;
             border-bottom: 3px solid #111;
         }
+        #players {
+            display: flex;
+            flex-direction: row;
+            gap: 0;
+            padding: 12px 12px 0;
+            overflow-x: auto;
+        }
+        .player-box {
+            background: #fff;
+            border: 3px solid #111;
+            margin-right: -3px;
+            padding: 12px 16px;
+            font-family: monospace;
+            min-width: 140px;
+        }
+        .player-name {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .player-cash {
+            font-size: 16px;
+            font-weight: 900;
+        }
+        .player-holdings {
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+        }
         #tickers {
             display: flex;
             flex-direction: column;
@@ -77,6 +107,7 @@
 </head>
 <body>
     <p id="status">Connecting...</p>
+    <div id="players"></div>
     <div id="tickers"></div>
     <div id="logs">
         <div id="log-events"></div>
@@ -96,9 +127,41 @@
 
         var prices = {};
         var prevPrices = {};
+        var playersEl = document.getElementById('players');
 
         function formatPrice(cents) {
             return '$' + (cents / 100).toFixed(2);
+        }
+
+        function renderPlayers(players) {
+            playersEl.innerHTML = '';
+            var ids = Object.keys(players).sort();
+            for (var i = 0; i < ids.length; i++) {
+                var id = ids[i];
+                var p = players[id];
+                var box = document.createElement('div');
+                box.className = 'player-box';
+
+                var nameEl = document.createElement('div');
+                nameEl.className = 'player-name';
+                nameEl.textContent = id;
+
+                var cashEl = document.createElement('div');
+                cashEl.className = 'player-cash';
+                cashEl.textContent = formatPrice(p.cashBalance);
+
+                var holdingsEl = document.createElement('div');
+                holdingsEl.className = 'player-holdings';
+                var syms = Object.keys(p.holdings).filter(function(s) { return p.holdings[s] > 0; }).sort();
+                holdingsEl.textContent = syms.length > 0
+                    ? syms.map(function(s) { return s + ': ' + p.holdings[s]; }).join('  ')
+                    : 'no shares';
+
+                box.appendChild(nameEl);
+                box.appendChild(cashEl);
+                box.appendChild(holdingsEl);
+                playersEl.appendChild(box);
+            }
         }
 
         function renderTickers() {
@@ -145,10 +208,13 @@
             status.textContent = 'Connected';
             var msg = JSON.parse(event.data);
 
-            if (msg.type === 'GAME_STATE') {
+            if (msg.type === 'PLAYERS_STATE') {
+                renderPlayers(msg.data.players);
+            } else if (msg.type === 'GAME_STATE') {
                 prevPrices = Object.assign({}, prices);
                 prices = msg.data.prices;
                 renderTickers();
+                if (msg.data.players) renderPlayers(msg.data.players);
                 appendLog(logTickers, event.data);
             } else if (msg.type === 'TICKER_TICKED') {
                 prevPrices[msg.data.symbol] = prices[msg.data.symbol];

@@ -74,6 +74,7 @@ class GameJoinTest {
 		readyPlayer(game, PLAYER_1);
 		readyPlayer(game, PLAYER_2);
 		game.start();
+		game.drainMessages(); // drain PlayersState emitted by start()
 		assertJoin(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
 	}
 
@@ -88,8 +89,7 @@ class GameJoinTest {
 		game.start();
 		game.tick();
 		var messages = game.drainMessages();
-		assertFalse(messages.isEmpty());
-		assertInstanceOf(GameEvent.TickerTicked.class, messages.getFirst().event());
+		assertTrue(messages.stream().anyMatch(m -> m.event() instanceof GameEvent.TickerTicked));
 	}
 
 	@SafeVarargs
