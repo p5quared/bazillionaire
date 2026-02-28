@@ -40,6 +40,11 @@ class GameOrderTest {
 		return game.currentPrices().keySet().iterator().next();
 	}
 
+	/**
+	 * Places {@code order} on behalf of {@code playerId}
+	 * asserts against {@code expectedResult},
+	 * asserts against {@code expectedEvents}
+	 */
 	@SafeVarargs
 	private void assertOrder(Game game, Order order, PlayerId playerId,
 			Class<? extends OrderResult> expectedResult,
@@ -54,66 +59,37 @@ class GameOrderTest {
 	}
 
 	@Test
-	void unknownPlayerOrderIsInvalid() {
+	void invalidOrders() {
 		var game = createReadyGame(List.of(PLAYER_1));
 		var symbol = anySymbol(game);
 		assertOrder(game, new Order.Buy(symbol, INITIAL_PRICE), UNKNOWN, OrderResult.InvalidOrder.class);
-	}
-
-	@Test
-	void unknownSymbolOrderIsInvalid() {
-		var game = createReadyGame(List.of(PLAYER_1));
 		assertOrder(game, new Order.Buy(new Symbol("FAKE"), INITIAL_PRICE), PLAYER_1, OrderResult.InvalidOrder.class);
 	}
 
 	@Test
-	void buyAtCurrentPriceFills() {
+	void buyOrders() {
 		var game = createReadyGame(List.of(PLAYER_1));
 		var symbol = anySymbol(game);
+		assertOrder(game, new Order.Buy(symbol, new Money(INITIAL_PRICE.cents() - 1)), PLAYER_1,
+				OrderResult.Rejected.class);
+		assertOrder(game, new Order.Buy(symbol, new Money(INITIAL_BALANCE.cents() + 1)), PLAYER_1,
+				OrderResult.Rejected.class);
 		assertOrder(game, new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1, OrderResult.Filled.class,
 				GameEvent.OrderFilled.class, GameEvent.PlayersState.class);
 	}
 
 	@Test
-	void buyBelowCurrentPriceIsRejected() {
-		var game = createReadyGame(List.of(PLAYER_1));
-		var symbol = anySymbol(game);
-		var belowPrice = new Money(INITIAL_PRICE.cents() - 1);
-		assertOrder(game, new Order.Buy(symbol, belowPrice), PLAYER_1, OrderResult.Rejected.class);
-	}
-
-	@Test
-	void buyWithInsufficientFundsIsRejected() {
-		var game = createReadyGame(List.of(PLAYER_1));
-		var symbol = anySymbol(game);
-		var unaffordablePrice = new Money(INITIAL_BALANCE.cents() + 1);
-		assertOrder(game, new Order.Buy(symbol, unaffordablePrice), PLAYER_1, OrderResult.Rejected.class);
-	}
-
-	@Test
-	void sellWithoutSharesIsRejected() {
+	void sellOrders() {
 		var game = createReadyGame(List.of(PLAYER_1));
 		var symbol = anySymbol(game);
 		assertOrder(game, new Order.Sell(symbol, INITIAL_PRICE), PLAYER_1, OrderResult.Rejected.class);
-	}
 
-	@Test
-	void sellAfterBuyFills() {
-		var game = createReadyGame(List.of(PLAYER_1));
-		var symbol = anySymbol(game);
 		game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
 		game.drainMessages();
+
+		assertOrder(game, new Order.Sell(symbol, new Money(INITIAL_PRICE.cents() + 1)), PLAYER_1,
+				OrderResult.Rejected.class);
 		assertOrder(game, new Order.Sell(symbol, INITIAL_PRICE), PLAYER_1, OrderResult.Filled.class,
 				GameEvent.OrderFilled.class, GameEvent.PlayersState.class);
-	}
-
-	@Test
-	void sellAboveCurrentPriceIsRejected() {
-		var game = createReadyGame(List.of(PLAYER_1));
-		var symbol = anySymbol(game);
-		game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
-		game.drainMessages();
-		var abovePrice = new Money(INITIAL_PRICE.cents() + 1);
-		assertOrder(game, new Order.Sell(symbol, abovePrice), PLAYER_1, OrderResult.Rejected.class);
 	}
 }
