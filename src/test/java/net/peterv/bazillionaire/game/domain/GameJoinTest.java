@@ -29,59 +29,42 @@ class GameJoinTest {
 		return game;
 	}
 
-	private void readyPlayer(Game game, PlayerId player) {
-		game.join(player);
-		game.drainMessages();
-	}
-
-	@Test
-	void unknownPlayerReturnsInvalidJoin() {
-		var game = createGame(List.of(PLAYER_1));
-		assertJoin(game, UNKNOWN, JoinResult.InvalidJoin.class);
-	}
-
-	@Test
-	void firstPlayerJoinsSuccessfully() {
-		var game = createGame(List.of(PLAYER_1, PLAYER_2));
-		assertJoin(game, PLAYER_1, JoinResult.Joined.class, GameEvent.PlayerJoined.class);
-	}
-
-	@Test
-	void alreadyReadyPlayerReturnsAlreadyReady() {
-		var game = createGame(List.of(PLAYER_1, PLAYER_2));
-		readyPlayer(game, PLAYER_1);
-		assertJoin(game, PLAYER_1, JoinResult.AlreadyReady.class);
-	}
-
-	@Test
-	void lastPlayerJoinReturnsAllReady() {
-		var game = createGame(List.of(PLAYER_1, PLAYER_2));
-		readyPlayer(game, PLAYER_1);
-		assertJoin(game, PLAYER_2, JoinResult.AllReady.class,
-				GameEvent.PlayerJoined.class, GameEvent.AllPlayersReady.class);
-	}
-
-	@Test
-	void singlePlayerGameAllReadyOnFirstJoin() {
-		var game = createGame(List.of(PLAYER_1));
-		assertJoin(game, PLAYER_1, JoinResult.AllReady.class,
-				GameEvent.PlayerJoined.class, GameEvent.AllPlayersReady.class);
-	}
-
-	@Test
-	void joinAfterAllReadyReturnsGameInProgress() {
-		var game = createGame(List.of(PLAYER_1, PLAYER_2));
-		readyPlayer(game, PLAYER_1);
-		readyPlayer(game, PLAYER_2);
+	private Game createStartedGame(List<PlayerId> players) {
+		Game game = createGame(players);
+		players.forEach(game::join);
 		game.start();
-		game.drainMessages(); // drain PlayersState emitted by start()
-		assertJoin(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
+		game.drainMessages();
+		return game;
+	}
+
+	@Test
+	void singlePlayerGameJoinScenarios() {
+		var game = createGame(List.of(PLAYER_1));
+		check(game, UNKNOWN, JoinResult.InvalidJoin.class);
+		check(game, PLAYER_1, JoinResult.AllReady.class,
+				GameEvent.PlayerJoined.class, GameEvent.AllPlayersReady.class);
+	}
+
+	@Test
+	void twoPlayerGameJoinScenarios() {
+		var game = createGame(List.of(PLAYER_1, PLAYER_2));
+		check(game, PLAYER_1, JoinResult.Joined.class, GameEvent.PlayerJoined.class);
+		check(game, PLAYER_1, JoinResult.AlreadyReady.class);
+		check(game, PLAYER_2, JoinResult.AllReady.class,
+				GameEvent.PlayerJoined.class, GameEvent.AllPlayersReady.class);
+	}
+
+	@Test
+	void joinAfterGameStartedReturnsGameInProgress() {
+		var game = createStartedGame(List.of(PLAYER_1, PLAYER_2));
+		check(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
 	}
 
 	@Test
 	void startTransitionsGameToReady() {
 		var game = createGame(List.of(PLAYER_1));
-		readyPlayer(game, PLAYER_1);
+		game.join(PLAYER_1);
+		game.drainMessages();
 		// Before start(), tick should produce no events
 		game.tick();
 		assertEquals(0, game.drainMessages().size());
@@ -92,8 +75,13 @@ class GameJoinTest {
 		assertTrue(messages.stream().anyMatch(m -> m.event() instanceof GameEvent.TickerTicked));
 	}
 
+	/**
+	 * Calls {@link Game#join(PlayerId)} 
+	 * and asserts that the result against {@code expectedResult} 
+	 * and asserts drained messages match {@code expectedEvents} in order.
+	 */
 	@SafeVarargs
-	private void assertJoin(Game game, PlayerId player,
+	private void check(Game game, PlayerId player,
 			Class<? extends JoinResult> expectedResult,
 			Class<? extends GameEvent>... expectedEvents) {
 		var result = game.join(player);
