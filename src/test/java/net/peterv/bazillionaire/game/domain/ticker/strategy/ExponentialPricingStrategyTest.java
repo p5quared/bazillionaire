@@ -9,7 +9,7 @@ class ExponentialPricingStrategyTest {
 
 	private void check(Money startPrice, Money endPrice, int duration, double curvature) {
 		var strategy = new ExponentialPricingStrategy(startPrice, endPrice, duration, curvature);
-		PricingStrategyTestHelper.assertBoundedConvergence(strategy, startPrice, endPrice, duration, StrategyKind.EXPONENTIAL);
+		PricingStrategyTestHelper.assertBoundedConvergence(strategy, startPrice, endPrice, duration);
 	}
 
 	@Test

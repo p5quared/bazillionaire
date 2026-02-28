@@ -10,15 +10,14 @@ public class ExponentialPricingStrategy implements PricingStrategy {
 	private final double curvature;
 	private final double expDenom;
 
-	private int ticks = 0;
-
 	/**
 	 * Moves price from startPrice to endPrice following an exponential curve.
 	 *
 	 * @param startPrice starting price
 	 * @param endPrice   target price at exhaustion
 	 * @param duration   number of ticks to reach endPrice
-	 * @param curvature  controls acceleration (1.0 = nearly linear, 5.0 = sharply exponential)
+	 * @param curvature  controls acceleration (1.0 = nearly linear, 5.0 = sharply
+	 *                   exponential)
 	 */
 	public ExponentialPricingStrategy(Money startPrice, Money endPrice, int duration, double curvature) {
 		this.startCents = startPrice.cents();
@@ -29,25 +28,11 @@ public class ExponentialPricingStrategy implements PricingStrategy {
 	}
 
 	@Override
-	public Money nextPrice() {
-		ticks++;
-		if (isExhausted()) {
+	public Money priceAt(int tick) {
+		if (tick >= duration - 1)
 			return new Money(endCents);
-		}
-
-		double progress = (double) ticks / duration;
+		double progress = (double) (tick + 1) / duration;
 		double normalized = (Math.exp(curvature * progress) - 1.0) / expDenom;
-		int currentCents = startCents + (int) (normalized * (endCents - startCents));
-		return new Money(currentCents);
-	}
-
-	@Override
-	public boolean isExhausted() {
-		return ticks >= duration;
-	}
-
-	@Override
-	public StrategyKind kind() {
-		return StrategyKind.EXPONENTIAL;
+		return new Money(startCents + (int) (normalized * (endCents - startCents)));
 	}
 }

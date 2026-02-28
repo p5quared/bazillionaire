@@ -15,17 +15,15 @@ class CyclePricingStrategyTest {
 			int cycleDuration,
 			int direction,
 			int minExpected,
-			int maxExpected
-	) {
+			int maxExpected) {
 		var strategy = new CyclePricingStrategy(initialPrice, amplitudeCents, cycleDuration, direction);
 
 		boolean allWithinRange = IntStream.range(0, cycleDuration)
-				.mapToObj(i -> strategy.nextPrice())
+				.mapToObj(t -> strategy.priceAt(t))
 				.map(Money::cents)
 				.allMatch(p -> p <= maxExpected && p >= minExpected);
 
 		assertTrue(allWithinRange, "Prices escape range");
-		PricingStrategyTestHelper.assertKindAndExhausted(strategy, StrategyKind.CYCLE);
 	}
 
 	@Test

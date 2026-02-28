@@ -60,7 +60,7 @@ public class Ticker {
 
 			Money lastPrice = segmentStart;
 			for (int t = 0; t < strategyDuration; t++) {
-				lastPrice = strategy.nextPrice();
+				lastPrice = strategy.priceAt(t);
 				timeline.add(lastPrice);
 			}
 			segmentStart = lastPrice;

@@ -9,7 +9,7 @@ class LogisticPricingStrategyTest {
 
 	private void check(Money startPrice, Money endPrice, int duration, double steepness) {
 		var strategy = new LogisticPricingStrategy(startPrice, endPrice, duration, steepness);
-		PricingStrategyTestHelper.assertBoundedConvergence(strategy, startPrice, endPrice, duration, StrategyKind.LOGISTIC);
+		PricingStrategyTestHelper.assertBoundedConvergence(strategy, startPrice, endPrice, duration);
 	}
 
 	@Test

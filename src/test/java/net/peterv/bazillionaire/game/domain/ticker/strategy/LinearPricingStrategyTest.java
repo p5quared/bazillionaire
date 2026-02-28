@@ -16,17 +16,16 @@ class LinearPricingStrategyTest {
 		int expectedRate = direction * stepCents;
 
 		int previousCents = initialPrice.cents();
-		for (int i = 0; i < duration - 1; i++) {
-			int price = strategy.nextPrice().cents();
+		for (int t = 0; t < duration - 1; t++) {
+			int price = strategy.priceAt(t).cents();
 			assertEquals(expectedRate, price - previousCents,
-					"Price change at tick " + (i + 1) + " should be " + expectedRate);
+					"Price change at tick " + t + " should be " + expectedRate);
 			previousCents = price;
 		}
 
-		// Final tick triggers exhaustion — price holds
-		int lastPrice = strategy.nextPrice().cents();
-		assertEquals(previousCents, lastPrice, "Exhausted tick should hold price");
-		PricingStrategyTestHelper.assertKindAndExhausted(strategy, StrategyKind.LINEAR);
+		// Final tick holds price
+		int lastPrice = strategy.priceAt(duration - 1).cents();
+		assertEquals(previousCents, lastPrice, "Last tick should hold price");
 	}
 
 	@Test

@@ -11,15 +11,14 @@ public class LogisticPricingStrategy implements PricingStrategy {
 	private final double logisticAt0;
 	private final double logisticRange;
 
-	private int ticks = 0;
-
 	/**
 	 * Moves price from startPrice to endPrice following a logistic S-curve.
 	 *
 	 * @param startPrice starting price
 	 * @param endPrice   target price at exhaustion
 	 * @param duration   number of ticks to reach endPrice
-	 * @param steepness  controls S-curve sharpness (e.g. 6.0 = moderate, 12.0 = sharp)
+	 * @param steepness  controls S-curve sharpness (e.g. 6.0 = moderate, 12.0 =
+	 *                   sharp)
 	 */
 	public LogisticPricingStrategy(Money startPrice, Money endPrice, int duration, double steepness) {
 		this.startCents = startPrice.cents();
@@ -37,25 +36,11 @@ public class LogisticPricingStrategy implements PricingStrategy {
 	}
 
 	@Override
-	public Money nextPrice() {
-		ticks++;
-		if (isExhausted()) {
+	public Money priceAt(int tick) {
+		if (tick >= duration - 1)
 			return new Money(endCents);
-		}
-
-		double progress = (double) ticks / duration;
+		double progress = (double) (tick + 1) / duration;
 		double normalized = (rawLogistic(progress) - logisticAt0) / logisticRange;
-		int currentCents = startCents + (int) (normalized * (endCents - startCents));
-		return new Money(currentCents);
-	}
-
-	@Override
-	public boolean isExhausted() {
-		return ticks >= duration;
-	}
-
-	@Override
-	public StrategyKind kind() {
-		return StrategyKind.LOGISTIC;
+		return new Money(startCents + (int) (normalized * (endCents - startCents)));
 	}
 }
