@@ -80,6 +80,24 @@
         }
         .ticker-price.up { color: #0a8f3f; }
         .ticker-price.down { color: #d62828; }
+        .ticker-buttons {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .btn-buy, .btn-sell {
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 6px 18px;
+            border: 3px solid #111;
+            border-radius: 0;
+            cursor: pointer;
+            color: #fff;
+        }
+        .btn-buy { background: #0a8f3f; }
+        .btn-sell { background: #d62828; }
         #logs {
             display: flex;
             height: 200px;
@@ -183,8 +201,33 @@
                 else if (prev !== undefined && prices[sym] < prev) priceEl.classList.add('down');
                 priceEl.textContent = formatPrice(prices[sym]);
 
+                var btnsEl = document.createElement('div');
+                btnsEl.className = 'ticker-buttons';
+
+                var buyBtn = document.createElement('button');
+                buyBtn.className = 'btn-buy';
+                buyBtn.textContent = 'BUY';
+                buyBtn.onclick = (function(s) {
+                    return function() {
+                        ws.send(JSON.stringify({ type: 'BUY', payload: { ticker: s, price: prices[s] } }));
+                    };
+                })(sym);
+
+                var sellBtn = document.createElement('button');
+                sellBtn.className = 'btn-sell';
+                sellBtn.textContent = 'SELL';
+                sellBtn.onclick = (function(s) {
+                    return function() {
+                        ws.send(JSON.stringify({ type: 'SELL', payload: { ticker: s, price: prices[s] } }));
+                    };
+                })(sym);
+
+                btnsEl.appendChild(buyBtn);
+                btnsEl.appendChild(sellBtn);
+
                 box.appendChild(nameEl);
                 box.appendChild(priceEl);
+                box.appendChild(btnsEl);
                 tickersEl.appendChild(box);
             }
         }
