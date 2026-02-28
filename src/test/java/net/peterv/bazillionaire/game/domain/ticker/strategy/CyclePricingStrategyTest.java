@@ -24,9 +24,8 @@ class CyclePricingStrategyTest {
 				.map(Money::cents)
 				.allMatch(p -> p <= maxExpected && p >= minExpected);
 
-		assertEquals(StrategyKind.CYCLE, strategy.kind());
-		assertTrue(strategy.isExhausted(), "Strategy is exhausted");
 		assertTrue(allWithinRange, "Prices escape range");
+		PricingStrategyTestHelper.assertKindAndExhausted(strategy, StrategyKind.CYCLE);
 	}
 
 	@Test

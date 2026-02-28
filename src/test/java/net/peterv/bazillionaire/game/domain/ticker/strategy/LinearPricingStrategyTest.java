@@ -26,8 +26,7 @@ class LinearPricingStrategyTest {
 		// Final tick triggers exhaustion — price holds
 		int lastPrice = strategy.nextPrice().cents();
 		assertEquals(previousCents, lastPrice, "Exhausted tick should hold price");
-		assertEquals(StrategyKind.LINEAR, strategy.kind());
-		assertTrue(strategy.isExhausted(), "Strategy should be exhausted");
+		PricingStrategyTestHelper.assertKindAndExhausted(strategy, StrategyKind.LINEAR);
 	}
 
 	@Test
