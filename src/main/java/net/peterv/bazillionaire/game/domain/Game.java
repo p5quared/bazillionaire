@@ -101,16 +101,16 @@ public class Game {
 
 	public void tick() {
 		if (this.status == GameStatus.READY) {
-		  tickers.forEach((symbol, ticker) -> {
-			  ticker.tick();
-			  emit(GameMessage.broadcast(
-					  new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
-		  });
-		  tickCount++;
-		  if (tickCount >= totalDuration) {
-			  status = GameStatus.FINISHED;
-			  emit(GameMessage.broadcast(new GameEvent.GameFinished()));
-		  }
+			tickers.forEach((symbol, ticker) -> {
+				ticker.tick();
+				emit(GameMessage.broadcast(
+						new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
+			});
+			tickCount++;
+			if (tickCount >= totalDuration) {
+				status = GameStatus.FINISHED;
+				emit(GameMessage.broadcast(new GameEvent.GameFinished()));
+			}
 		}
 	}
 
@@ -154,8 +154,8 @@ public class Game {
 
 	private Map<PlayerId, GameEvent.PlayerPortfolio> playerPortfolios() {
 		Map<PlayerId, GameEvent.PlayerPortfolio> result = new HashMap<>();
-		players.forEach((id, p) ->
-				result.put(id, new GameEvent.PlayerPortfolio(p.cashBalance(), Map.copyOf(p.holdings()))));
+		players
+				.forEach((id, p) -> result.put(id, new GameEvent.PlayerPortfolio(p.cashBalance(), Map.copyOf(p.holdings()))));
 		return result;
 	}
 
