@@ -33,20 +33,20 @@ public class SessionFilter implements ContainerRequestFilter {
 
 		Cookie cookie = requestContext.getCookies().get("SESSION_TOKEN");
 		if (cookie == null) {
-			abort(requestContext);
+			redirectLogin(requestContext);
 			return;
 		}
 
 		var username = sessionStore.getUsername(cookie.getValue());
 		if (username.isEmpty()) {
-			abort(requestContext);
+			redirectLogin(requestContext);
 			return;
 		}
 
 		currentSession.setUsername(username.get());
 	}
 
-	private void abort(ContainerRequestContext requestContext) {
+	private void redirectLogin(ContainerRequestContext requestContext) {
 		requestContext.abortWith(
 				Response.seeOther(URI.create("/login")).build());
 	}
