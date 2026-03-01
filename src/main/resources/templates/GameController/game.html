@@ -98,6 +98,11 @@
         }
         .btn-buy { background: #0a8f3f; }
         .btn-sell { background: #d62828; }
+        .ticker-chart {
+            width: 100%;
+            height: 80px;
+            display: block;
+        }
         #logs {
             display: flex;
             height: 200px;
@@ -145,7 +150,60 @@
 
         var prices = {};
         var prevPrices = {};
+        var charts = {};
         var playersEl = document.getElementById('players');
+
+        function TickerChart(canvas, config) {
+            config = config || {};
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+            this.maxPoints = config.maxPoints || 60;
+            this.lineColor = config.lineColor || '#111';
+            this.lineWidth = config.lineWidth || 2;
+            this.history = [];
+        }
+        TickerChart.prototype.addPrice = function(priceCents) {
+            this.history.push(priceCents);
+            if (this.history.length > this.maxPoints) {
+                this.history.shift();
+            }
+            this.render();
+        };
+        TickerChart.prototype.render = function() {
+            var w = this.canvas.width;
+            var h = this.canvas.height;
+            var ctx = this.ctx;
+            ctx.clearRect(0, 0, w, h);
+            if (this.history.length < 2) return;
+
+            var min = this.history[0], max = this.history[0];
+            for (var i = 1; i < this.history.length; i++) {
+                if (this.history[i] < min) min = this.history[i];
+                if (this.history[i] > max) max = this.history[i];
+            }
+            var pad = Math.max((max - min) * 0.1, 1);
+            min -= pad;
+            max += pad;
+
+            var stepX = w / (this.maxPoints - 1);
+            var rangeY = max - min;
+
+            ctx.beginPath();
+            ctx.strokeStyle = this.lineColor;
+            ctx.lineWidth = this.lineWidth;
+            ctx.lineJoin = 'round';
+            for (var i = 0; i < this.history.length; i++) {
+                var x = i * stepX;
+                var y = h - ((this.history[i] - min) / rangeY) * h;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        };
+        TickerChart.prototype.reset = function() {
+            this.history = [];
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        };
 
         function formatPrice(cents) {
             return '$' + (cents / 100).toFixed(2);
@@ -225,10 +283,24 @@
                 btnsEl.appendChild(buyBtn);
                 btnsEl.appendChild(sellBtn);
 
+                var canvas = document.createElement('canvas');
+                canvas.className = 'ticker-chart';
+                canvas.width = 400;
+                canvas.height = 80;
+
                 box.appendChild(nameEl);
                 box.appendChild(priceEl);
+                box.appendChild(canvas);
                 box.appendChild(btnsEl);
                 tickersEl.appendChild(box);
+
+                if (!charts[sym]) {
+                    charts[sym] = new TickerChart(canvas);
+                } else {
+                    charts[sym].canvas = canvas;
+                    charts[sym].ctx = canvas.getContext('2d');
+                }
+                charts[sym].render();
             }
         }
 
@@ -257,11 +329,20 @@
                 prevPrices = Object.assign({}, prices);
                 prices = msg.data.prices;
                 renderTickers();
+                var syms = Object.keys(prices);
+                for (var j = 0; j < syms.length; j++) {
+                    if (charts[syms[j]] && charts[syms[j]].history.length === 0) {
+                        charts[syms[j]].addPrice(prices[syms[j]]);
+                    }
+                }
                 if (msg.data.players) renderPlayers(msg.data.players);
                 appendLog(logTickers, event.data);
             } else if (msg.type === 'TICKER_TICKED') {
                 prevPrices[msg.data.symbol] = prices[msg.data.symbol];
                 prices[msg.data.symbol] = msg.data.price;
+                if (charts[msg.data.symbol]) {
+                    charts[msg.data.symbol].addPrice(msg.data.price);
+                }
                 renderTickers();
                 appendLog(logTickers, msg.data.symbol + ' → ' + formatPrice(msg.data.price));
             } else {
