@@ -151,7 +151,7 @@
     <p id="status">Connecting...</p>
     <div id="players"></div>
     <div id="tickers"></div>
-    <button id="logs-toggle" onclick="var l=document.getElementById('logs');var open=l.classList.toggle('open');this.textContent=open?'Logs \u25BC':'Logs \u25B6';">Logs &#x25B6;</button>
+    <button id="logs-toggle">Logs &#x25B6;</button>
     <div id="logs">
         <div id="log-events"></div>
         <div id="log-tickers"></div>
@@ -380,6 +380,12 @@
         ws.onerror = function() {
             status.textContent = 'Connection error';
         };
+
+        document.getElementById('logs-toggle').addEventListener('click', function() {
+            var logs = document.getElementById('logs');
+            var open = logs.classList.toggle('open');
+            this.textContent = open ? 'Logs \u25BC' : 'Logs \u25B6';
+        });
 
         document.addEventListener('keydown', function(e) {
             if (!hoveredSymbol || !prices[hoveredSymbol]) return;
