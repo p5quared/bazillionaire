@@ -1,9 +1,7 @@
-package net.peterv.bazillionaire.web;
+package net.peterv.bazillionaire.services.user;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import net.peterv.bazillionaire.user.models.User;
-import net.peterv.bazillionaire.user.models.UserSession;
 
 @ApplicationScoped
 public class UserService {

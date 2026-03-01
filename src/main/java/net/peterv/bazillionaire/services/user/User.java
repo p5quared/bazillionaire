@@ -1,4 +1,4 @@
-package net.peterv.bazillionaire.user.models;
+package net.peterv.bazillionaire.services.user;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;

@@ -2,6 +2,7 @@ package net.peterv.bazillionaire.web;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import net.peterv.bazillionaire.services.auth.SessionStore;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

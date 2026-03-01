@@ -8,7 +8,8 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import net.peterv.bazillionaire.user.models.User;
+import net.peterv.bazillionaire.services.user.User;
+import net.peterv.bazillionaire.services.user.UserService;
 import org.jboss.resteasy.reactive.RestForm;
 
 import java.net.URI;

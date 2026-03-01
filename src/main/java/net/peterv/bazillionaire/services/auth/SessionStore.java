@@ -1,9 +1,9 @@
-package net.peterv.bazillionaire.web;
+package net.peterv.bazillionaire.services.auth;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import net.peterv.bazillionaire.user.models.User;
-import net.peterv.bazillionaire.user.models.UserSession;
+import net.peterv.bazillionaire.services.user.User;
+import net.peterv.bazillionaire.services.user.UserSession;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

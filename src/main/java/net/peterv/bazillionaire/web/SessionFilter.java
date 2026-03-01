@@ -9,6 +9,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
+import net.peterv.bazillionaire.services.auth.SessionStore;
 
 import java.net.URI;
 

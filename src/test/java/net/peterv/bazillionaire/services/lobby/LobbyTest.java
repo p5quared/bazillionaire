@@ -1,4 +1,4 @@
-package net.peterv.bazillionaire.web;
+package net.peterv.bazillionaire.services.lobby;
 
 import org.junit.jupiter.api.Test;
 

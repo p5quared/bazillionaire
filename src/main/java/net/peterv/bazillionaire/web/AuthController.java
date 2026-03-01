@@ -8,6 +8,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
+import net.peterv.bazillionaire.services.auth.SessionStore;
 import java.net.URI;
 import org.jboss.resteasy.reactive.RestForm;
 
