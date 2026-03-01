@@ -182,13 +182,23 @@
             this.lineColor = config.lineColor || '#111';
             this.lineWidth = config.lineWidth || 2;
             this.history = [];
+            this.annotations = [];
         }
         TickerChart.prototype.addPrice = function(priceCents) {
             this.history.push(priceCents);
             if (this.history.length > this.maxPoints) {
                 this.history.shift();
+                for (var i = this.annotations.length - 1; i >= 0; i--) {
+                    this.annotations[i].index--;
+                    if (this.annotations[i].index < 0) this.annotations.splice(i, 1);
+                }
             }
             this.render();
+        };
+        TickerChart.prototype.addAnnotation = function(side) {
+            if (this.history.length > 0) {
+                this.annotations.push({ index: this.history.length - 1, side: side });
+            }
         };
         TickerChart.prototype.render = function() {
             var w = this.canvas.width;
@@ -220,9 +230,33 @@
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
+
+            for (var i = 0; i < this.annotations.length; i++) {
+                var a = this.annotations[i];
+                var ax = a.index * stepX;
+                var ay = h - ((this.history[a.index] - min) / rangeY) * h;
+                var size = 4;
+                ctx.beginPath();
+                if (a.side === 'BUY') {
+                    ctx.fillStyle = '#0a8f3f';
+                    ay += size + 2;
+                    ctx.moveTo(ax, ay - size * 2);
+                    ctx.lineTo(ax - size, ay);
+                    ctx.lineTo(ax + size, ay);
+                } else {
+                    ctx.fillStyle = '#d62828';
+                    ay -= size + 2;
+                    ctx.moveTo(ax, ay + size * 2);
+                    ctx.lineTo(ax - size, ay);
+                    ctx.lineTo(ax + size, ay);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
         };
         TickerChart.prototype.reset = function() {
             this.history = [];
+            this.annotations = [];
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         };
 
@@ -368,6 +402,12 @@
                 }
                 renderTickers();
                 appendLog(logTickers, msg.data.symbol + ' → ' + formatPrice(msg.data.price));
+            } else if (msg.type === 'ORDER_FILLED') {
+                if (charts[msg.data.symbol]) {
+                    charts[msg.data.symbol].addAnnotation(msg.data.side);
+                    charts[msg.data.symbol].render();
+                }
+                appendLog(logEvents, event.data);
             } else {
                 appendLog(logEvents, event.data);
             }
