@@ -12,6 +12,8 @@ import net.peterv.bazillionaire.game.port.out.GameRepository;
 import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
 
+import io.quarkus.logging.Log;
+
 import java.util.List;
 
 @ApplicationScoped
@@ -38,9 +40,16 @@ public class GameTickScheduler {
 		for (int i = 0; i < TICKS_PER_SECOND * 10; i++) {
 			long elapsed = timeExecution(this::tickAllGames);
 			if (i < (TICKS_PER_SECOND * 10) - 1) {
-				sleepRemaining(elapsed);
+				try {
+					sleepRemaining(elapsed);
+				} catch (InterruptedException e) {
+					Log.warn("GameTickScheduler interrupted during sleep; stopping tick loop");
+					Thread.currentThread().interrupt();
+					break;
+				}
 			}
 		}
+
 	}
 
 	private void tickAllGames() {
@@ -63,14 +72,9 @@ public class GameTickScheduler {
 		return System.currentTimeMillis() - start;
 	}
 
-	private void sleepRemaining(long elapsedMs) {
+	private void sleepRemaining(long elapsedMs) throws InterruptedException {
 		long sleepTime = TICK_INTERVAL_MS - elapsedMs;
-		if (sleepTime <= 0)
-			return;
-		try {
+		if (sleepTime > 0)
 			Thread.sleep(sleepTime);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
 	}
 }
