@@ -171,6 +171,7 @@
         var prices = {};
         var prevPrices = {};
         var charts = {};
+        var hoveredSymbol = null;
         var playersEl = document.getElementById('players');
 
         function TickerChart(canvas, config) {
@@ -267,6 +268,8 @@
                 var sym = symbols[i];
                 var box = document.createElement('div');
                 box.className = 'ticker-box';
+                box.onmouseenter = (function(s) { return function() { hoveredSymbol = s; }; })(sym);
+                box.onmouseleave = function() { hoveredSymbol = null; };
 
                 var nameEl = document.createElement('span');
                 nameEl.className = 'ticker-symbol';
@@ -377,6 +380,16 @@
         ws.onerror = function() {
             status.textContent = 'Connection error';
         };
+
+        document.addEventListener('keydown', function(e) {
+            if (!hoveredSymbol || !prices[hoveredSymbol]) return;
+            var type = null;
+            if (e.key === 'b') type = 'BUY';
+            else if (e.key === 's') type = 'SELL';
+            if (type) {
+                ws.send(JSON.stringify({ type: type, payload: { ticker: hoveredSymbol, price: prices[hoveredSymbol] } }));
+            }
+        });
     })();
     </script>
 </body>
