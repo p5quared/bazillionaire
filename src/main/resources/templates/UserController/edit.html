@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit User - Bazillionaire</title>
+</head>
+<body>
+    <h1>Edit User</h1>
+    {#if flash:error}
+    <p style="color: red;">{flash:error}</p>
+    {/if}
+
+    <form action="/users/{user.id}" method="post">
+        {#authenticityToken/}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" value="{user.username}">
+        <button type="submit">Save</button>
+    </form>
+
+    <form action="/users/{user.id}/delete" method="post">
+        {#authenticityToken/}
+        <button type="submit">Delete</button>
+    </form>
+
+    <a href="/users">Back to Users</a>
+</body>
+</html>
