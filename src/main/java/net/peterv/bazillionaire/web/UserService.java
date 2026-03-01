@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.web;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import net.peterv.bazillionaire.user.models.User;
+import net.peterv.bazillionaire.user.models.UserSession;
 
 @ApplicationScoped
 public class UserService {
@@ -20,6 +21,7 @@ public class UserService {
 		User user = User.findById(id);
 		if (user == null)
 			return;
+		UserSession.delete("user", user);
 		user.delete();
 	}
 }
