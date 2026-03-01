@@ -103,11 +103,30 @@
             height: 80px;
             display: block;
         }
+        #logs-toggle {
+            display: block;
+            width: 100%;
+            padding: 6px 10px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 13px;
+            background: #222;
+            color: #aaa;
+            border: none;
+            border-top: 3px solid #111;
+            cursor: pointer;
+            text-align: left;
+        }
+        #logs-toggle:hover {
+            background: #333;
+        }
         #logs {
-            display: flex;
+            display: none;
             height: 200px;
             min-height: 100px;
-            border-top: 3px solid #111;
+        }
+        #logs.open {
+            display: flex;
         }
         #log-events, #log-tickers {
             flex: 1;
@@ -132,6 +151,7 @@
     <p id="status">Connecting...</p>
     <div id="players"></div>
     <div id="tickers"></div>
+    <button id="logs-toggle" onclick="var l=document.getElementById('logs');var open=l.classList.toggle('open');this.textContent=open?'Logs \u25BC':'Logs \u25B6';">Logs &#x25B6;</button>
     <div id="logs">
         <div id="log-events"></div>
         <div id="log-tickers"></div>
