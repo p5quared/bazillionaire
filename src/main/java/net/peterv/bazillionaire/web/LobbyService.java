@@ -55,7 +55,7 @@ public class LobbyService {
 			throw new NotFoundException("Lobby not found");
 		lobby.start();
 		var playerIds = lobby.members.stream().map(m -> m.playerId).toList();
-		return new StartedLobby(lobbyId, playerIds, 5);
+		return new StartedLobby(lobbyId, playerIds, 2);
 	}
 
 	@Transactional
