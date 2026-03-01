@@ -12,7 +12,7 @@ import java.util.Random;
 
 @ApplicationScoped
 public class CreateGameService implements CreateGameUseCase {
-	private final static int DEFAULT_BALANCE = 100_000_00;
+	private final static int DEFAULT_BALANCE = 1_000_00;
 	private final static int DEFAULT_TICKER_PRICE = 100_00;
 	private final static int DEFAULT_GAME_DURATION = 200; // ticks
 	private final static int DEFAULT_STRATEGY_DURATION = 25; // ticks
