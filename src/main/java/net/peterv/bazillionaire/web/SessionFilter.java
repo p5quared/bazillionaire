@@ -1,6 +1,9 @@
 package net.peterv.bazillionaire.web;
 
+import io.smallrye.common.annotation.Blocking;
+import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Cookie;
@@ -9,7 +12,9 @@ import jakarta.ws.rs.ext.Provider;
 
 import java.net.URI;
 
+@Blocking
 @Provider
+@Priority(Priorities.AUTHENTICATION)
 public class SessionFilter implements ContainerRequestFilter {
 
 	@Inject

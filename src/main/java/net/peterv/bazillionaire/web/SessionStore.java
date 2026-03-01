@@ -1,12 +1,16 @@
 package net.peterv.bazillionaire.web;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
+import net.peterv.bazillionaire.user.models.User;
+import net.peterv.bazillionaire.user.models.UserSession;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
+@Transactional
 public class SessionStore {
 
 	public sealed interface CreateSessionResult {
@@ -17,26 +21,36 @@ public class SessionStore {
 		}
 	}
 
-	private final ConcurrentHashMap<String, String> sessions = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap.KeySetView<String, Boolean> activeUsernames = ConcurrentHashMap.newKeySet();
-
 	public CreateSessionResult createSession(String username) {
-		if (!activeUsernames.add(username)) {
+		User user = User.findByUsername(username).orElseGet(() -> {
+			User newUser = new User();
+			newUser.username = username;
+			newUser.persist();
+			return newUser;
+		});
+
+		UserSession.delete("user = ?1 and expiresAt < ?2", user, LocalDateTime.now());
+
+		if (UserSession.count("user", user) > 0) {
 			return new CreateSessionResult.UsernameTaken();
 		}
-		String token = UUID.randomUUID().toString();
-		sessions.put(token, username);
-		return new CreateSessionResult.Success(token);
+
+		UserSession session = new UserSession();
+		session.user = user;
+		session.token = UUID.randomUUID().toString();
+		session.expiresAt = LocalDateTime.now().plusHours(24);
+		session.persist();
+
+		return new CreateSessionResult.Success(session.token);
 	}
 
 	public Optional<String> getUsername(String token) {
-		return Optional.ofNullable(sessions.get(token));
+		return UserSession.findByToken(token)
+				.filter(s -> !s.isExpired())
+				.map(s -> s.user.username);
 	}
 
 	public void removeSession(String token) {
-		String username = sessions.remove(token);
-		if (username != null) {
-			activeUsernames.remove(username);
-		}
+		UserSession.delete("token", token);
 	}
 }
