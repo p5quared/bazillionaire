@@ -9,7 +9,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
-import net.peterv.bazillionaire.services.auth.SessionStore;
+import net.peterv.bazillionaire.services.auth.AuthService;
 
 import java.net.URI;
 
@@ -19,7 +19,7 @@ import java.net.URI;
 public class SessionFilter implements ContainerRequestFilter {
 
 	@Inject
-	SessionStore sessionStore;
+	AuthService authService;
 
 	@Inject
 	CurrentSession currentSession;
@@ -38,7 +38,7 @@ public class SessionFilter implements ContainerRequestFilter {
 			return;
 		}
 
-		var username = sessionStore.getUsername(cookie.getValue());
+		var username = authService.getUsername(cookie.getValue());
 		if (username.isEmpty()) {
 			redirectLogin(requestContext);
 			return;

@@ -8,7 +8,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
-import net.peterv.bazillionaire.services.auth.SessionStore;
+import net.peterv.bazillionaire.services.auth.AuthService;
 import java.net.URI;
 import org.jboss.resteasy.reactive.RestForm;
 
@@ -16,7 +16,7 @@ import org.jboss.resteasy.reactive.RestForm;
 public class AuthController extends Controller {
 
 	@Inject
-	SessionStore sessionStore;
+	AuthService authService;
 
 	@CheckedTemplate
 	public static class Templates {
@@ -36,9 +36,9 @@ public class AuthController extends Controller {
 
 		username = username.strip();
 
-		var result = sessionStore.createSession(username);
+		var result = authService.createSession(username);
 		switch (result) {
-			case SessionStore.CreateSessionResult.Success success -> {
+			case AuthService.CreateSessionResult.Success success -> {
 				NewCookie cookie = new NewCookie.Builder("SESSION_TOKEN")
 						.value(success.token())
 						.path("/")
@@ -50,7 +50,7 @@ public class AuthController extends Controller {
 								.cookie(cookie)
 								.build());
 			}
-			case SessionStore.CreateSessionResult.UsernameTaken() -> {
+			case AuthService.CreateSessionResult.UsernameTaken() -> {
 				flash("error", "Username '" + username + "' is already taken");
 				login();
 			}

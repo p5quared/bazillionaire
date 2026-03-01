@@ -5,13 +5,14 @@ import jakarta.transaction.Transactional;
 import net.peterv.bazillionaire.services.user.User;
 import net.peterv.bazillionaire.services.user.UserSession;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @ApplicationScoped
-@Transactional
-public class SessionStore {
+public class AuthService {
+
+	private static final Duration SESSION_TTL = Duration.ofHours(24);
 
 	public sealed interface CreateSessionResult {
 		record Success(String token) implements CreateSessionResult {
@@ -21,36 +22,27 @@ public class SessionStore {
 		}
 	}
 
+	@Transactional
 	public CreateSessionResult createSession(String username) {
-		User user = User.findByUsername(username).orElseGet(() -> {
-			User newUser = new User();
-			newUser.username = username;
-			newUser.persist();
-			return newUser;
-		});
+		LocalDateTime now = LocalDateTime.now();
+		User user = User.findOrCreateByUsername(username);
 
-		UserSession.delete("user = ?1 and expiresAt < ?2", user, LocalDateTime.now());
-
-		if (UserSession.count("user", user) > 0) {
+		UserSession.deleteExpiredForUser(user, now);
+		if (UserSession.existsForUser(user)) {
 			return new CreateSessionResult.UsernameTaken();
 		}
 
-		UserSession session = new UserSession();
-		session.user = user;
-		session.token = UUID.randomUUID().toString();
-		session.expiresAt = LocalDateTime.now().plusHours(24);
-		session.persist();
-
-		return new CreateSessionResult.Success(session.token);
+		UserSession created = UserSession.createForUser(user, now, SESSION_TTL);
+		return new CreateSessionResult.Success(created.token);
 	}
 
 	public Optional<String> getUsername(String token) {
-		return UserSession.findByToken(token)
-				.filter(s -> !s.isExpired())
+		return UserSession.findActiveByToken(token, LocalDateTime.now())
 				.map(s -> s.user.username);
 	}
 
+	@Transactional
 	public void removeSession(String token) {
-		UserSession.delete("token", token);
+		UserSession.deleteByToken(token);
 	}
 }

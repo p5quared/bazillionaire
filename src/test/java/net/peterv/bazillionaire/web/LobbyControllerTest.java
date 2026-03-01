@@ -3,7 +3,7 @@ package net.peterv.bazillionaire.web;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.response.ValidatableResponse;
 import jakarta.inject.Inject;
-import net.peterv.bazillionaire.services.auth.SessionStore;
+import net.peterv.bazillionaire.services.auth.AuthService;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -15,10 +15,10 @@ import static org.hamcrest.Matchers.*;
 class LobbyControllerTest {
 
 	@Inject
-	SessionStore sessionStore;
+	AuthService authService;
 
 	private String sessionCookie(String username) {
-		var result = (SessionStore.CreateSessionResult.Success) sessionStore.createSession(username);
+		var result = (AuthService.CreateSessionResult.Success) authService.createSession(username);
 		return result.token();
 	}
 

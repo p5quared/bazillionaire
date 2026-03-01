@@ -17,4 +17,13 @@ public class User extends PanacheEntity {
 	public static Optional<User> findByUsername(String username) {
 		return find("username", username).firstResultOptional();
 	}
+
+	public static User findOrCreateByUsername(String username) {
+		return findByUsername(username).orElseGet(() -> {
+			User user = new User();
+			user.username = username;
+			user.persist();
+			return user;
+		});
+	}
 }

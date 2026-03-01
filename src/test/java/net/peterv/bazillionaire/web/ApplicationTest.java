@@ -2,7 +2,7 @@ package net.peterv.bazillionaire.web;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import net.peterv.bazillionaire.services.auth.SessionStore;
+import net.peterv.bazillionaire.services.auth.AuthService;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -17,7 +17,7 @@ class ApplicationTest {
 	private static final String APPLICATION_PATH = "/";
 
 	@Inject
-	SessionStore sessionStore;
+	AuthService authService;
 
 	@Test
 	void redirectsToLoginWhenUserIsNotLoggedIn() {
@@ -33,8 +33,8 @@ class ApplicationTest {
 	@Test
 	void showsUsernameWhenUserIsLoggedIn() {
 		String username = "test-" + UUID.randomUUID();
-		var created = sessionStore.createSession(username);
-		var success = assertInstanceOf(SessionStore.CreateSessionResult.Success.class, created);
+		var created = authService.createSession(username);
+		var success = assertInstanceOf(AuthService.CreateSessionResult.Success.class, created);
 
 		given()
 				.cookie("SESSION_TOKEN", success.token())
