@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
-class LoginControllerTest {
+class AuthControllerTest {
 
 	private static final String LOGIN_PATH = "/login";
 	private static final String INDEX_PAGE_PATH = "/";

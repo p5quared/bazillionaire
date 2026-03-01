@@ -8,7 +8,7 @@
     {#if flash:error}
     <p style="color: red;">{flash:error}</p>
     {/if}
-    <form action="{uri:LoginController.login()}" method="post">
+    <form action="{uri:AuthController.login()}" method="post">
         {#authenticityToken/}
         <label for="username">Choose a username:</label>
         <input type="text" id="username" name="username" required>

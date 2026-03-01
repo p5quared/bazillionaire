@@ -12,7 +12,7 @@ import java.net.URI;
 import org.jboss.resteasy.reactive.RestForm;
 
 @Path("/")
-public class LoginController extends Controller {
+public class AuthController extends Controller {
 
 	@Inject
 	SessionStore sessionStore;
