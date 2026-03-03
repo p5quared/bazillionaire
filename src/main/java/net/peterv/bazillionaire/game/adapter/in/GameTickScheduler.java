@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import net.peterv.bazillionaire.game.domain.types.GameId;
 import net.peterv.bazillionaire.game.port.in.TickCommand;
+import net.peterv.bazillionaire.game.port.in.TickProgress;
 import net.peterv.bazillionaire.game.port.in.TickUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
@@ -54,7 +55,7 @@ public class GameTickScheduler {
 
 	private void tickAllGames() {
 		for (String gameId : List.copyOf(registry.activeGameIds())) {
-			UseCaseResult<Void> result = tickUseCase.tick(new TickCommand(gameId));
+			UseCaseResult<TickProgress> result = tickUseCase.tick(new TickCommand(gameId));
 			List<GameMessage> messages = result.messages();
 			adapter.dispatchMessages(gameId, messages);
 			boolean finished = messages.stream()

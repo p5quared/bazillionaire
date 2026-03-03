@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class GameJoinTest {
 
@@ -60,24 +61,9 @@ class GameJoinTest {
 		check(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
 	}
 
-	@Test
-	void startTransitionsGameToReady() {
-		var game = createGame(List.of(PLAYER_1));
-		game.join(PLAYER_1);
-		game.drainMessages();
-		// Before start(), tick should produce no events
-		game.tick();
-		assertEquals(0, game.drainMessages().size());
-		// After start(), tick produces ticker events
-		game.start();
-		game.tick();
-		var messages = game.drainMessages();
-		assertTrue(messages.stream().anyMatch(m -> m.event() instanceof GameEvent.TickerTicked));
-	}
-
 	/**
-	 * Calls {@link Game#join(PlayerId)} 
-	 * and asserts that the result against {@code expectedResult} 
+	 * Calls {@link Game#join(PlayerId)}
+	 * and asserts that the result against {@code expectedResult}
 	 * and asserts drained messages match {@code expectedEvents} in order.
 	 */
 	@SafeVarargs

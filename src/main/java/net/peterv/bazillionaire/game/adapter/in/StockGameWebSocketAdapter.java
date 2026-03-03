@@ -162,6 +162,8 @@ public class StockGameWebSocketAdapter {
 						new GameStateData(gs.symbols().stream().map(s -> s.value()).toList(), prices,
 								serializePlayers(gs.players())));
 			}
+			case GameEvent.GameTickProgressed progress -> new ServerMessage("GAME_TICK",
+					new GameTickData(progress.tick(), progress.ticksRemaining()));
 			case GameEvent.GameFinished ignored -> new ServerMessage("GAME_FINISHED",
 					new GameFinishedData());
 		};
@@ -231,6 +233,9 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private record GameFinishedData() {
+	}
+
+	private record GameTickData(int tick, int ticksRemaining) {
 	}
 
 	private record ErrorData(String code, String message) {

@@ -107,11 +107,20 @@ public class Game {
 						new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
 			});
 			tickCount++;
+			emit(GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
 			if (tickCount >= totalDuration) {
 				status = GameStatus.FINISHED;
 				emit(GameMessage.broadcast(new GameEvent.GameFinished()));
 			}
 		}
+	}
+
+	public int currentTick() {
+		return tickCount;
+	}
+
+	public int ticksRemaining() {
+		return Math.max(totalDuration - tickCount, 0);
 	}
 
 	public List<GameMessage> drainMessages() {

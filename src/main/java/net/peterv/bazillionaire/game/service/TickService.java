@@ -2,6 +2,7 @@ package net.peterv.bazillionaire.game.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import net.peterv.bazillionaire.game.port.in.TickCommand;
+import net.peterv.bazillionaire.game.port.in.TickProgress;
 import net.peterv.bazillionaire.game.port.in.TickUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
@@ -15,10 +16,10 @@ public class TickService implements TickUseCase {
 	}
 
 	@Override
-	public UseCaseResult<Void> tick(TickCommand cmd) {
+	public UseCaseResult<TickProgress> tick(TickCommand cmd) {
 		return gameRepository.withGame(cmd.toGameId(), game -> {
 			game.tick();
-			return new UseCaseResult<>(null, game.drainMessages());
+			return new UseCaseResult<>(new TickProgress(game.currentTick(), game.ticksRemaining()), game.drainMessages());
 		});
 	}
 }
