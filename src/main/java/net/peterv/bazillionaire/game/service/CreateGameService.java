@@ -2,21 +2,13 @@ package net.peterv.bazillionaire.game.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import net.peterv.bazillionaire.game.domain.Game;
-import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
 import net.peterv.bazillionaire.game.port.in.CreateGameUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
 
-import java.util.Random;
-
 @ApplicationScoped
 public class CreateGameService implements CreateGameUseCase {
-	private final static int DEFAULT_BALANCE = 1_000_00;
-	private final static int DEFAULT_TICKER_PRICE = 100_00;
-	private final static int DEFAULT_GAME_DURATION = 600; // ticks
-	private final static int DEFAULT_STRATEGY_DURATION = 120; // ticks
-
 	private final GameRepository gameRepository;
 
 	public CreateGameService(GameRepository gameRepository) {
@@ -28,11 +20,11 @@ public class CreateGameService implements CreateGameUseCase {
 		Game game = Game.create(
 				cmd.toPlayerIds(),
 				cmd.tickerCount(),
-				new Money(DEFAULT_BALANCE),
-				new Money(DEFAULT_TICKER_PRICE),
-				DEFAULT_GAME_DURATION,
-				DEFAULT_STRATEGY_DURATION,
-				new Random());
+				cmd.initialBalance(),
+				cmd.initialPrice(),
+				cmd.gameDuration(),
+				cmd.strategyDuration(),
+				cmd.random());
 		gameRepository.saveGame(cmd.toGameId(), game);
 		return new UseCaseResult<>(null, game.drainMessages());
 	}
