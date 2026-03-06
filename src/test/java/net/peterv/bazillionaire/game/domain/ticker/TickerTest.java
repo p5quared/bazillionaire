@@ -17,7 +17,7 @@ class TickerTest {
 	private static final long SEED = 42L;
 
 	private Ticker createTicker() {
-		return new Ticker(INITIAL_PRICE, TOTAL_DURATION, STRATEGY_DURATION, new Random(SEED));
+		return new Ticker(INITIAL_PRICE, STRATEGY_DURATION, new Random(SEED));
 	}
 
 	@Test
@@ -70,10 +70,21 @@ class TickerTest {
 	@Test
 	void tickBeyondDurationDoesNotThrow() {
 		var ticker = createTicker();
-		for (int i = 0; i < TOTAL_DURATION + 10; i++) {
+		for (int i = 0; i < TOTAL_DURATION * 3; i++) {
 			ticker.tick();
 		}
 		assertDoesNotThrow(ticker::currentPrice);
+	}
+
+	@Test
+	void keepsGeneratingPricesAfterInitialWindow() {
+		var ticker = createTicker();
+
+		for (int i = 0; i < TOTAL_DURATION * 3; i++) {
+			ticker.tick();
+		}
+
+		assertTrue(ticker.currentPrice().cents() > 0);
 	}
 
 	@Test
