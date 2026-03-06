@@ -1,15 +1,15 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExponentialPricingStrategyTest {
+class ExponentialRegimeStrategyTest {
 
 	private void check(Money startPrice, Money endPrice, int duration, double curvature) {
-		var strategy = new ExponentialPricingStrategy(startPrice, endPrice, duration, curvature);
-		PricingStrategyTestHelper.assertBoundedConvergence(strategy, startPrice, endPrice, duration);
+		var regime = new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
+		RegimeStrategyTestHelper.assertBoundedConvergence(regime, startPrice, endPrice, duration);
 	}
 
 	@Test
@@ -24,9 +24,9 @@ class ExponentialPricingStrategyTest {
 
 	@Test
 	void laterTicksChangeMoreThanEarlyTicks() {
-		var strategy = new ExponentialPricingStrategy(new Money(0), new Money(100_00), 100, 5.0);
+		var regime = new ExponentialRegimeStrategy(new Money(0), new Money(100_00), 100, 5.0);
 
-		int[] prices = PricingStrategyTestHelper.drainPrices(strategy, 100);
+		int[] prices = RegimeStrategyTestHelper.drainPrices(regime, 100);
 
 		int earlyChange = prices[19] - 0;
 		int lateChange = prices[99] - prices[79];

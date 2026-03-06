@@ -1,8 +1,8 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 
-public class LogisticPricingStrategy implements PricingStrategy {
+public class LogisticRegimeStrategy implements RegimeStrategy {
 
 	private final int startCents;
 	private final int endCents;
@@ -20,7 +20,7 @@ public class LogisticPricingStrategy implements PricingStrategy {
 	 * @param steepness  controls S-curve sharpness (e.g. 6.0 = moderate, 12.0 =
 	 *                   sharp)
 	 */
-	public LogisticPricingStrategy(Money startPrice, Money endPrice, int duration, double steepness) {
+	public LogisticRegimeStrategy(Money startPrice, Money endPrice, int duration, double steepness) {
 		this.startCents = startPrice.cents();
 		this.endCents = endPrice.cents();
 		this.duration = duration;

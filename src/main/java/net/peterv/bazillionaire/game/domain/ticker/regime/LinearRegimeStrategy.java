@@ -1,8 +1,8 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 
-public class LinearPricingStrategy implements PricingStrategy {
+public class LinearRegimeStrategy implements RegimeStrategy {
 
 	private final int initialCents;
 	private final int stepCents;
@@ -17,7 +17,7 @@ public class LinearPricingStrategy implements PricingStrategy {
 	 * @param duration     number of ticks before exhaustion
 	 * @param direction    1 for upward, -1 for downward
 	 */
-	public LinearPricingStrategy(Money initialPrice, int stepCents, int duration, int direction) {
+	public LinearRegimeStrategy(Money initialPrice, int stepCents, int duration, int direction) {
 		this.initialCents = initialPrice.cents();
 		this.stepCents = stepCents;
 		this.duration = duration;

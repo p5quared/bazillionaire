@@ -1,15 +1,15 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class LogisticPricingStrategyTest {
+class LogisticRegimeStrategyTest {
 
 	private void check(Money startPrice, Money endPrice, int duration, double steepness) {
-		var strategy = new LogisticPricingStrategy(startPrice, endPrice, duration, steepness);
-		PricingStrategyTestHelper.assertBoundedConvergence(strategy, startPrice, endPrice, duration);
+		var regime = new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
+		RegimeStrategyTestHelper.assertBoundedConvergence(regime, startPrice, endPrice, duration);
 	}
 
 	@Test
@@ -24,9 +24,9 @@ class LogisticPricingStrategyTest {
 
 	@Test
 	void middleTicksChangeMoreThanEdgeTicks() {
-		var strategy = new LogisticPricingStrategy(new Money(0), new Money(100_00), 100, 10.0);
+		var regime = new LogisticRegimeStrategy(new Money(0), new Money(100_00), 100, 10.0);
 
-		int[] prices = PricingStrategyTestHelper.drainPrices(strategy, 100);
+		int[] prices = RegimeStrategyTestHelper.drainPrices(regime, 100);
 
 		int earlyChange = prices[19] - 0;
 		int middleChange = prices[59] - prices[39];

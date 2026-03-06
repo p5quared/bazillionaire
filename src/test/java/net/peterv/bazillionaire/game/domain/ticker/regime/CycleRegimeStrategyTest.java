@@ -1,4 +1,4 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CyclePricingStrategyTest {
+class CycleRegimeStrategyTest {
 
 	private void check(
 			Money initialPrice,
@@ -16,10 +16,10 @@ class CyclePricingStrategyTest {
 			int direction,
 			int minExpected,
 			int maxExpected) {
-		var strategy = new CyclePricingStrategy(initialPrice, amplitudeCents, cycleDuration, direction);
+		var regime = new CycleRegimeStrategy(initialPrice, amplitudeCents, cycleDuration, direction);
 
 		boolean allWithinRange = IntStream.range(0, cycleDuration)
-				.mapToObj(t -> strategy.priceAt(t))
+				.mapToObj(t -> regime.priceAt(t))
 				.map(Money::cents)
 				.allMatch(p -> p <= maxExpected && p >= minExpected);
 

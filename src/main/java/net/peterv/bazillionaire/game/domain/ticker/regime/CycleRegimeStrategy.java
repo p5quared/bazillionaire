@@ -1,8 +1,8 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 
-public class CyclePricingStrategy implements PricingStrategy {
+public class CycleRegimeStrategy implements RegimeStrategy {
 
 	private final int amplitudeCents;
 	private final int initialCents;
@@ -17,7 +17,7 @@ public class CyclePricingStrategy implements PricingStrategy {
 	 * @param waveLength     number of ticks for one full cycle
 	 * @param direction      1 to start moving up, -1 to start moving down
 	 */
-	public CyclePricingStrategy(Money initialPrice, int amplitudeCents, int waveLength, int direction) {
+	public CycleRegimeStrategy(Money initialPrice, int amplitudeCents, int waveLength, int direction) {
 		this.initialCents = initialPrice.cents();
 		this.amplitudeCents = amplitudeCents;
 		this.waveLength = waveLength;

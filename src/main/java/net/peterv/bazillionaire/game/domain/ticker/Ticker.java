@@ -1,7 +1,7 @@
 package net.peterv.bazillionaire.game.domain.ticker;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
-import net.peterv.bazillionaire.game.domain.ticker.strategy.*;
+import net.peterv.bazillionaire.game.domain.ticker.regime.*;
 import net.peterv.bazillionaire.game.domain.types.Money;
 
 import java.util.ArrayList;
@@ -13,9 +13,9 @@ public class Ticker {
 	private final List<Money> prices;
 	private int cursor = -1;
 
-	public Ticker(Money initialPrice, int totalDuration, int strategyDuration, Random random) {
+	public Ticker(Money initialPrice, int totalDuration, int regimeDuration, Random random) {
 		this.initialPrice = initialPrice;
-		this.prices = buildPriceTimeline(initialPrice, totalDuration, strategyDuration, random);
+		this.prices = buildPriceTimeline(initialPrice, totalDuration, regimeDuration, random);
 	}
 
 	public boolean canFill(Order order) {
@@ -48,19 +48,19 @@ public class Ticker {
 	}
 
 	private static List<Money> buildPriceTimeline(Money initialPrice, int totalDuration,
-			int strategyDuration, Random random) {
-		StrategyKind[] kinds = StrategyKind.values();
-		int segmentCount = totalDuration / strategyDuration;
+			int regimeDuration, Random random) {
+		RegimeKind[] kinds = RegimeKind.values();
+		int segmentCount = totalDuration / regimeDuration;
 		List<Money> timeline = new ArrayList<>(totalDuration);
 		Money segmentStart = initialPrice;
 
 		for (int seg = 0; seg < segmentCount; seg++) {
-			StrategyKind kind = kinds[random.nextInt(kinds.length)];
-			PricingStrategy strategy = createStrategy(kind, segmentStart, strategyDuration, random);
+			RegimeKind kind = kinds[random.nextInt(kinds.length)];
+			RegimeStrategy regime = createRegime(kind, segmentStart, regimeDuration, random);
 
 			Money lastPrice = segmentStart;
-			for (int t = 0; t < strategyDuration; t++) {
-				lastPrice = strategy.priceAt(t);
+			for (int t = 0; t < regimeDuration; t++) {
+				lastPrice = regime.priceAt(t);
 				timeline.add(lastPrice);
 			}
 			segmentStart = lastPrice;
@@ -69,7 +69,7 @@ public class Ticker {
 		return List.copyOf(timeline);
 	}
 
-	private static PricingStrategy createStrategy(StrategyKind kind, Money startPrice,
+	private static RegimeStrategy createRegime(RegimeKind kind, Money startPrice,
 			int duration, Random random) {
 		return switch (kind) {
 			case LINEAR -> {
@@ -77,22 +77,22 @@ public class Ticker {
 				int deltaCents = Math.abs(endPrice.cents() - startPrice.cents());
 				int stepCents = Math.max(1, deltaCents / duration);
 				int direction = endPrice.cents() >= startPrice.cents() ? 1 : -1;
-				yield new LinearPricingStrategy(startPrice, stepCents, duration, direction);
+				yield new LinearRegimeStrategy(startPrice, stepCents, duration, direction);
 			}
 			case EXPONENTIAL -> {
 				Money endPrice = randomEndPrice(startPrice, random);
 				double curvature = 1.0 + random.nextDouble() * 4.0;
-				yield new ExponentialPricingStrategy(startPrice, endPrice, duration, curvature);
+				yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
 			}
 			case LOGISTIC -> {
 				Money endPrice = randomEndPrice(startPrice, random);
 				double steepness = 4.0 + random.nextDouble() * 8.0;
-				yield new LogisticPricingStrategy(startPrice, endPrice, duration, steepness);
+				yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
 			}
 			case CYCLE -> {
 				int amplitudeCents = Math.max(1, (int) (startPrice.cents() * (0.1 + random.nextDouble() * 0.3)));
 				int direction = random.nextBoolean() ? 1 : -1;
-				yield new CyclePricingStrategy(startPrice, amplitudeCents, duration, direction);
+				yield new CycleRegimeStrategy(startPrice, amplitudeCents, duration, direction);
 			}
 		};
 	}

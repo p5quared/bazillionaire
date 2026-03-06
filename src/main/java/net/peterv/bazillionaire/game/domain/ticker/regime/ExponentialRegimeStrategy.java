@@ -1,8 +1,8 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 
-public class ExponentialPricingStrategy implements PricingStrategy {
+public class ExponentialRegimeStrategy implements RegimeStrategy {
 
 	private final int startCents;
 	private final int endCents;
@@ -19,7 +19,7 @@ public class ExponentialPricingStrategy implements PricingStrategy {
 	 * @param curvature  controls acceleration (1.0 = nearly linear, 5.0 = sharply
 	 *                   exponential)
 	 */
-	public ExponentialPricingStrategy(Money startPrice, Money endPrice, int duration, double curvature) {
+	public ExponentialRegimeStrategy(Money startPrice, Money endPrice, int duration, double curvature) {
 		this.startCents = startPrice.cents();
 		this.endCents = endPrice.cents();
 		this.duration = duration;

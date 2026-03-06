@@ -1,30 +1,30 @@
-package net.peterv.bazillionaire.game.domain.ticker.strategy;
+package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class LinearPricingStrategyTest {
+class LinearRegimeStrategyTest {
 
 	private void check(
 			Money initialPrice,
 			int stepCents,
 			int duration,
 			int direction) {
-		var strategy = new LinearPricingStrategy(initialPrice, stepCents, duration, direction);
+		var regime = new LinearRegimeStrategy(initialPrice, stepCents, duration, direction);
 		int expectedRate = direction * stepCents;
 
 		int previousCents = initialPrice.cents();
 		for (int t = 0; t < duration - 1; t++) {
-			int price = strategy.priceAt(t).cents();
+			int price = regime.priceAt(t).cents();
 			assertEquals(expectedRate, price - previousCents,
 					"Price change at tick " + t + " should be " + expectedRate);
 			previousCents = price;
 		}
 
 		// Final tick holds price
-		int lastPrice = strategy.priceAt(duration - 1).cents();
+		int lastPrice = regime.priceAt(duration - 1).cents();
 		assertEquals(previousCents, lastPrice, "Last tick should hold price");
 	}
 
