@@ -2,20 +2,23 @@ package net.peterv.bazillionaire.game.domain.ticker;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.ticker.regime.RegimeFactory;
+import net.peterv.bazillionaire.game.domain.ticker.regime.RegimeStrategy;
 import net.peterv.bazillionaire.game.domain.types.Money;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Ticker {
-	private final Money initialPrice;
 	private final RegimeFactory regimeFactory;
-	private List<Money> currentRegimePrices = List.of();
-	private int cursor = -1;
+	private final int regimeDuration;
+	private List<RegimeStrategy> regimes = new ArrayList<>();
+	private int cursor = 0;
 
 	public Ticker(Money initialPrice, int regimeDuration, Random random) {
-		this.initialPrice = initialPrice;
+		this.regimeDuration = regimeDuration;
 		this.regimeFactory = new RegimeFactory(initialPrice, regimeDuration, random);
+		this.regimes.add(this.regimeFactory.nextRegime());
 	}
 
 	public boolean canFill(Order order) {
@@ -26,18 +29,14 @@ public class Ticker {
 	}
 
 	public Money currentPrice() {
-		if (cursor < 0) {
-			return initialPrice;
-		}
-		return currentRegimePrices.get(cursor);
+		return regimes.getLast().prices().get(cursor);
 	}
 
 	public void tick() {
-		if (currentRegimePrices.isEmpty() || cursor >= currentRegimePrices.size() - 1) {
-			currentRegimePrices = regimeFactory.nextRegime().prices();
-			cursor = 0;
-			return;
-		}
 		cursor++;
+		if (cursor >= this.regimeDuration) {
+			this.regimes.add(this.regimeFactory.nextRegime());
+			cursor = 0;
+		}
 	}
 }
