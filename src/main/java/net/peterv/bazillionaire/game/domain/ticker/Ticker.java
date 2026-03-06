@@ -4,7 +4,6 @@ import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.ticker.regime.RegimeFactory;
 import net.peterv.bazillionaire.game.domain.ticker.regime.RegimeStrategy;
 import net.peterv.bazillionaire.game.domain.types.Money;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

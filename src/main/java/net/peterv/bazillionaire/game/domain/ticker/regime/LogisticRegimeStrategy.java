@@ -50,7 +50,7 @@ public class LogisticRegimeStrategy implements RegimeStrategy {
 	private Money priceAt(int tick) {
 		if (tick >= duration - 1)
 			return new Money(endCents);
-		double progress = (double) (tick + 1) / duration;
+		double progress = (double) tick / duration;
 		double normalized = (rawLogistic(progress) - logisticAt0) / logisticRange;
 		return new Money(startCents + (int) (normalized * (endCents - startCents)));
 	}

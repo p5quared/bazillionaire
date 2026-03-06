@@ -37,8 +37,7 @@ public class CycleRegimeStrategy implements RegimeStrategy {
 	}
 
 	private Money priceAt(int tick) {
-		int effectiveTick = Math.min(tick + 1, waveLength - 1);
-		double phase = 2 * Math.PI * effectiveTick / waveLength + (direction == -1 ? Math.PI : 0);
+		double phase = 2 * Math.PI * tick / waveLength + (direction == -1 ? Math.PI : 0);
 		return new Money(initialCents + (int) (amplitudeCents * Math.sin(phase)));
 	}
 }

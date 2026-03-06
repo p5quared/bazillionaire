@@ -37,7 +37,6 @@ public class LinearRegimeStrategy implements RegimeStrategy {
 	}
 
 	private Money priceAt(int tick) {
-		int steps = Math.min(tick + 1, duration - 1);
-		return new Money(initialCents + steps * direction * stepCents);
+		return new Money(initialCents + tick * direction * stepCents);
 	}
 }

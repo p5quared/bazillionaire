@@ -42,7 +42,7 @@ public class ExponentialRegimeStrategy implements RegimeStrategy {
 	private Money priceAt(int tick) {
 		if (tick >= duration - 1)
 			return new Money(endCents);
-		double progress = (double) (tick + 1) / duration;
+		double progress = (double) tick / duration;
 		double normalized = (Math.exp(curvature * progress) - 1.0) / expDenom;
 		return new Money(startCents + (int) (normalized * (endCents - startCents)));
 	}
