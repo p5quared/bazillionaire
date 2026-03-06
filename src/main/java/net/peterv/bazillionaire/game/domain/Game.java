@@ -32,7 +32,8 @@ public class Game {
 			Money initialBalance,
 			Money initialPrice,
 			int totalDuration,
-			int strategyDuration,
+			int minStrategyDuration,
+			int maxStrategyDuration,
 			Random random) {
 		Map<PlayerId, Portfolio> players = new HashMap<>();
 		for (PlayerId id : playerIds) {
@@ -45,7 +46,7 @@ public class Game {
 			do {
 				symbol = randomSymbol(random);
 			} while (tickers.containsKey(symbol));
-			tickers.put(symbol, new Ticker(initialPrice, strategyDuration, random));
+			tickers.put(symbol, new Ticker(initialPrice, minStrategyDuration, maxStrategyDuration, random));
 		}
 
 		Game game = new Game(players, tickers, totalDuration);

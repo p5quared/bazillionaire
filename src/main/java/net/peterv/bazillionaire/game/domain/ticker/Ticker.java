@@ -10,13 +10,11 @@ import java.util.Random;
 
 public class Ticker {
 	private final RegimeFactory regimeFactory;
-	private final int regimeDuration;
 	private List<RegimeStrategy> regimes = new ArrayList<>();
 	private int cursor = 0;
 
-	public Ticker(Money initialPrice, int regimeDuration, Random random) {
-		this.regimeDuration = regimeDuration;
-		this.regimeFactory = new RegimeFactory(initialPrice, regimeDuration, random);
+	public Ticker(Money initialPrice, int minRegimeDuration, int maxRegimeDuration, Random random) {
+		this.regimeFactory = new RegimeFactory(initialPrice, minRegimeDuration, maxRegimeDuration, random);
 		this.regimes.add(this.regimeFactory.nextRegime());
 	}
 
@@ -33,7 +31,7 @@ public class Ticker {
 
 	public void tick() {
 		cursor++;
-		if (cursor >= this.regimeDuration) {
+		if (cursor >= regimes.getLast().prices().size()) {
 			this.regimes.add(this.regimeFactory.nextRegime());
 			cursor = 0;
 		}

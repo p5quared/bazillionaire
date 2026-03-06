@@ -17,7 +17,7 @@ class TickerTest {
 	private static final long SEED = 42L;
 
 	private Ticker createTicker() {
-		return new Ticker(INITIAL_PRICE, STRATEGY_DURATION, new Random(SEED));
+		return new Ticker(INITIAL_PRICE, STRATEGY_DURATION, STRATEGY_DURATION, new Random(SEED));
 	}
 
 	@Test

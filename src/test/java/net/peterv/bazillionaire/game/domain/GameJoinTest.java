@@ -24,7 +24,7 @@ class GameJoinTest {
 	private static final PlayerId UNKNOWN = new PlayerId("unknown");
 
 	private Game createGame(List<PlayerId> players) {
-		Game game = Game.create(players, 3, INITIAL_BALANCE, INITIAL_PRICE, TOTAL_DURATION, STRATEGY_DURATION,
+		Game game = Game.create(players, 3, INITIAL_BALANCE, INITIAL_PRICE, TOTAL_DURATION, STRATEGY_DURATION, STRATEGY_DURATION,
 				new Random(SEED));
 		game.drainMessages();
 		return game;

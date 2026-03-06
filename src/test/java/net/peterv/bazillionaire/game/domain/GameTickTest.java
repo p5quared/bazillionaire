@@ -67,7 +67,7 @@ class GameTickTest {
 	}
 
 	private Game createGame(List<PlayerId> players, int totalDuration, int strategyDuration) {
-		Game game = Game.create(players, TICKER_COUNT, INITIAL_BALANCE, INITIAL_PRICE, totalDuration, strategyDuration,
+		Game game = Game.create(players, TICKER_COUNT, INITIAL_BALANCE, INITIAL_PRICE, totalDuration, strategyDuration, strategyDuration,
 				new Random(SEED));
 		game.drainMessages();
 		return game;
