@@ -97,9 +97,7 @@ public class LobbyController extends Controller {
 			@RestForm @DefaultValue("2") int tickerCount,
 			@RestForm @DefaultValue("1000") int initialBalance,
 			@RestForm @DefaultValue("100") int initialPrice,
-			@RestForm @DefaultValue("600") int gameDuration,
-			@RestForm @DefaultValue("60") int minStrategyDuration,
-			@RestForm @DefaultValue("120") int maxStrategyDuration) {
+			@RestForm @DefaultValue("600") int gameDuration) {
 		try {
 			var result = lobbyService.startLobby(id);
 			createGameUseCase.createGame(new CreateGameCommand(
@@ -109,8 +107,6 @@ public class LobbyController extends Controller {
 					new Money(initialBalance * 100),
 					new Money(initialPrice * 100),
 					gameDuration,
-					minStrategyDuration,
-					maxStrategyDuration,
 					new Random()));
 		} catch (Lobby.NotEnoughPlayersException e) {
 			flash("error", "Need at least " + Lobby.MIN_PLAYERS + " players to start");

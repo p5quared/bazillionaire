@@ -16,7 +16,6 @@ class GameJoinTest {
 	private static final Money INITIAL_BALANCE = new Money(100_000_00);
 	private static final Money INITIAL_PRICE = new Money(100_00);
 	private static final int TOTAL_DURATION = 200;
-	private static final int STRATEGY_DURATION = 50;
 	private static final long SEED = 42L;
 
 	private static final PlayerId PLAYER_1 = new PlayerId("player1");
@@ -24,7 +23,7 @@ class GameJoinTest {
 	private static final PlayerId UNKNOWN = new PlayerId("unknown");
 
 	private Game createGame(List<PlayerId> players) {
-		Game game = Game.create(players, 3, INITIAL_BALANCE, INITIAL_PRICE, TOTAL_DURATION, STRATEGY_DURATION, STRATEGY_DURATION,
+		Game game = Game.create(players, 3, INITIAL_BALANCE, INITIAL_PRICE, TOTAL_DURATION,
 				new Random(SEED));
 		game.drainMessages();
 		return game;

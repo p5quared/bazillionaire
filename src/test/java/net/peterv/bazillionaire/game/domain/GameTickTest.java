@@ -18,14 +18,13 @@ class GameTickTest {
 	private static final Money INITIAL_PRICE = new Money(100_00);
 	private static final int TICKER_COUNT = 3;
 	private static final int TOTAL_DURATION = 200;
-	private static final int STRATEGY_DURATION = 50;
 	private static final long SEED = 42L;
 
 	private static final PlayerId PLAYER_1 = new PlayerId("player1");
 
 	@Test
 	void tickBeforeStartProducesNoEventsAndKeepsInitialProgress() {
-		Game game = createGame(List.of(PLAYER_1), TOTAL_DURATION, STRATEGY_DURATION);
+		Game game = createGame(List.of(PLAYER_1), TOTAL_DURATION);
 		game.join(PLAYER_1);
 		game.drainMessages();
 
@@ -38,7 +37,7 @@ class GameTickTest {
 
 	@Test
 	void tickAfterStartEmitsTickerAndProgress() {
-		Game game = createStartedGame(List.of(PLAYER_1), TOTAL_DURATION, STRATEGY_DURATION);
+		Game game = createStartedGame(List.of(PLAYER_1), TOTAL_DURATION);
 
 		game.tick();
 
@@ -52,7 +51,7 @@ class GameTickTest {
 	@Test
 	void finalTickEmitsProgressAndFinished() {
 		int shortDuration = 2;
-		Game game = createStartedGame(List.of(PLAYER_1), shortDuration, 1);
+		Game game = createStartedGame(List.of(PLAYER_1), shortDuration);
 
 		game.tick();
 		game.drainMessages();
@@ -66,15 +65,15 @@ class GameTickTest {
 		assertTrue(messages.stream().anyMatch(m -> m.event() instanceof GameEvent.GameFinished));
 	}
 
-	private Game createGame(List<PlayerId> players, int totalDuration, int strategyDuration) {
-		Game game = Game.create(players, TICKER_COUNT, INITIAL_BALANCE, INITIAL_PRICE, totalDuration, strategyDuration, strategyDuration,
+	private Game createGame(List<PlayerId> players, int totalDuration) {
+		Game game = Game.create(players, TICKER_COUNT, INITIAL_BALANCE, INITIAL_PRICE, totalDuration,
 				new Random(SEED));
 		game.drainMessages();
 		return game;
 	}
 
-	private Game createStartedGame(List<PlayerId> players, int totalDuration, int strategyDuration) {
-		Game game = createGame(players, totalDuration, strategyDuration);
+	private Game createStartedGame(List<PlayerId> players, int totalDuration) {
+		Game game = createGame(players, totalDuration);
 		players.forEach(game::join);
 		game.start();
 		game.drainMessages();

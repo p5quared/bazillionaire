@@ -13,8 +13,8 @@ public class Ticker {
 	private List<RegimeStrategy> regimes = new ArrayList<>();
 	private int cursor = 0;
 
-	public Ticker(Money initialPrice, int minRegimeDuration, int maxRegimeDuration, Random random) {
-		this.regimeFactory = new RegimeFactory(initialPrice, minRegimeDuration, maxRegimeDuration, random);
+	public Ticker(Money initialPrice, Random random) {
+		this.regimeFactory = new RegimeFactory(initialPrice, random);
 		this.regimes.add(this.regimeFactory.nextRegime());
 	}
 

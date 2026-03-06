@@ -14,8 +14,6 @@ public record CreateGameCommand(
 		Money initialBalance,
 		Money initialPrice,
 		int gameDuration,
-		int minStrategyDuration,
-		int maxStrategyDuration,
 		Random random) {
 
 	public GameId toGameId() {

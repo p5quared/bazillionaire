@@ -13,11 +13,10 @@ class TickerTest {
 
 	private static final Money INITIAL_PRICE = new Money(100_00);
 	private static final int TOTAL_DURATION = 200;
-	private static final int STRATEGY_DURATION = 50;
 	private static final long SEED = 42L;
 
 	private Ticker createTicker() {
-		return new Ticker(INITIAL_PRICE, STRATEGY_DURATION, STRATEGY_DURATION, new Random(SEED));
+		return new Ticker(INITIAL_PRICE, new Random(SEED));
 	}
 
 	@Test

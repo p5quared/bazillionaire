@@ -23,8 +23,6 @@ public class CreateGameService implements CreateGameUseCase {
 				cmd.initialBalance(),
 				cmd.initialPrice(),
 				cmd.gameDuration(),
-				cmd.minStrategyDuration(),
-				cmd.maxStrategyDuration(),
 				cmd.random());
 		gameRepository.saveGame(cmd.toGameId(), game);
 		return new UseCaseResult<>(null, game.drainMessages());
