@@ -13,18 +13,20 @@ class LinearRegimeStrategyTest {
 			int duration,
 			int direction) {
 		var regime = new LinearRegimeStrategy(initialPrice, stepCents, duration, direction);
+		var prices = regime.prices();
+		assertEquals(duration, prices.size(), "Regime should expose one price per tick");
 		int expectedRate = direction * stepCents;
 
 		int previousCents = initialPrice.cents();
 		for (int t = 0; t < duration - 1; t++) {
-			int price = regime.priceAt(t).cents();
+			int price = prices.get(t).cents();
 			assertEquals(expectedRate, price - previousCents,
 					"Price change at tick " + t + " should be " + expectedRate);
 			previousCents = price;
 		}
 
 		// Final tick holds price
-		int lastPrice = regime.priceAt(duration - 1).cents();
+		int lastPrice = prices.get(duration - 1).cents();
 		assertEquals(previousCents, lastPrice, "Last tick should hold price");
 	}
 

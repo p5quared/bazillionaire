@@ -3,8 +3,6 @@ package net.peterv.bazillionaire.game.domain.ticker.regime;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
 
-import java.util.stream.IntStream;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class CycleRegimeStrategyTest {
@@ -17,9 +15,10 @@ class CycleRegimeStrategyTest {
 			int minExpected,
 			int maxExpected) {
 		var regime = new CycleRegimeStrategy(initialPrice, amplitudeCents, cycleDuration, direction);
+		var prices = regime.prices();
+		assertEquals(cycleDuration, prices.size(), "Regime should expose one price per tick");
 
-		boolean allWithinRange = IntStream.range(0, cycleDuration)
-				.mapToObj(t -> regime.priceAt(t))
+		boolean allWithinRange = prices.stream()
 				.map(Money::cents)
 				.allMatch(p -> p <= maxExpected && p >= minExpected);
 

@@ -2,6 +2,9 @@ package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CycleRegimeStrategy implements RegimeStrategy {
 
 	private final int amplitudeCents;
@@ -25,7 +28,15 @@ public class CycleRegimeStrategy implements RegimeStrategy {
 	}
 
 	@Override
-	public Money priceAt(int tick) {
+	public List<Money> prices() {
+		List<Money> prices = new ArrayList<>(waveLength);
+		for (int tick = 0; tick < waveLength; tick++) {
+			prices.add(priceAt(tick));
+		}
+		return List.copyOf(prices);
+	}
+
+	private Money priceAt(int tick) {
 		int effectiveTick = Math.min(tick + 1, waveLength - 1);
 		double phase = 2 * Math.PI * effectiveTick / waveLength + (direction == -1 ? Math.PI : 0);
 		return new Money(initialCents + (int) (amplitudeCents * Math.sin(phase)));

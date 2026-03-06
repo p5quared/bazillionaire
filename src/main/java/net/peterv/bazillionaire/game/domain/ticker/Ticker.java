@@ -57,13 +57,9 @@ public class Ticker {
 		for (int seg = 0; seg < segmentCount; seg++) {
 			RegimeKind kind = kinds[random.nextInt(kinds.length)];
 			RegimeStrategy regime = createRegime(kind, segmentStart, regimeDuration, random);
-
-			Money lastPrice = segmentStart;
-			for (int t = 0; t < regimeDuration; t++) {
-				lastPrice = regime.priceAt(t);
-				timeline.add(lastPrice);
-			}
-			segmentStart = lastPrice;
+			List<Money> regimePrices = regime.prices();
+			timeline.addAll(regimePrices);
+			segmentStart = regimePrices.get(regimePrices.size() - 1);
 		}
 
 		return List.copyOf(timeline);

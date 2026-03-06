@@ -2,6 +2,9 @@ package net.peterv.bazillionaire.game.domain.ticker.regime;
 
 import net.peterv.bazillionaire.game.domain.types.Money;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ExponentialRegimeStrategy implements RegimeStrategy {
 
 	private final int startCents;
@@ -28,7 +31,15 @@ public class ExponentialRegimeStrategy implements RegimeStrategy {
 	}
 
 	@Override
-	public Money priceAt(int tick) {
+	public List<Money> prices() {
+		List<Money> prices = new ArrayList<>(duration);
+		for (int tick = 0; tick < duration; tick++) {
+			prices.add(priceAt(tick));
+		}
+		return List.copyOf(prices);
+	}
+
+	private Money priceAt(int tick) {
 		if (tick >= duration - 1)
 			return new Money(endCents);
 		double progress = (double) (tick + 1) / duration;
