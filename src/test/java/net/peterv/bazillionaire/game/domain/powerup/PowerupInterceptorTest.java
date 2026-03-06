@@ -1,0 +1,65 @@
+package net.peterv.bazillionaire.game.domain.powerup;
+
+import net.peterv.bazillionaire.game.domain.Game;
+import net.peterv.bazillionaire.game.domain.order.Order;
+import net.peterv.bazillionaire.game.domain.order.OrderResult;
+import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PowerupInterceptorTest {
+
+    static class PassThroughInterceptor extends Powerup implements OrderInterceptor {
+        PassThroughInterceptor() { super(5); }
+
+        @Override
+        public OrderResult intercept(Order order, Ticker ticker) { return null; }
+    }
+
+    static class BlockingInterceptor extends Powerup implements OrderInterceptor {
+        final OrderResult result;
+
+        BlockingInterceptor(OrderResult result) {
+            super(5);
+            this.result = result;
+        }
+
+        @Override
+        public OrderResult intercept(Order order, Ticker ticker) { return result; }
+    }
+
+    static class NeverReachedInterceptor extends Powerup implements OrderInterceptor {
+        NeverReachedInterceptor() { super(5); }
+
+        @Override
+        public OrderResult intercept(Order order, Ticker ticker) {
+            throw new AssertionError("should not be called");
+        }
+    }
+
+    @Test
+    void returnsNullWhenNoPowerupsActive() {
+        var manager = new PowerupManager();
+        assertNull(manager.checkInterceptors(null, null));
+    }
+
+    @Test
+    void returnsNullWhenNoPowerupImplementsInterceptor() {
+        var manager = new PowerupManager();
+        manager.activate(new TrackingPowerup(5), null);
+        assertNull(manager.checkInterceptors(null, null));
+    }
+
+    @Test
+    void shortCircuitsOnFirstNonNullResult() {
+        var manager = new PowerupManager();
+        OrderResult blocked = new OrderResult.Rejected("blocked by powerup");
+
+        manager.activate(new PassThroughInterceptor(), null);    // returns null — pass through
+        manager.activate(new BlockingInterceptor(blocked), null); // returns result — short-circuit
+        manager.activate(new NeverReachedInterceptor(), null);   // must never be called
+
+        assertSame(blocked, manager.checkInterceptors(null, null));
+    }
+}
