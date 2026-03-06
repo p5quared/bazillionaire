@@ -45,7 +45,7 @@ public class LobbyService {
 		lobby.removeMember(playerId);
 	}
 
-	public record StartedLobby(String gameId, List<String> playerIds, int tickerCount) {
+	public record StartedLobby(String gameId, List<String> playerIds) {
 	}
 
 	@Transactional
@@ -55,7 +55,7 @@ public class LobbyService {
 			throw new NotFoundException("Lobby not found");
 		lobby.start();
 		var playerIds = lobby.members.stream().map(m -> m.playerId).toList();
-		return new StartedLobby(lobbyId, playerIds, 2);
+		return new StartedLobby(lobbyId, playerIds);
 	}
 
 	@Transactional

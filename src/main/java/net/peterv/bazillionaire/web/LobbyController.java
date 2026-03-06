@@ -92,17 +92,23 @@ public class LobbyController extends Controller {
 
 	@POST
 	@Path("/{id}/start")
-	public void start(@PathParam("id") String id) {
+	public void start(
+			@PathParam("id") String id,
+			@RestForm @DefaultValue("2") int tickerCount,
+			@RestForm @DefaultValue("1000") int initialBalance,
+			@RestForm @DefaultValue("100") int initialPrice,
+			@RestForm @DefaultValue("600") int gameDuration,
+			@RestForm @DefaultValue("120") int strategyDuration) {
 		try {
 			var result = lobbyService.startLobby(id);
 			createGameUseCase.createGame(new CreateGameCommand(
 					result.gameId(),
 					result.playerIds(),
-					result.tickerCount(),
-					new Money(1_000_00),
-					new Money(100_00),
-					600,
-					120,
+					tickerCount,
+					new Money(initialBalance * 100),
+					new Money(initialPrice * 100),
+					gameDuration,
+					strategyDuration,
 					new Random()));
 		} catch (Lobby.NotEnoughPlayersException e) {
 			flash("error", "Need at least " + Lobby.MIN_PLAYERS + " players to start");
