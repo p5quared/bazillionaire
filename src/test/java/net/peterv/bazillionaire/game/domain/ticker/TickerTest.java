@@ -5,7 +5,6 @@ import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,33 +18,6 @@ class TickerTest {
 
 	private Ticker createTicker() {
 		return new Ticker(INITIAL_PRICE, TOTAL_DURATION, STRATEGY_DURATION, new Random(SEED));
-	}
-
-	@Test
-	void peekReturnsSamePricesAsSubsequentTicks() {
-		var ticker = createTicker();
-
-		int peekSize = 10;
-		List<Money> peeked = ticker.peek(peekSize);
-		assertEquals(peekSize, peeked.size());
-
-		for (int i = 0; i < peekSize; i++) {
-			ticker.tick();
-			assertEquals(peeked.get(i), ticker.currentPrice(),
-					"Peek price at offset %d does not match tick price".formatted(i));
-		}
-	}
-
-	@Test
-	void peekDoesNotMutateState() {
-		var ticker = createTicker();
-		ticker.tick();
-		Money priceBefore = ticker.currentPrice();
-
-		ticker.peek(20);
-		ticker.peek(5);
-
-		assertEquals(priceBefore, ticker.currentPrice(), "peek() should not change currentPrice");
 	}
 
 	@Test

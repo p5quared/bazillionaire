@@ -38,15 +38,6 @@ public class Ticker {
 		}
 	}
 
-	public List<Money> peek(int n) {
-		int from = cursor + 1;
-		int to = Math.min(from + n, prices.size());
-		if (from >= prices.size()) {
-			return List.of();
-		}
-		return List.copyOf(prices.subList(from, to));
-	}
-
 	private static List<Money> buildPriceTimeline(Money initialPrice, int totalDuration,
 			int regimeDuration, Random random) {
 		RegimeKind[] kinds = RegimeKind.values();
