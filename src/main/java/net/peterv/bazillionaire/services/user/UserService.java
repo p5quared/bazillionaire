@@ -7,7 +7,7 @@ import jakarta.transaction.Transactional;
 public class UserService {
 
 	@Transactional
-	public void updateUser(Long id, String username) {
+	public void updateUsername(Long id, String username) {
 		User user = User.findById(id);
 		if (user == null)
 			return;

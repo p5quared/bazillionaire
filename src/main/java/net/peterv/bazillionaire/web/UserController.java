@@ -55,7 +55,7 @@ public class UserController extends Controller {
 			flash("error", "Username cannot be blank");
 			throw new RedirectException(Response.seeOther(URI.create("/users/" + id)).build());
 		}
-		userService.updateUser(id, username.strip());
+		userService.updateUsername(id, username.strip());
 		throw new RedirectException(Response.seeOther(URI.create("/users")).build());
 	}
 
