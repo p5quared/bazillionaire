@@ -2,6 +2,8 @@ package net.peterv.bazillionaire.game.domain;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
+import net.peterv.bazillionaire.game.domain.powerup.Powerup;
+import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
@@ -21,6 +23,7 @@ public class Game {
 	private final Map<PlayerId, Portfolio> players;
 	private final Map<Symbol, Ticker> tickers;
 	private final List<GameMessage> pendingMessages = new ArrayList<>();
+	private final PowerupManager powerupManager = new PowerupManager();
 	private final Set<PlayerId> readyPlayers = new HashSet<>();
 	private final int totalDuration;
 	private int tickCount = 0;
@@ -79,6 +82,11 @@ public class Game {
 			return new OrderResult.InvalidOrder("Unknown symbol: " + order.symbol().value());
 		}
 
+		OrderResult intercepted = powerupManager.checkInterceptors(order, ticker);
+		if (intercepted != null) {
+			return intercepted;
+		}
+
 		if (!ticker.canFill(order)) {
 			return new OrderResult.Rejected("Ticker cannot fill order");
 		}
@@ -105,6 +113,7 @@ public class Game {
 				emit(GameMessage.broadcast(
 						new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
 			});
+			powerupManager.tick(this);
 			tickCount++;
 			emit(GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
 			if (tickCount >= totalDuration) {
@@ -171,6 +180,10 @@ public class Game {
 		Map<Symbol, Money> prices = new HashMap<>();
 		tickers.forEach((symbol, ticker) -> prices.put(symbol, ticker.currentPrice()));
 		return prices;
+	}
+
+	public void activatePowerup(Powerup powerup) {
+		powerupManager.activate(powerup, this);
 	}
 
 	private void emit(GameMessage message) {
