@@ -83,7 +83,9 @@ class PowerupManagerTest {
 				.map(GameMessage::event)
 				.anyMatch(e -> e instanceof GameEvent.PowerupAwarded pa
 						&& pa.recipient().equals(player)
-						&& pa.powerupName().equals("tracking"));
+						&& pa.powerupName().equals("tracking")
+						&& pa.description().equals("test")
+						&& pa.usageType().equals("instant"));
 		assertTrue(hasAwardEvent);
 		// Powerup is now collected into inventory, not immediately activated
 		assertEquals(0, awarded.activateCount);

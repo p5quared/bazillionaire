@@ -10,7 +10,6 @@ public final class CatchUpFreezeTrigger implements PowerupTrigger {
 	private final int freezeDuration;
 	private final Random random;
 	private final PlayerRankingStrategy trailingStrategy;
-	private final PlayerRankingStrategy leadingStrategy;
 
 	public CatchUpFreezeTrigger(double probability, int freezeDuration, Random random) {
 		if (probability < 0.0 || probability > 1.0) {
@@ -23,7 +22,6 @@ public final class CatchUpFreezeTrigger implements PowerupTrigger {
 		this.freezeDuration = freezeDuration;
 		this.random = random;
 		this.trailingStrategy = PlayerRankingStrategy.trailing();
-		this.leadingStrategy = PlayerRankingStrategy.leading();
 	}
 
 	@Override
@@ -37,12 +35,11 @@ public final class CatchUpFreezeTrigger implements PowerupTrigger {
 		}
 
 		PlayerId recipient = trailingStrategy.selectTarget(context);
-		PlayerId victim = leadingStrategy.selectTarget(context);
 
-		if (recipient == null || victim == null || recipient.equals(victim)) {
+		if (recipient == null) {
 			return List.of();
 		}
 
-		return List.of(new AwardedPowerup(recipient, new OrderFreezePowerup(victim, freezeDuration)));
+		return List.of(new AwardedPowerup(recipient, new OrderFreezePowerup(freezeDuration)));
 	}
 }

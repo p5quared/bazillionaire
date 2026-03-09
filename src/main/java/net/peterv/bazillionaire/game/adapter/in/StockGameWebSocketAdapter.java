@@ -126,6 +126,7 @@ public class StockGameWebSocketAdapter {
 
 	private void handleUsePowerup(WebSocketConnection connection, String gameId, Map<String, Object> payload) {
 		String powerupName = (String) payload.get("powerupName");
+		String targetPlayerId = (String) payload.get("targetPlayerId");
 		String playerIdStr = registry.findPlayer(connection.id())
 				.map(PlayerId::value)
 				.orElse(null);
@@ -134,11 +135,12 @@ public class StockGameWebSocketAdapter {
 			return;
 		}
 		UseCaseResult<UsePowerupResult> result = usePowerupUseCase.usePowerup(
-				new UsePowerupCommand(gameId, playerIdStr, powerupName));
+				new UsePowerupCommand(gameId, playerIdStr, powerupName, targetPlayerId));
 		switch (result.result()) {
 			case UsePowerupResult.Activated ignored -> {}
 			case UsePowerupResult.NotOwned ignored -> sendError(connection, "POWERUP_NOT_OWNED",
 					"You do not own that powerup");
+			case UsePowerupResult.InvalidTarget inv -> sendError(connection, "INVALID_TARGET", inv.reason());
 		}
 		dispatchMessages(gameId, result.messages());
 	}
@@ -193,7 +195,8 @@ public class StockGameWebSocketAdapter {
 			case GameEvent.GameFinished ignored -> new ServerMessage("GAME_FINISHED",
 					new GameFinishedData());
 			case GameEvent.PowerupAwarded pa -> new ServerMessage("POWERUP_AWARDED",
-					new PowerupAwardedData(pa.recipient().value(), pa.powerupName()));
+					new PowerupAwardedData(pa.recipient().value(), pa.powerupName(), pa.description(),
+							pa.usageType()));
 			case GameEvent.FreezeStarted fs -> new ServerMessage("FREEZE_STARTED",
 					new FreezeStartedData(fs.frozenPlayer().value(), fs.duration()));
 			case GameEvent.FreezeExpired fe -> new ServerMessage("FREEZE_EXPIRED",
@@ -275,7 +278,7 @@ public class StockGameWebSocketAdapter {
 	private record GameTickData(int tick, int ticksRemaining) {
 	}
 
-	private record PowerupAwardedData(String recipient, String powerupName) {
+	private record PowerupAwardedData(String recipient, String powerupName, String description, String usageType) {
 	}
 
 	private record FreezeStartedData(String frozenPlayer, int duration) {

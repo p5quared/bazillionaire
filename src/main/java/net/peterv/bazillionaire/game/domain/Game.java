@@ -210,8 +210,8 @@ public class Game {
 		applyEffects(powerupManager.activate(powerup));
 	}
 
-	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName) {
-		UsePowerupResult result = powerupManager.usePowerup(playerId, powerupName);
+	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, PlayerId target) {
+		UsePowerupResult result = powerupManager.usePowerup(playerId, powerupName, target);
 		if (result instanceof UsePowerupResult.Activated activated) {
 			applyEffects(activated.effects());
 		}

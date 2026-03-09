@@ -6,6 +6,7 @@ import net.peterv.bazillionaire.game.domain.powerup.OrderInterceptor;
 import net.peterv.bazillionaire.game.domain.powerup.OrderFreezePowerup;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
+import net.peterv.bazillionaire.game.domain.powerup.PowerupUsageType;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
@@ -29,6 +30,12 @@ class GamePowerupTest {
         public String name() { return "blocking-interceptor"; }
 
         @Override
+        public String description() { return "test"; }
+
+        @Override
+        public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
+
+        @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {
             return new OrderResult.Rejected("blocked by powerup");
         }
@@ -41,6 +48,12 @@ class GamePowerupTest {
 
         @Override
         public String name() { return "tick-counting"; }
+
+        @Override
+        public String description() { return "test"; }
+
+        @Override
+        public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
 
         @Override
         public List<PowerupEffect> onTick() { onTickCount++; return List.of(); }
@@ -103,7 +116,9 @@ class GamePowerupTest {
         game.start();
         game.drainMessages();
 
-        game.activatePowerup(new OrderFreezePowerup(frozenPlayer, 2));
+        OrderFreezePowerup freeze = new OrderFreezePowerup(2);
+        freeze.setTarget(frozenPlayer);
+        game.activatePowerup(freeze);
         game.drainMessages();
 
         OrderResult blocked = game.placeOrder(

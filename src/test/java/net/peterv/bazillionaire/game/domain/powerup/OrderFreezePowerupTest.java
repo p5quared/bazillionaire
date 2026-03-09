@@ -22,7 +22,8 @@ class OrderFreezePowerupTest {
 	void blocksOrdersFromFrozenPlayerOnly() {
 		PlayerId frozen = new PlayerId("p1");
 		PlayerId other = new PlayerId("p2");
-		OrderFreezePowerup powerup = new OrderFreezePowerup(frozen, 3);
+		OrderFreezePowerup powerup = new OrderFreezePowerup(3);
+		powerup.setTarget(frozen);
 		Order blockedOrder = new Order.Buy(new Symbol("ABC"), new Money(100_00));
 
 		assertInstanceOf(OrderResult.Rejected.class, powerup.intercept(blockedOrder, frozen, null));
@@ -32,7 +33,8 @@ class OrderFreezePowerupTest {
 	@Test
 	void emitsFreezeLifecycleEffectsToFrozenPlayerOnly() {
 		PlayerId frozen = new PlayerId("p1");
-		OrderFreezePowerup powerup = new OrderFreezePowerup(frozen, 3);
+		OrderFreezePowerup powerup = new OrderFreezePowerup(3);
+		powerup.setTarget(frozen);
 
 		List<PowerupEffect> activateEffects = powerup.onActivate();
 		List<PowerupEffect> deactivateEffects = powerup.onDeactivate();
@@ -47,5 +49,11 @@ class OrderFreezePowerupTest {
 		assertEquals(new Audience.Only(frozen), deactivateMsg.audience());
 		assertEquals(new GameEvent.FreezeStarted(frozen, 3), activateMsg.event());
 		assertEquals(new GameEvent.FreezeExpired(frozen), deactivateMsg.event());
+	}
+
+	@Test
+	void usageTypeIsTargetPlayer() {
+		OrderFreezePowerup powerup = new OrderFreezePowerup(3);
+		assertEquals(PowerupUsageType.TARGET_PLAYER, powerup.usageType());
 	}
 }

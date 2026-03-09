@@ -10,19 +10,23 @@ import net.peterv.bazillionaire.game.service.GameMessage;
 import java.util.List;
 
 public final class OrderFreezePowerup extends Powerup implements OrderInterceptor {
-	private final PlayerId frozenPlayer;
+	private PlayerId frozenPlayer;
 
-	public OrderFreezePowerup(PlayerId frozenPlayer, int duration) {
+	public OrderFreezePowerup(int duration) {
 		super(duration);
 		if (duration <= 0) {
 			throw new IllegalArgumentException("Freeze duration must be positive");
 		}
-		this.frozenPlayer = frozenPlayer;
+	}
+
+	@Override
+	public void setTarget(PlayerId target) {
+		this.frozenPlayer = target;
 	}
 
 	@Override
 	public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {
-		if (playerId.equals(frozenPlayer)) {
+		if (frozenPlayer != null && playerId.equals(frozenPlayer)) {
 			return new OrderResult.Rejected("Your orders are frozen!");
 		}
 		return null;
@@ -30,12 +34,18 @@ public final class OrderFreezePowerup extends Powerup implements OrderIntercepto
 
 	@Override
 	public List<PowerupEffect> onActivate() {
+		if (frozenPlayer == null) {
+			return List.of();
+		}
 		return List.of(new PowerupEffect.Emit(
 				GameMessage.send(new GameEvent.FreezeStarted(frozenPlayer, remainingTicks), frozenPlayer)));
 	}
 
 	@Override
 	public List<PowerupEffect> onDeactivate() {
+		if (frozenPlayer == null) {
+			return List.of();
+		}
 		return List.of(new PowerupEffect.Emit(
 				GameMessage.send(new GameEvent.FreezeExpired(frozenPlayer), frozenPlayer)));
 	}
@@ -43,5 +53,15 @@ public final class OrderFreezePowerup extends Powerup implements OrderIntercepto
 	@Override
 	public String name() {
 		return "Order Freeze";
+	}
+
+	@Override
+	public String description() {
+		return "Freeze a player's orders";
+	}
+
+	@Override
+	public PowerupUsageType usageType() {
+		return PowerupUsageType.TARGET_PLAYER;
 	}
 }

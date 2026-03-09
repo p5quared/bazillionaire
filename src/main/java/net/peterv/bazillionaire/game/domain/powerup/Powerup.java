@@ -1,14 +1,20 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
+import net.peterv.bazillionaire.game.domain.types.PlayerId;
+
 import java.util.List;
 
 public abstract class Powerup {
 	public abstract String name();
+	public abstract String description();
+	public abstract PowerupUsageType usageType();
 	protected int remainingTicks;
 
 	protected Powerup(int duration) {
 		this.remainingTicks = duration;
 	}
+
+	public void setTarget(PlayerId target) {}
 
 	public List<PowerupEffect> onActivate() {
 		return List.of();

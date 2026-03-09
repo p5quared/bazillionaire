@@ -180,7 +180,8 @@
         els.root.classList.toggle("player-box--frozen", isFrozen);
 
         if (isLocal && state.inventory && state.inventory.length > 0) {
-            els.inventoryEl.textContent = "[" + state.inventory.join(", ") + "]";
+            els.inventoryEl.textContent = "[" + state.inventory.map(function (p) { return p.name; }).join(", ") + "]";
+            els.inventoryEl.title = state.inventory.map(function (p) { return p.name + ": " + p.description; }).join("\n");
             els.inventoryEl.style.display = "";
         } else {
             els.inventoryEl.textContent = "";
@@ -317,13 +318,20 @@
         },
         POWERUP_AWARDED: function (data) {
             if (data.recipient === playerId) {
-                state.inventory = state.inventory.concat([data.powerupName]);
+                state.inventory = state.inventory.concat([{
+                    name: data.powerupName,
+                    description: data.description || "",
+                    usageType: data.usageType || "instant"
+                }]);
                 updateInventory();
             }
         },
         POWERUP_ACTIVATED: function (data) {
             if (data.user === playerId) {
-                var idx = state.inventory.indexOf(data.powerupName);
+                var idx = -1;
+                for (var i = 0; i < state.inventory.length; i++) {
+                    if (state.inventory[i].name === data.powerupName) { idx = i; break; }
+                }
                 if (idx !== -1) {
                     state.inventory = state.inventory.slice(0, idx).concat(state.inventory.slice(idx + 1));
                 }
@@ -386,11 +394,49 @@
         }));
     }
 
-    function sendUsePowerup(powerupName) {
-        ws.send(JSON.stringify({
-            type: "USE_POWERUP",
-            payload: { powerupName: powerupName },
-        }));
+    function sendUsePowerup(powerupName, targetPlayerId) {
+        var payload = { powerupName: powerupName };
+        if (targetPlayerId) payload.targetPlayerId = targetPlayerId;
+        ws.send(JSON.stringify({ type: "USE_POWERUP", payload: payload }));
+    }
+
+    // --------------- target picker ---------------
+    var targetPickerEl = null;
+
+    function showTargetPicker(powerupName) {
+        if (targetPickerEl) removeTargetPicker();
+        var others = Object.keys(state.players).filter(function (pid) { return pid !== playerId; });
+        if (others.length === 0) return;
+
+        targetPickerEl = document.createElement("div");
+        targetPickerEl.className = "target-picker";
+        targetPickerEl.innerHTML = "<div class='target-picker__title'>Choose target for " + powerupName + ":</div>";
+
+        others.forEach(function (pid) {
+            var btn = document.createElement("button");
+            btn.className = "target-picker__btn";
+            btn.textContent = pid;
+            btn.addEventListener("click", function () {
+                sendUsePowerup(powerupName, pid);
+                removeTargetPicker();
+            });
+            targetPickerEl.appendChild(btn);
+        });
+
+        var cancelBtn = document.createElement("button");
+        cancelBtn.className = "target-picker__btn target-picker__btn--cancel";
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.addEventListener("click", removeTargetPicker);
+        targetPickerEl.appendChild(cancelBtn);
+
+        document.body.appendChild(targetPickerEl);
+    }
+
+    function removeTargetPicker() {
+        if (targetPickerEl && targetPickerEl.parentNode) {
+            targetPickerEl.parentNode.removeChild(targetPickerEl);
+        }
+        targetPickerEl = null;
     }
 
     var ORDER_REPEAT_MS = 150;
@@ -423,7 +469,14 @@
         } else if (e.key === "s") {
             startOrderRepeat("s", "SELL");
         } else if (e.key === "u" && state.inventory.length > 0) {
-            sendUsePowerup(state.inventory[0]);
+            var powerup = state.inventory[0];
+            if (powerup.usageType === "target_player") {
+                showTargetPicker(powerup.name);
+            } else {
+                sendUsePowerup(powerup.name);
+            }
+        } else if (e.key === "Escape") {
+            removeTargetPicker();
         }
     });
 

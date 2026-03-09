@@ -15,6 +15,12 @@ class TrackingPowerup extends Powerup {
     public String name() { return "tracking"; }
 
     @Override
+    public String description() { return "test"; }
+
+    @Override
+    public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
+
+    @Override
     public List<PowerupEffect> onActivate() { activateCount++; return List.of(); }
 
     @Override

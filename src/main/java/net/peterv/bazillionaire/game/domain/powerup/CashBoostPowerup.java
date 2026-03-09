@@ -24,4 +24,14 @@ public class CashBoostPowerup extends Powerup {
 	public String name() {
 		return "Cash Boost";
 	}
+
+	@Override
+	public String description() {
+		return "Instant cash injection";
+	}
+
+	@Override
+	public PowerupUsageType usageType() {
+		return PowerupUsageType.INSTANT;
+	}
 }

@@ -29,7 +29,7 @@ class PowerupInventoryTest {
 		var manager = new PowerupManager();
 		manager.collect(player, new TrackingPowerup(5));
 
-		manager.usePowerup(player, "tracking");
+		manager.usePowerup(player, "tracking", null);
 
 		assertEquals(0, manager.getInventory(player).size());
 	}
@@ -41,7 +41,7 @@ class PowerupInventoryTest {
 		var powerup = new TrackingPowerup(5);
 		manager.collect(player, powerup);
 
-		manager.usePowerup(player, "tracking");
+		manager.usePowerup(player, "tracking", null);
 
 		assertEquals(1, powerup.activateCount);
 	}
@@ -51,7 +51,7 @@ class PowerupInventoryTest {
 		var player = new PlayerId("p1");
 		var manager = new PowerupManager();
 
-		UsePowerupResult result = manager.usePowerup(player, "tracking");
+		UsePowerupResult result = manager.usePowerup(player, "tracking", null);
 
 		assertInstanceOf(UsePowerupResult.NotOwned.class, result);
 	}
@@ -65,7 +65,7 @@ class PowerupInventoryTest {
 		manager.collect(player, p1);
 		manager.collect(player, p2);
 
-		manager.usePowerup(player, "tracking");
+		manager.usePowerup(player, "tracking", null);
 
 		assertEquals(1, manager.getInventory(player).size());
 		assertEquals(1, p1.activateCount + p2.activateCount);
@@ -81,6 +81,16 @@ class PowerupInventoryTest {
 			@Override
 			public String name() {
 				return "other";
+			}
+
+			@Override
+			public String description() {
+				return "test";
+			}
+
+			@Override
+			public PowerupUsageType usageType() {
+				return PowerupUsageType.INSTANT;
 			}
 
 			@Override
@@ -102,7 +112,7 @@ class PowerupInventoryTest {
 		manager.collect(player, tracking);
 		manager.collect(player, other);
 
-		UsePowerupResult result = manager.usePowerup(player, "other");
+		UsePowerupResult result = manager.usePowerup(player, "other", null);
 
 		assertInstanceOf(UsePowerupResult.Activated.class, result);
 		assertEquals(0, tracking.activateCount);

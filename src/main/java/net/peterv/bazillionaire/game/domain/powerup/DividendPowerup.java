@@ -35,6 +35,16 @@ public class DividendPowerup extends Powerup {
 		return "Dividend:" + symbol.value();
 	}
 
+	@Override
+	public String description() {
+		return "Collect dividend on " + symbol.value();
+	}
+
+	@Override
+	public PowerupUsageType usageType() {
+		return PowerupUsageType.INSTANT;
+	}
+
 	public PlayerId recipient() {
 		return recipient;
 	}

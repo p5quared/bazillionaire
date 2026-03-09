@@ -17,6 +17,12 @@ class PowerupInterceptorTest {
         public String name() { return "pass-through"; }
 
         @Override
+        public String description() { return "test"; }
+
+        @Override
+        public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
+
+        @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) { return null; }
     }
 
@@ -32,6 +38,12 @@ class PowerupInterceptorTest {
         public String name() { return "blocking"; }
 
         @Override
+        public String description() { return "test"; }
+
+        @Override
+        public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
+
+        @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) { return result; }
     }
 
@@ -40,6 +52,12 @@ class PowerupInterceptorTest {
 
         @Override
         public String name() { return "never-reached"; }
+
+        @Override
+        public String description() { return "test"; }
+
+        @Override
+        public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
 
         @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {

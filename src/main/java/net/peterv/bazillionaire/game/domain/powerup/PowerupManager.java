@@ -27,11 +27,20 @@ public class PowerupManager {
 		inventory.computeIfAbsent(recipient, k -> new ArrayList<>()).add(powerup);
 	}
 
-	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName) {
+	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, PlayerId target) {
 		List<Powerup> owned = inventory.getOrDefault(playerId, Collections.emptyList());
 		Powerup match = owned.stream().filter(p -> p.name().equals(powerupName)).findFirst().orElse(null);
 		if (match == null) {
 			return new UsePowerupResult.NotOwned();
+		}
+		if (match.usageType() == PowerupUsageType.TARGET_PLAYER) {
+			if (target == null) {
+				return new UsePowerupResult.InvalidTarget("Must select a target");
+			}
+			if (target.equals(playerId)) {
+				return new UsePowerupResult.InvalidTarget("Cannot target yourself");
+			}
+			match.setTarget(target);
 		}
 		owned.remove(match);
 		List<PowerupEffect> effects = activate(match);
@@ -61,7 +70,9 @@ public class PowerupManager {
 				for (AwardedPowerup award : trigger.evaluate(context)) {
 					collect(award.recipient(), award.powerup());
 					effects.add(new PowerupEffect.Emit(GameMessage.broadcast(
-							new GameEvent.PowerupAwarded(award.recipient(), award.powerup().name()))));
+							new GameEvent.PowerupAwarded(award.recipient(), award.powerup().name(),
+									award.powerup().description(),
+									award.powerup().usageType().name().toLowerCase()))));
 				}
 			}
 		}
