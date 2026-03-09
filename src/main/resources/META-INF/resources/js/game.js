@@ -24,7 +24,7 @@
         prices: {},
         prevPrices: {},
         symbols: [],
-        chart: chart.createChartState(60),
+        chart: chart.createChartState(180),
         hoveredSymbol: null,
         tradingDisabledReason: "",
         inventory: [],

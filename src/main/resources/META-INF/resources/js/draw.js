@@ -48,8 +48,7 @@ function renderSparkline(canvasEl, chartState, symbol) {
     var series = chart.getSeries(chartState, symbol);
     if (series.length < 2) return;
 
-    var currentPrice = series[series.length - 1];
-    var range = chart.computeFixedRange(currentPrice);
+    var range = chart.computeDynamicRange(series, 100);
     var rect = { x: 0, y: 0, w: w, h: h };
     var points = chart.buildLinePoints(series, rect, chartState.maxPoints, range);
     var markers = chart.buildAnnotationMarkers(

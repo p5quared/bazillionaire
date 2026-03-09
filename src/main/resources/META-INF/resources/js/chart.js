@@ -115,6 +115,21 @@ function computeFixedRange(currentPrice) {
     };
 }
 
+function computeDynamicRange(series, windowSize) {
+    var start = Math.max(0, series.length - windowSize);
+    var min = series[start];
+    var max = series[start];
+    for (var i = start + 1; i < series.length; i++) {
+        if (series[i] < min) min = series[i];
+        if (series[i] > max) max = series[i];
+    }
+    var padding = Math.max((max - min) * 0.1, 50);
+    return {
+        min: min - padding,
+        max: max + padding,
+    };
+}
+
 function priceToY(price, minPrice, maxPrice, y, h) {
     return y + h - ((price - minPrice) / (maxPrice - minPrice)) * h;
 }
@@ -155,6 +170,7 @@ window.Baz.chart = {
     getSeries: getSeries,
     getAnnotations: getAnnotations,
     computeFixedRange: computeFixedRange,
+    computeDynamicRange: computeDynamicRange,
     priceToY: priceToY,
     buildLinePoints: buildLinePoints,
     buildAnnotationMarkers: buildAnnotationMarkers,
