@@ -93,8 +93,125 @@
         }
     }
 
+    // --------------- powerup helpers ---------------
+    function groupInventory(inventory) {
+        var map = {};
+        var order = [];
+        for (var i = 0; i < inventory.length; i++) {
+            var p = inventory[i];
+            var key = p.name;
+            if (map[key]) {
+                map[key].count++;
+            } else {
+                map[key] = { name: p.name, description: p.description, usageType: p.usageType, count: 1 };
+                order.push(key);
+            }
+        }
+        var result = [];
+        for (var j = 0; j < order.length; j++) {
+            result.push(map[order[j]]);
+        }
+        return result;
+    }
+
+    var powerupTrayEl = null;
+    var powerupDescEl = null;
+
+    function renderPowerupTray() {
+        if (!powerupTrayEl) powerupTrayEl = document.getElementById("powerup-tray");
+        if (!powerupDescEl) powerupDescEl = document.getElementById("powerup-desc");
+
+        powerupTrayEl.innerHTML = "";
+        powerupDescEl.textContent = "";
+
+        var groups = groupInventory(state.inventory);
+
+        if (groups.length > 0) {
+            var label = document.createElement("span");
+            label.id = "powerup-tray__label";
+            label.textContent = "Powerups";
+            powerupTrayEl.appendChild(label);
+        }
+        for (var i = 0; i < groups.length; i++) {
+            (function (g) {
+                var pill = document.createElement("div");
+                pill.className = "powerup-pill";
+                pill.setAttribute("tabindex", "0");
+                pill.title = g.description;
+                pill.setAttribute("data-powerup-name", g.name);
+
+                if (g.usageType === "target_player") {
+                    pill.classList.add("powerup-pill--targeted");
+                    pill.setAttribute("draggable", "true");
+                } else {
+                    pill.classList.add("powerup-pill--instant");
+                }
+
+                pill.textContent = g.name;
+
+                if (g.count > 1) {
+                    var badge = document.createElement("span");
+                    badge.className = "powerup-pill__badge";
+                    badge.textContent = "\u00d7" + g.count;
+                    pill.appendChild(badge);
+                }
+
+                // click
+                pill.addEventListener("click", function () {
+                    if (g.usageType === "target_player") {
+                        showTargetPicker(g.name);
+                    } else {
+                        sendUsePowerup(g.name);
+                    }
+                });
+
+                // keyboard
+                pill.addEventListener("keydown", function (e) {
+                    if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        if (g.usageType === "target_player") {
+                            showTargetPicker(g.name);
+                        } else {
+                            sendUsePowerup(g.name);
+                        }
+                    }
+                });
+
+                // description on hover/focus
+                pill.addEventListener("mouseenter", function () { powerupDescEl.textContent = g.description; });
+                pill.addEventListener("focus", function () { powerupDescEl.textContent = g.description; });
+                pill.addEventListener("mouseleave", function () { powerupDescEl.textContent = ""; });
+                pill.addEventListener("blur", function () { powerupDescEl.textContent = ""; });
+
+                // drag for targeted powerups
+                if (g.usageType === "target_player") {
+                    pill.addEventListener("dragstart", function (e) {
+                        e.dataTransfer.setData("text/plain", g.name);
+                        pill.classList.add("powerup-pill--dragging");
+                        // highlight opponent player boxes
+                        var pids = Object.keys(playerBoxEls);
+                        for (var k = 0; k < pids.length; k++) {
+                            if (pids[k] !== playerId) {
+                                playerBoxEls[pids[k]].root.classList.add("player-box--drop-target");
+                            }
+                        }
+                    });
+                    pill.addEventListener("dragend", function () {
+                        pill.classList.remove("powerup-pill--dragging");
+                        var pids = Object.keys(playerBoxEls);
+                        for (var k = 0; k < pids.length; k++) {
+                            playerBoxEls[pids[k]].root.classList.remove("player-box--drop-target");
+                        }
+                    });
+                }
+
+                powerupTrayEl.appendChild(pill);
+            })(groups[i]);
+        }
+    }
+
     // --------------- element caches ---------------
-    var playerBoxEls = {};   // playerId → {root, nameEl, cashEl, holdingsEl, inventoryEl}
+    var playerBoxEls = {};   // playerId → {root, nameEl, cashEl, holdingsEl}
     var tickerCardEls = {};  // symbol → {root, priceEl, canvas, hintEl}
 
     // --------------- DOM creation ---------------
@@ -115,12 +232,26 @@
         holdingsEl.className = "player-box__holdings";
         root.appendChild(holdingsEl);
 
-        var inventoryEl = document.createElement("div");
-        inventoryEl.className = "player-box__inventory";
-        root.appendChild(inventoryEl);
+        // drag-and-drop target for targeted powerups
+        if (pid !== playerId) {
+            root.addEventListener("dragover", function (e) {
+                e.preventDefault();
+            });
+            root.addEventListener("drop", function (e) {
+                e.preventDefault();
+                var powerupName = e.dataTransfer.getData("text/plain");
+                if (powerupName) {
+                    sendUsePowerup(powerupName, pid);
+                }
+                root.classList.remove("player-box--drop-target");
+            });
+            root.addEventListener("dragleave", function () {
+                root.classList.remove("player-box--drop-target");
+            });
+        }
 
         document.getElementById("player-bar").appendChild(root);
-        playerBoxEls[pid] = { root: root, nameEl: nameEl, cashEl: cashEl, holdingsEl: holdingsEl, inventoryEl: inventoryEl };
+        playerBoxEls[pid] = { root: root, nameEl: nameEl, cashEl: cashEl, holdingsEl: holdingsEl };
     }
 
     function ensureTickerCard(symbol) {
@@ -178,15 +309,6 @@
 
         els.root.classList.toggle("player-box--local", isLocal && !isFrozen);
         els.root.classList.toggle("player-box--frozen", isFrozen);
-
-        if (isLocal && state.inventory && state.inventory.length > 0) {
-            els.inventoryEl.textContent = "[" + state.inventory.map(function (p) { return p.name; }).join(", ") + "]";
-            els.inventoryEl.title = state.inventory.map(function (p) { return p.name + ": " + p.description; }).join("\n");
-            els.inventoryEl.style.display = "";
-        } else {
-            els.inventoryEl.textContent = "";
-            els.inventoryEl.style.display = "none";
-        }
     }
 
     function updateTickerPrice(symbol) {
@@ -223,9 +345,7 @@
     }
 
     function updateInventory() {
-        if (playerBoxEls[state.playerId]) {
-            updatePlayerBox(state.playerId);
-        }
+        renderPowerupTray();
     }
 
     function redrawSparkline(symbol) {

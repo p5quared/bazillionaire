@@ -74,6 +74,129 @@
             margin-top: 2px;
         }
 
+        .player-box--drop-target {
+            outline: 3px dashed #b97814;
+            outline-offset: -3px;
+            background: #fff8e6;
+        }
+
+        /* ---- powerup tray ---- */
+        #powerup-tray {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px 8px;
+            min-height: 0;
+            flex-wrap: wrap;
+        }
+
+        #powerup-tray:empty {
+            display: none;
+        }
+
+        #powerup-tray__label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 2px;
+        }
+
+        #powerup-desc {
+            font-size: 10px;
+            color: #777;
+            padding: 0 12px 4px;
+            min-height: 14px;
+        }
+
+        #powerup-desc:empty {
+            display: none;
+        }
+
+        .powerup-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border: 2px solid #b97814;
+            background: #fff8e6;
+            color: #111;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .powerup-pill:hover, .powerup-pill:focus {
+            background: #f5e6b8;
+            outline: none;
+        }
+
+        .powerup-pill--targeted {
+            border-color: #d62828;
+            background: #ffeeee;
+        }
+
+        .powerup-pill--targeted:hover, .powerup-pill--targeted:focus {
+            background: #fdd;
+        }
+
+        .powerup-pill--dragging {
+            opacity: 0.5;
+        }
+
+        .powerup-pill__badge {
+            font-size: 9px;
+            font-weight: bold;
+            background: #b97814;
+            color: #fff;
+            padding: 0 4px;
+            border-radius: 2px;
+        }
+
+        .powerup-pill--targeted .powerup-pill__badge {
+            background: #d62828;
+        }
+
+        /* ---- target picker ---- */
+        .target-picker {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border: 3px solid #111;
+            padding: 16px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .target-picker__title {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .target-picker__btn {
+            padding: 6px 12px;
+            border: 2px solid #111;
+            background: #fff;
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .target-picker__btn:hover {
+            background: #f5f5ff;
+        }
+
+        .target-picker__btn--cancel {
+            border-color: #999;
+            color: #999;
+        }
+
         /* ---- ticker cards ---- */
         #ticker-cards {
             display: flex;
@@ -138,6 +261,8 @@
 <body>
     <div id="game-data" data-game-id="{gameId}" data-player-id="{playerId}"></div>
     <div id="player-bar"></div>
+    <div id="powerup-tray"></div>
+    <div id="powerup-desc"></div>
     <div id="ticker-cards"></div>
     <script src="/js/chart.js"></script>
     <script src="/js/draw.js"></script>
