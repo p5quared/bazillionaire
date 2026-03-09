@@ -1,6 +1,5 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.service.GameEvent;
@@ -8,17 +7,19 @@ import net.peterv.bazillionaire.game.service.GameMessage;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PowerupManagerTest {
 
+	private static final GameContext EMPTY_CONTEXT = new GameContext(0, Map.of(), Map.of(), List.of());
+
 	@Test
 	void activate_callsOnActivate() {
 		var manager = new PowerupManager();
 		var p = new TrackingPowerup(5);
-		manager.activate(p, null);
+		manager.activate(p);
 		assertEquals(1, p.activateCount);
 	}
 
@@ -26,12 +27,12 @@ class PowerupManagerTest {
 	void tick_expiredPowerupIsDeactivatedAndRemoved() {
 		var manager = new PowerupManager();
 		var p = new TrackingPowerup(1);
-		manager.activate(p, null);
+		manager.activate(p);
 
-		manager.tick(null); // 1→0, expired → deactivated and removed
+		manager.tick(EMPTY_CONTEXT); // 1→0, expired → deactivated and removed
 		assertEquals(1, p.deactivateCount);
 
-		manager.tick(null); // p is gone — no further ticks or deactivations
+		manager.tick(EMPTY_CONTEXT); // p is gone — no further ticks or deactivations
 		assertEquals(0, p.tickCount);
 		assertEquals(1, p.deactivateCount);
 	}
@@ -40,15 +41,15 @@ class PowerupManagerTest {
 	void tick_onDeactivateCalledExactlyOnceAtExpiry() {
 		var manager = new PowerupManager();
 		var p = new TrackingPowerup(2);
-		manager.activate(p, null);
+		manager.activate(p);
 
-		manager.tick(null); // 2→1, not expired
+		manager.tick(EMPTY_CONTEXT); // 2→1, not expired
 		assertEquals(0, p.deactivateCount);
 
-		manager.tick(null); // 1→0, expired → deactivated
+		manager.tick(EMPTY_CONTEXT); // 1→0, expired → deactivated
 		assertEquals(1, p.deactivateCount);
 
-		manager.tick(null); // already removed
+		manager.tick(EMPTY_CONTEXT); // already removed
 		assertEquals(1, p.deactivateCount);
 	}
 
@@ -56,9 +57,9 @@ class PowerupManagerTest {
 	void tick_permanentPowerupNeverDeactivates() {
 		var manager = new PowerupManager();
 		var p = new TrackingPowerup(-1);
-		manager.activate(p, null);
+		manager.activate(p);
 		for (int i = 0; i < 10; i++)
-			manager.tick(null);
+			manager.tick(EMPTY_CONTEXT);
 		assertEquals(0, p.deactivateCount);
 		assertEquals(10, p.tickCount);
 	}
@@ -66,24 +67,24 @@ class PowerupManagerTest {
 	@Test
 	void trigger_awardedPowerupCollectedAndEventEmitted() {
 		PlayerId player = new PlayerId("p1");
-		Game game = Game.create(List.of(player), 1, new Money(100_000_00), new Money(100_00), 200, new Random(42));
-		game.drainMessages();
-		game.join(player);
-		game.start();
-		game.drainMessages();
+		GameContext context = new GameContext(0,
+				Map.of(player, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of())),
+				Map.of(), List.of());
 
 		var manager = new PowerupManager();
 		var awarded = new TrackingPowerup(5);
-		manager.registerTrigger(context -> List.of(new AwardedPowerup(player, awarded)));
+		manager.registerTrigger(ctx -> List.of(new AwardedPowerup(player, awarded)));
 
-		manager.tick(game);
-		List<GameMessage> messages = game.drainMessages();
+		List<PowerupEffect> effects = manager.tick(context);
 
-		assertTrue(messages.stream()
+		boolean hasAwardEvent = effects.stream()
+				.filter(PowerupEffect.Emit.class::isInstance)
+				.map(e -> ((PowerupEffect.Emit) e).message())
 				.map(GameMessage::event)
 				.anyMatch(e -> e instanceof GameEvent.PowerupAwarded pa
 						&& pa.recipient().equals(player)
-						&& pa.powerupName().equals("tracking")));
+						&& pa.powerupName().equals("tracking"));
+		assertTrue(hasAwardEvent);
 		// Powerup is now collected into inventory, not immediately activated
 		assertEquals(0, awarded.activateCount);
 		assertEquals(1, manager.getInventory(player).size());

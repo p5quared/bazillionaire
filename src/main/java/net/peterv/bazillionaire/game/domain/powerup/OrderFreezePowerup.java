@@ -1,12 +1,13 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
+
+import java.util.List;
 
 public final class OrderFreezePowerup extends Powerup implements OrderInterceptor {
 	private final PlayerId frozenPlayer;
@@ -28,13 +29,15 @@ public final class OrderFreezePowerup extends Powerup implements OrderIntercepto
 	}
 
 	@Override
-	public void onActivate(Game game) {
-		game.emit(GameMessage.send(new GameEvent.FreezeStarted(frozenPlayer, remainingTicks), frozenPlayer.value()));
+	public List<PowerupEffect> onActivate() {
+		return List.of(new PowerupEffect.Emit(
+				GameMessage.send(new GameEvent.FreezeStarted(frozenPlayer, remainingTicks), frozenPlayer)));
 	}
 
 	@Override
-	public void onDeactivate(Game game) {
-		game.emit(GameMessage.send(new GameEvent.FreezeExpired(frozenPlayer), frozenPlayer.value()));
+	public List<PowerupEffect> onDeactivate() {
+		return List.of(new PowerupEffect.Emit(
+				GameMessage.send(new GameEvent.FreezeExpired(frozenPlayer), frozenPlayer)));
 	}
 
 	@Override

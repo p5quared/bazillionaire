@@ -1,6 +1,6 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
+import java.util.List;
 
 class TrackingPowerup extends Powerup {
     int activateCount = 0;
@@ -15,11 +15,11 @@ class TrackingPowerup extends Powerup {
     public String name() { return "tracking"; }
 
     @Override
-    public void onActivate(Game game) { activateCount++; }
+    public List<PowerupEffect> onActivate() { activateCount++; return List.of(); }
 
     @Override
-    public void onTick(Game game) { tickCount++; }
+    public List<PowerupEffect> onTick() { tickCount++; return List.of(); }
 
     @Override
-    public void onDeactivate(Game game) { deactivateCount++; }
+    public List<PowerupEffect> onDeactivate() { deactivateCount++; return List.of(); }
 }

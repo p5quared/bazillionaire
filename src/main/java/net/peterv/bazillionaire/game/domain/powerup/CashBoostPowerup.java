@@ -1,8 +1,9 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
+
+import java.util.List;
 
 public class CashBoostPowerup extends Powerup {
 	private final PlayerId recipient;
@@ -15,8 +16,8 @@ public class CashBoostPowerup extends Powerup {
 	}
 
 	@Override
-	public void onActivate(Game game) {
-		game.addCashToPlayer(recipient, amount);
+	public List<PowerupEffect> onActivate() {
+		return List.of(new PowerupEffect.AddCash(recipient, amount));
 	}
 
 	@Override

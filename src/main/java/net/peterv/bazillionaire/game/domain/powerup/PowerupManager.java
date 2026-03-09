@@ -1,6 +1,5 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
@@ -19,25 +18,27 @@ public class PowerupManager {
 	private final List<PowerupTrigger> triggers = new ArrayList<>();
 	private final Map<PlayerId, List<Powerup>> inventory = new HashMap<>();
 
-	public void activate(Powerup powerup, Game game) {
+	public List<PowerupEffect> activate(Powerup powerup) {
 		activePowerups.add(powerup);
-		powerup.onActivate(game);
+		return powerup.onActivate();
 	}
 
 	public void collect(PlayerId recipient, Powerup powerup) {
 		inventory.computeIfAbsent(recipient, k -> new ArrayList<>()).add(powerup);
 	}
 
-	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, Game game) {
+	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName) {
 		List<Powerup> owned = inventory.getOrDefault(playerId, Collections.emptyList());
 		Powerup match = owned.stream().filter(p -> p.name().equals(powerupName)).findFirst().orElse(null);
 		if (match == null) {
 			return new UsePowerupResult.NotOwned();
 		}
 		owned.remove(match);
-		activate(match, game);
-		game.emit(GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName)));
-		return new UsePowerupResult.Activated();
+		List<PowerupEffect> effects = activate(match);
+		List<PowerupEffect> allEffects = new ArrayList<>(effects);
+		allEffects.add(new PowerupEffect.Emit(
+				GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName))));
+		return new UsePowerupResult.Activated(allEffects);
 	}
 
 	public List<Powerup> getInventory(PlayerId playerId) {
@@ -48,22 +49,23 @@ public class PowerupManager {
 		triggers.add(trigger);
 	}
 
-	public void tick(Game game) {
-		activePowerups.forEach(p -> p.tick(game));
+	public List<PowerupEffect> tick(GameContext context) {
+		List<PowerupEffect> effects = new ArrayList<>();
+		activePowerups.forEach(p -> effects.addAll(p.tick()));
 		List<Powerup> expired = activePowerups.stream().filter(Powerup::isExpired).toList();
-		expired.forEach(p -> p.onDeactivate(game));
+		expired.forEach(p -> effects.addAll(p.onDeactivate()));
 		activePowerups.removeAll(expired);
 
 		if (!triggers.isEmpty()) {
-			GameContext context = game.snapshot();
 			for (PowerupTrigger trigger : triggers) {
 				for (AwardedPowerup award : trigger.evaluate(context)) {
 					collect(award.recipient(), award.powerup());
-					game.emit(GameMessage.broadcast(
-							new GameEvent.PowerupAwarded(award.recipient(), award.powerup().name())));
+					effects.add(new PowerupEffect.Emit(GameMessage.broadcast(
+							new GameEvent.PowerupAwarded(award.recipient(), award.powerup().name()))));
 				}
 			}
 		}
+		return effects;
 	}
 
 	/**

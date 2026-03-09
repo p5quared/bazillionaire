@@ -18,7 +18,7 @@ class PlayerRankingStrategyTest {
 		PlayerId rich = new PlayerId("rich");
 		PlayerId poor = new PlayerId("poor");
 
-		assertEquals(poor, new TrailingPlayerStrategy().selectTarget(contextWithBalances(Map.of(
+		assertEquals(poor, PlayerRankingStrategy.trailing().selectTarget(contextWithBalances(Map.of(
 				rich, 5_000_00,
 				poor, 500_00))));
 	}
@@ -28,7 +28,7 @@ class PlayerRankingStrategyTest {
 		PlayerId rich = new PlayerId("rich");
 		PlayerId poor = new PlayerId("poor");
 
-		assertEquals(rich, new LeadingPlayerStrategy().selectTarget(contextWithBalances(Map.of(
+		assertEquals(rich, PlayerRankingStrategy.leading().selectTarget(contextWithBalances(Map.of(
 				rich, 5_000_00,
 				poor, 500_00))));
 	}

@@ -1,26 +1,15 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
 import net.peterv.bazillionaire.game.domain.Game;
-import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Random;
 
+import static net.peterv.bazillionaire.game.domain.GameTestFixtures.startedGame;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PowerupInventoryTest {
-
-	private Game createGame(PlayerId... players) {
-		Game game = Game.create(List.of(players), 1, new Money(100_000_00), new Money(100_00), 200, new Random(42));
-		for (PlayerId player : players) {
-			game.join(player);
-		}
-		game.start();
-		game.drainMessages();
-		return game;
-	}
 
 	@Test
 	void collect_addsToInventory() {
@@ -37,11 +26,10 @@ class PowerupInventoryTest {
 	@Test
 	void use_removesFromInventory() {
 		var player = new PlayerId("p1");
-		Game game = createGame(player);
 		var manager = new PowerupManager();
 		manager.collect(player, new TrackingPowerup(5));
 
-		manager.usePowerup(player, "tracking", game);
+		manager.usePowerup(player, "tracking");
 
 		assertEquals(0, manager.getInventory(player).size());
 	}
@@ -49,12 +37,11 @@ class PowerupInventoryTest {
 	@Test
 	void use_activatesPowerup() {
 		var player = new PlayerId("p1");
-		Game game = createGame(player);
 		var manager = new PowerupManager();
 		var powerup = new TrackingPowerup(5);
 		manager.collect(player, powerup);
 
-		manager.usePowerup(player, "tracking", game);
+		manager.usePowerup(player, "tracking");
 
 		assertEquals(1, powerup.activateCount);
 	}
@@ -62,10 +49,9 @@ class PowerupInventoryTest {
 	@Test
 	void use_powerupNotOwned_returnsNotOwned() {
 		var player = new PlayerId("p1");
-		Game game = createGame(player);
 		var manager = new PowerupManager();
 
-		UsePowerupResult result = manager.usePowerup(player, "tracking", game);
+		UsePowerupResult result = manager.usePowerup(player, "tracking");
 
 		assertInstanceOf(UsePowerupResult.NotOwned.class, result);
 	}
@@ -73,14 +59,13 @@ class PowerupInventoryTest {
 	@Test
 	void use_withMultiplePowerups_usesFirstMatch() {
 		var player = new PlayerId("p1");
-		Game game = createGame(player);
 		var manager = new PowerupManager();
 		var p1 = new TrackingPowerup(5);
 		var p2 = new TrackingPowerup(5);
 		manager.collect(player, p1);
 		manager.collect(player, p2);
 
-		manager.usePowerup(player, "tracking", game);
+		manager.usePowerup(player, "tracking");
 
 		assertEquals(1, manager.getInventory(player).size());
 		assertEquals(1, p1.activateCount + p2.activateCount);
@@ -89,7 +74,6 @@ class PowerupInventoryTest {
 	@Test
 	void use_byName_onlyMatchingPowerup() {
 		var player = new PlayerId("p1");
-		Game game = createGame(player);
 		var manager = new PowerupManager();
 
 		var tracking = new TrackingPowerup(5);
@@ -100,22 +84,25 @@ class PowerupInventoryTest {
 			}
 
 			@Override
-			public void onActivate(Game g) {
+			public List<PowerupEffect> onActivate() {
+				return List.of();
 			}
 
 			@Override
-			public void onTick(Game g) {
+			public List<PowerupEffect> onTick() {
+				return List.of();
 			}
 
 			@Override
-			public void onDeactivate(Game g) {
+			public List<PowerupEffect> onDeactivate() {
+				return List.of();
 			}
 		};
 
 		manager.collect(player, tracking);
 		manager.collect(player, other);
 
-		UsePowerupResult result = manager.usePowerup(player, "other", game);
+		UsePowerupResult result = manager.usePowerup(player, "other");
 
 		assertInstanceOf(UsePowerupResult.Activated.class, result);
 		assertEquals(0, tracking.activateCount);

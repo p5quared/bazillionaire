@@ -1,6 +1,6 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
+import java.util.List;
 
 public abstract class Powerup {
 	public abstract String name();
@@ -10,25 +10,29 @@ public abstract class Powerup {
 		this.remainingTicks = duration;
 	}
 
-	public void onActivate(Game game) {
+	public List<PowerupEffect> onActivate() {
+		return List.of();
 	}
 
-	public void onTick(Game game) {
+	public List<PowerupEffect> onTick() {
+		return List.of();
 	}
 
-	public void onDeactivate(Game game) {
+	public List<PowerupEffect> onDeactivate() {
+		return List.of();
 	}
 
 	public boolean isExpired() {
 		return remainingTicks == 0;
 	}
 
-	public void tick(Game game) {
+	public List<PowerupEffect> tick() {
 		if (remainingTicks > 0) {
 			remainingTicks--;
 		}
 		if (!isExpired()) {
-			onTick(game);
+			return onTick();
 		}
+		return List.of();
 	}
 }

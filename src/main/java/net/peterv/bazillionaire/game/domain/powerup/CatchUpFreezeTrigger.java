@@ -9,8 +9,8 @@ public final class CatchUpFreezeTrigger implements PowerupTrigger {
 	private final double probability;
 	private final int freezeDuration;
 	private final Random random;
-	private final TrailingPlayerStrategy trailingStrategy;
-	private final LeadingPlayerStrategy leadingStrategy;
+	private final PlayerRankingStrategy trailingStrategy;
+	private final PlayerRankingStrategy leadingStrategy;
 
 	public CatchUpFreezeTrigger(double probability, int freezeDuration, Random random) {
 		if (probability < 0.0 || probability > 1.0) {
@@ -22,8 +22,8 @@ public final class CatchUpFreezeTrigger implements PowerupTrigger {
 		this.probability = probability;
 		this.freezeDuration = freezeDuration;
 		this.random = random;
-		this.trailingStrategy = new TrailingPlayerStrategy();
-		this.leadingStrategy = new LeadingPlayerStrategy();
+		this.trailingStrategy = PlayerRankingStrategy.trailing();
+		this.leadingStrategy = PlayerRankingStrategy.leading();
 	}
 
 	@Override

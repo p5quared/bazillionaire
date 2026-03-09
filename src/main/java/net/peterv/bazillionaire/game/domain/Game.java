@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.game.domain;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.powerup.CatchUpFreezeTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.GameContext;
+import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
@@ -120,7 +121,7 @@ public class Game {
 				emit(GameMessage.broadcast(
 						new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
 			});
-			powerupManager.tick(this);
+			applyEffects(powerupManager.tick(snapshot()));
 			tickCount++;
 			emit(GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
 			if (tickCount >= totalDuration) {
@@ -152,7 +153,7 @@ public class Game {
 		if (status == GameStatus.READY) {
 			emit(GameMessage.send(
 					new GameEvent.GameState(List.copyOf(tickers.keySet()), currentPrices(), playerPortfolios()),
-					playerId.value()));
+					playerId));
 			return new JoinResult.GameInProgress();
 		}
 
@@ -204,11 +205,15 @@ public class Game {
 	}
 
 	public void activatePowerup(Powerup powerup) {
-		powerupManager.activate(powerup, this);
+		applyEffects(powerupManager.activate(powerup));
 	}
 
 	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName) {
-		return powerupManager.usePowerup(playerId, powerupName, this);
+		UsePowerupResult result = powerupManager.usePowerup(playerId, powerupName);
+		if (result instanceof UsePowerupResult.Activated activated) {
+			applyEffects(activated.effects());
+		}
+		return result;
 	}
 
 	public List<Powerup> getInventory(PlayerId playerId) {
@@ -224,5 +229,14 @@ public class Game {
 				.map(GameMessage::event)
 				.toList();
 		return new GameContext(currentTick(), playerPortfolios(), currentPrices(), recentEvents);
+	}
+
+	private void applyEffects(List<PowerupEffect> effects) {
+		for (PowerupEffect effect : effects) {
+			switch (effect) {
+				case PowerupEffect.Emit e -> emit(e.message());
+				case PowerupEffect.AddCash ac -> addCashToPlayer(ac.player(), ac.amount());
+			}
+		}
 	}
 }

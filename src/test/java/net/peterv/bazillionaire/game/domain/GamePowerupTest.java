@@ -5,6 +5,7 @@ import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.OrderInterceptor;
 import net.peterv.bazillionaire.game.domain.powerup.OrderFreezePowerup;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
+import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
@@ -15,29 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static net.peterv.bazillionaire.game.domain.GameTestDefaults.*;
+import static net.peterv.bazillionaire.game.domain.GameTestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GamePowerupTest {
-
-    private static final Money INITIAL_BALANCE = new Money(100_000_00);
-    private static final Money INITIAL_PRICE = new Money(100_00);
-    private static final int TOTAL_DURATION = 200;
-    private static final long SEED = 42L;
-    private static final PlayerId PLAYER_1 = new PlayerId("player1");
-
-    private Game createReadyGame() {
-        Game game = Game.create(List.of(PLAYER_1), 3, INITIAL_BALANCE, INITIAL_PRICE, TOTAL_DURATION,
-                new Random(SEED));
-        game.drainMessages();
-        game.join(PLAYER_1);
-        game.start();
-        game.drainMessages();
-        return game;
-    }
-
-    private Symbol anySymbol(Game game) {
-        return game.currentPrices().keySet().iterator().next();
-    }
 
     static class BlockingInterceptor extends Powerup implements OrderInterceptor {
         BlockingInterceptor() { super(5); }
@@ -60,25 +43,24 @@ class GamePowerupTest {
         public String name() { return "tick-counting"; }
 
         @Override
-        public void onTick(Game game) { onTickCount++; }
+        public List<PowerupEffect> onTick() { onTickCount++; return List.of(); }
     }
 
     @Test
     void blockingInterceptorPreventsOrderFill() {
-        Game game = createReadyGame();
+        Game game = startedGame(PLAYER_1);
         Symbol symbol = anySymbol(game);
 
         game.activatePowerup(new BlockingInterceptor());
 
         OrderResult result = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
         assertInstanceOf(OrderResult.Rejected.class, result);
-        // No fill events should be emitted
         assertTrue(game.drainMessages().isEmpty());
     }
 
     @Test
     void tickCountingPowerupReceivesOnTickPerGameTick() {
-        Game game = createReadyGame();
+        Game game = startedGame(PLAYER_1);
         var powerup = new TickCountingPowerup(10);
         game.activatePowerup(powerup);
 
@@ -91,7 +73,7 @@ class GamePowerupTest {
 
     @Test
     void noActivePowerupsDoesNotAffectNormalOrderFlow() {
-        Game game = createReadyGame();
+        Game game = startedGame(PLAYER_1);
         Symbol symbol = anySymbol(game);
 
         OrderResult result = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
@@ -100,7 +82,7 @@ class GamePowerupTest {
 
     @Test
     void noActivePowerupsDoesNotAffectNormalTickFlow() {
-        Game game = createReadyGame();
+        Game game = startedGame(PLAYER_1);
 
         game.tick();
 

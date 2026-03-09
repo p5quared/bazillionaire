@@ -18,20 +18,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CashBoostPowerupTest {
 
 	@Test
-	void addsMoneyToRecipientOnActivation() {
+	void returnsAddCashEffectOnActivation() {
+		PlayerId player = new PlayerId("p1");
+		CashBoostPowerup powerup = new CashBoostPowerup(player, new Money(50000));
+
+		List<PowerupEffect> effects = powerup.onActivate();
+
+		assertEquals(1, effects.size());
+		PowerupEffect.AddCash addCash = assertInstanceOf(PowerupEffect.AddCash.class, effects.get(0));
+		assertEquals(player, addCash.player());
+		assertEquals(new Money(50000), addCash.amount());
+	}
+
+	@Test
+	void cashBoostAppliedThroughGameActivation() {
 		PlayerId player = new PlayerId("p1");
 		Game game = new Game(
 				Map.of(player, new Portfolio(new Money(100000))),
 				Map.of(), 100);
 
-		new CashBoostPowerup(player, new Money(50000)).onActivate(game);
+		game.activatePowerup(new CashBoostPowerup(player, new Money(50000)));
 
 		GameEvent.PlayerPortfolio portfolio = game.snapshot().players().get(player);
 		assertEquals(new Money(150000), portfolio.cashBalance());
-		List<GameMessage> messages = game.drainMessages();
-		assertEquals(1, messages.size());
-		GameEvent.PlayersState playersState = assertInstanceOf(GameEvent.PlayersState.class, messages.get(0).event());
-		assertEquals(new Money(150000), playersState.players().get(player).cashBalance());
 	}
 
 	@Test

@@ -156,7 +156,7 @@ public class StockGameWebSocketAdapter {
 				case Audience.Everyone ignored ->
 					registry.connectionsForGame(gameId).forEach(conn -> conn.sendTextAndAwait(json));
 				case Audience.Only only -> {
-					registry.connectionForPlayer(gameId, new PlayerId(only.playerId()))
+					registry.connectionForPlayer(gameId, only.playerId())
 							.ifPresent(conn -> conn.sendTextAndAwait(json));
 				}
 			}

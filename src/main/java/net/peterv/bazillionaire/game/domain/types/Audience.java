@@ -4,6 +4,6 @@ public sealed interface Audience {
 	record Everyone() implements Audience {
 	}
 
-	record Only(String playerId) implements Audience {
+	record Only(PlayerId playerId) implements Audience {
 	}
 }

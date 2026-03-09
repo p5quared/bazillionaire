@@ -1,6 +1,5 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
-import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
@@ -57,7 +56,7 @@ class PowerupInterceptorTest {
     @Test
     void returnsNullWhenNoPowerupImplementsInterceptor() {
         var manager = new PowerupManager();
-        manager.activate(new TrackingPowerup(5), null);
+        manager.activate(new TrackingPowerup(5));
         assertNull(manager.checkInterceptors(null, new PlayerId("p1"), null));
     }
 
@@ -66,9 +65,9 @@ class PowerupInterceptorTest {
         var manager = new PowerupManager();
         OrderResult blocked = new OrderResult.Rejected("blocked by powerup");
 
-        manager.activate(new PassThroughInterceptor(), null);    // returns null — pass through
-        manager.activate(new BlockingInterceptor(blocked), null); // returns result — short-circuit
-        manager.activate(new NeverReachedInterceptor(), null);   // must never be called
+        manager.activate(new PassThroughInterceptor());    // returns null — pass through
+        manager.activate(new BlockingInterceptor(blocked)); // returns result — short-circuit
+        manager.activate(new NeverReachedInterceptor());   // must never be called
 
         assertSame(blocked, manager.checkInterceptors(null, new PlayerId("p1"), null));
     }
