@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import net.peterv.bazillionaire.game.domain.JoinResult;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
+import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.port.in.JoinGameCommand;
@@ -20,6 +21,8 @@ import net.peterv.bazillionaire.game.port.in.PlaceOrderUseCase;
 import net.peterv.bazillionaire.game.port.in.StartGameCommand;
 import net.peterv.bazillionaire.game.port.in.StartGameUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
+import net.peterv.bazillionaire.game.port.in.UsePowerupCommand;
+import net.peterv.bazillionaire.game.port.in.UsePowerupUseCase;
 import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
 
@@ -38,6 +41,9 @@ public class StockGameWebSocketAdapter {
 
 	@Inject
 	StartGameUseCase startGameUseCase;
+
+	@Inject
+	UsePowerupUseCase usePowerupUseCase;
 
 	@Inject
 	GameSessionRegistry registry;
@@ -67,6 +73,7 @@ public class StockGameWebSocketAdapter {
 				case "JOIN" -> handleJoin(connection, gameId, msg.payload());
 				case "BUY" -> handleOrder(connection, gameId, msg.payload(), PlaceOrderCommand.OrderSide.BUY);
 				case "SELL" -> handleOrder(connection, gameId, msg.payload(), PlaceOrderCommand.OrderSide.SELL);
+				case "USE_POWERUP" -> handleUsePowerup(connection, gameId, msg.payload());
 				default -> sendError(connection, "UNKNOWN_TYPE", "Unknown message type: " + msg.type());
 			}
 		} catch (Exception e) {
@@ -113,6 +120,25 @@ public class StockGameWebSocketAdapter {
 			}
 			case OrderResult.Rejected rej -> sendError(connection, "ORDER_REJECTED", rej.reason());
 			case OrderResult.InvalidOrder inv -> sendError(connection, "INVALID_ORDER", inv.reason());
+		}
+		dispatchMessages(gameId, result.messages());
+	}
+
+	private void handleUsePowerup(WebSocketConnection connection, String gameId, Map<String, Object> payload) {
+		String powerupName = (String) payload.get("powerupName");
+		String playerIdStr = registry.findPlayer(connection.id())
+				.map(PlayerId::value)
+				.orElse(null);
+		if (playerIdStr == null) {
+			sendError(connection, "NOT_JOINED", "Must join game before using powerups");
+			return;
+		}
+		UseCaseResult<UsePowerupResult> result = usePowerupUseCase.usePowerup(
+				new UsePowerupCommand(gameId, playerIdStr, powerupName));
+		switch (result.result()) {
+			case UsePowerupResult.Activated ignored -> {}
+			case UsePowerupResult.NotOwned ignored -> sendError(connection, "POWERUP_NOT_OWNED",
+					"You do not own that powerup");
 		}
 		dispatchMessages(gameId, result.messages());
 	}

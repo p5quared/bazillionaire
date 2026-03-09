@@ -21,9 +21,9 @@ var COLORS = {
 
 // --------------- layout constants ---------------
 var LAYOUT = {
-    STATUS_H:        30,
+    STATUS_H:        0,
     PLAYER_H:        70,
-    PLAYER_Y:        30,  // same as STATUS_H
+    PLAYER_Y:        4,
     TICKER_CARD_GAP: -3,
     BTN_W:           70,
     BTN_H:           28,
@@ -123,10 +123,10 @@ function buildLinePoints(series, rect, maxPoints, range) {
     var stepX = rect.w / (maxPoints - 1);
     var points = [];
     for (var i = 0; i < series.length; i++) {
-        points.push(vec2(
-            rect.x + i * stepX,
-            priceToY(series[i], range.min, range.max, rect.y, rect.h)
-        ));
+        points.push({
+            x: rect.x + i * stepX,
+            y: priceToY(series[i], range.min, range.max, rect.y, rect.h),
+        });
     }
     return points;
 }

@@ -1,22 +1,11 @@
-// game.js — orchestrator: state, WebSocket, input, overlay UI, and main draw loop
+// game.js — orchestrator: state, WebSocket, input, DOM updates
 (function () {
     var chart = window.Baz.chart;
     var draw = window.Baz.draw;
 
     var el = document.getElementById("game-data");
-    var statusChipsEl = document.getElementById("game-status-chips");
-    var toastStackEl = document.getElementById("game-toast-stack");
     var gameId = el.dataset.gameId;
     var playerId = el.dataset.playerId;
-
-    kaplay({
-        width: window.innerWidth,
-        height: window.innerHeight,
-        background: "#f0f0f0",
-        crisp: true,
-        stretch: true,
-        letterbox: false,
-    });
 
     var protocol = location.protocol === "https:" ? "wss:" : "ws:";
     var ws = new WebSocket(protocol + "//" + location.host + "/game/" + gameId);
@@ -38,24 +27,31 @@
         chart: chart.createChartState(60),
         hoveredSymbol: null,
         tradingDisabledReason: "",
-        notifications: [],
-        notificationSeq: 0,
+        inventory: [],
     };
 
-    function W() { return width(); }
-    function H() { return height(); }
-
-    function nowMs() {
-        return Date.now();
+    // --------------- helpers ---------------
+    function formatPrice(cents) {
+        if (cents === undefined || cents === null) return "--";
+        return "$" + (cents / 100).toFixed(2);
     }
 
-    function escapeHtml(value) {
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+    function holdingText(holdings) {
+        if (!holdings) return "no shares";
+        var symbols = Object.keys(holdings).sort();
+        var entries = [];
+        for (var i = 0; i < symbols.length; i++) {
+            var symbol = symbols[i];
+            if (holdings[symbol] > 0) entries.push(symbol + ":" + holdings[symbol]);
+        }
+        return entries.length > 0 ? entries.join(" ") : "no shares";
+    }
+
+    function visibleSymbols() {
+        if (state.symbols && state.symbols.length > 0) {
+            return state.symbols.slice().sort();
+        }
+        return Object.keys(state.prices).sort();
     }
 
     function ensureSymbolKnown(symbol) {
@@ -87,92 +83,6 @@
         state.tradingDisabledReason = tradeBlocker();
     }
 
-    function chipToneForState() {
-        if (ws.readyState !== WebSocket.OPEN) return "bad";
-        if (state.gameFinished) return "bad";
-        if (state.localFreezeActive) return "warn";
-        if (Object.keys(state.prices).length > 0) return "good";
-        return "info";
-    }
-
-    function queueToast(title, message, tone, dedupeKey, ttlMs) {
-        var expiresAt = nowMs() + (ttlMs || 3200);
-        var key = dedupeKey || (title + ":" + message);
-        for (var i = 0; i < state.notifications.length; i++) {
-            if (state.notifications[i].key === key) {
-                state.notifications[i].expiresAt = expiresAt;
-                renderOverlay();
-                return;
-            }
-        }
-        state.notificationSeq += 1;
-        state.notifications = state.notifications.concat([{
-            id: state.notificationSeq,
-            key: key,
-            title: title,
-            message: message,
-            tone: tone || "info",
-            expiresAt: expiresAt,
-        }]);
-        renderOverlay();
-    }
-
-    function pruneExpiredNotifications() {
-        var currentTime = nowMs();
-        var next = [];
-        for (var i = 0; i < state.notifications.length; i++) {
-            if (state.notifications[i].expiresAt > currentTime) {
-                next.push(state.notifications[i]);
-            }
-        }
-        if (next.length !== state.notifications.length) {
-            state.notifications = next;
-            renderOverlay();
-        }
-    }
-
-    function renderOverlay() {
-        syncDerivedState();
-
-        var chips = [{
-            label: state.status,
-            tone: chipToneForState(),
-        }];
-
-        if (state.gameFinished) {
-            chips.push({ label: "Game finished", tone: "bad" });
-        } else if (state.joined && Object.keys(state.prices).length > 0) {
-            chips.push({ label: "Market live", tone: "good" });
-        } else if (state.joined) {
-            chips.push({ label: "Waiting for start", tone: "info" });
-        }
-
-        if (state.currentTick > 0 || state.ticksRemaining !== null) {
-            var tickText = "Tick " + state.currentTick;
-            if (state.ticksRemaining !== null && !state.gameFinished) {
-                tickText += " / " + state.ticksRemaining + " left";
-            }
-            chips.push({ label: tickText, tone: "info" });
-        }
-
-        if (state.localFreezeActive) {
-            chips.push({ label: "Orders frozen", tone: "warn" });
-        }
-
-        statusChipsEl.innerHTML = chips.map(function (chip) {
-            return '<div class="status-chip ' + chip.tone + '">' + escapeHtml(chip.label) + "</div>";
-        }).join("");
-
-        toastStackEl.innerHTML = state.notifications.map(function (notification) {
-            return [
-                '<div class="toast overlay-panel ' + notification.tone + '">',
-                '<p class="toast-title">' + escapeHtml(notification.title) + "</p>",
-                '<p class="toast-copy">' + escapeHtml(notification.message) + "</p>",
-                "</div>"
-            ].join("");
-        }).join("");
-    }
-
     function setGameState(data) {
         state.prevPrices = Object.assign({}, state.prices);
         state.prices = Object.assign({}, data.prices || {});
@@ -183,45 +93,215 @@
         }
     }
 
+    // --------------- element caches ---------------
+    var playerBoxEls = {};   // playerId → {root, nameEl, cashEl, holdingsEl, inventoryEl}
+    var tickerCardEls = {};  // symbol → {root, priceEl, canvas, hintEl}
+
+    // --------------- DOM creation ---------------
+    function ensurePlayerBox(pid) {
+        if (playerBoxEls[pid]) return;
+        var root = document.createElement("div");
+        root.className = "player-box";
+
+        var nameEl = document.createElement("div");
+        nameEl.className = "player-box__name";
+        root.appendChild(nameEl);
+
+        var cashEl = document.createElement("div");
+        cashEl.className = "player-box__cash";
+        root.appendChild(cashEl);
+
+        var holdingsEl = document.createElement("div");
+        holdingsEl.className = "player-box__holdings";
+        root.appendChild(holdingsEl);
+
+        var inventoryEl = document.createElement("div");
+        inventoryEl.className = "player-box__inventory";
+        root.appendChild(inventoryEl);
+
+        document.getElementById("player-bar").appendChild(root);
+        playerBoxEls[pid] = { root: root, nameEl: nameEl, cashEl: cashEl, holdingsEl: holdingsEl, inventoryEl: inventoryEl };
+    }
+
+    function ensureTickerCard(symbol) {
+        if (tickerCardEls[symbol]) return;
+        var root = document.createElement("div");
+        root.className = "ticker-card";
+
+        var symbolEl = document.createElement("div");
+        symbolEl.className = "ticker-card__symbol";
+        symbolEl.textContent = symbol;
+        root.appendChild(symbolEl);
+
+        var priceEl = document.createElement("div");
+        priceEl.className = "ticker-card__price";
+        priceEl.textContent = "Waiting...";
+        root.appendChild(priceEl);
+
+        var canvas = document.createElement("canvas");
+        canvas.className = "ticker-card__sparkline";
+        canvas.setAttribute("data-symbol", symbol);
+        root.appendChild(canvas);
+
+        var hintEl = document.createElement("div");
+        hintEl.className = "ticker-card__hint";
+        root.appendChild(hintEl);
+
+        root.addEventListener("mouseenter", function () { state.hoveredSymbol = symbol; });
+        root.addEventListener("mouseleave", function () {
+            if (state.hoveredSymbol === symbol) state.hoveredSymbol = null;
+        });
+
+        document.getElementById("ticker-cards").appendChild(root);
+        tickerCardEls[symbol] = { root: root, priceEl: priceEl, canvas: canvas, hintEl: hintEl };
+
+        // sync canvas pixel buffer to CSS size
+        requestAnimationFrame(function () {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        });
+    }
+
+    // --------------- DOM update ---------------
+    function updatePlayerBox(pid) {
+        ensurePlayerBox(pid);
+        var els = playerBoxEls[pid];
+        var p = state.players[pid];
+        if (!p) return;
+
+        var isLocal = pid === state.playerId;
+        var isFrozen = isLocal && state.localFreezeActive;
+
+        els.nameEl.textContent = isLocal ? pid + " (you)" : pid;
+        els.cashEl.textContent = formatPrice(p.cashBalance);
+        els.holdingsEl.textContent = holdingText(p.holdings);
+
+        els.root.classList.toggle("player-box--local", isLocal && !isFrozen);
+        els.root.classList.toggle("player-box--frozen", isFrozen);
+
+        if (isLocal && state.inventory && state.inventory.length > 0) {
+            els.inventoryEl.textContent = "[" + state.inventory.join(", ") + "]";
+            els.inventoryEl.style.display = "";
+        } else {
+            els.inventoryEl.textContent = "";
+            els.inventoryEl.style.display = "none";
+        }
+    }
+
+    function updateTickerPrice(symbol) {
+        ensureTickerCard(symbol);
+        var els = tickerCardEls[symbol];
+        var price = state.prices[symbol];
+
+        if (price === undefined) {
+            els.priceEl.textContent = "Waiting...";
+            els.priceEl.classList.remove("price--up", "price--down");
+            return;
+        }
+
+        els.priceEl.textContent = formatPrice(price);
+        var prev = state.prevPrices[symbol];
+        els.priceEl.classList.toggle("price--up", prev !== undefined && price > prev);
+        els.priceEl.classList.toggle("price--down", prev !== undefined && price < prev);
+    }
+
+    function updateHints() {
+        syncDerivedState();
+        var symbols = Object.keys(tickerCardEls);
+        for (var i = 0; i < symbols.length; i++) {
+            var sym = symbols[i];
+            var els = tickerCardEls[sym];
+            if (state.tradingDisabledReason) {
+                els.hintEl.textContent = state.tradingDisabledReason;
+            } else if (state.prices[sym] === undefined) {
+                els.hintEl.textContent = "";
+            } else {
+                els.hintEl.textContent = "hover + hold B/S to trade";
+            }
+        }
+    }
+
+    function updateInventory() {
+        if (playerBoxEls[state.playerId]) {
+            updatePlayerBox(state.playerId);
+        }
+    }
+
+    function redrawSparkline(symbol) {
+        if (!tickerCardEls[symbol]) return;
+        var c = tickerCardEls[symbol].canvas;
+        if (c.width === 0 || c.height === 0) {
+            c.width = c.clientWidth;
+            c.height = c.clientHeight;
+        }
+        draw.renderSparkline(c, state.chart, symbol);
+    }
+
+    function redrawAllSparklines() {
+        var symbols = Object.keys(tickerCardEls);
+        for (var i = 0; i < symbols.length; i++) {
+            redrawSparkline(symbols[i]);
+        }
+    }
+
+    // --------------- message handlers ---------------
     var messageHandlers = {
         JOINED: function () {
             state.joined = true;
             state.status = "Connected";
-            renderOverlay();
         },
-        PLAYER_JOINED: function (data) {
-            if (data.playerId !== playerId) {
-                queueToast("Player Joined", data.playerId + " entered the market.", "info",
-                    "player-joined:" + data.playerId, 2400);
-            }
-        },
+        PLAYER_JOINED: function () {},
         ALL_PLAYERS_READY: function () {
             state.allPlayersReady = true;
             state.status = "All players ready";
-            queueToast("Match Ready", "All players are ready. Opening market...", "info",
-                "all-players-ready", 2600);
-            renderOverlay();
         },
         PLAYERS_STATE: function (data) {
             state.players = data.players;
-            renderOverlay();
+            var pids = Object.keys(state.players).sort();
+            for (var i = 0; i < pids.length; i++) {
+                updatePlayerBox(pids[i]);
+            }
         },
         GAME_STATE: function (data) {
             setGameState(data);
             if (!state.gameFinished) {
                 state.status = "Connected";
             }
-            renderOverlay();
+            var symbols = visibleSymbols();
+            for (var i = 0; i < symbols.length; i++) {
+                ensureTickerCard(symbols[i]);
+                updateTickerPrice(symbols[i]);
+            }
+            var pids = Object.keys(state.players).sort();
+            for (var j = 0; j < pids.length; j++) {
+                updatePlayerBox(pids[j]);
+            }
+            updateHints();
+            // delay sparkline draw until canvases have layout dimensions
+            requestAnimationFrame(function () {
+                var syms = Object.keys(tickerCardEls);
+                for (var k = 0; k < syms.length; k++) {
+                    var c = tickerCardEls[syms[k]].canvas;
+                    c.width = c.clientWidth;
+                    c.height = c.clientHeight;
+                }
+                redrawAllSparklines();
+            });
         },
         TICKER_TICKED: function (data) {
             ensureSymbolKnown(data.symbol);
             state.prevPrices[data.symbol] = state.prices[data.symbol];
             state.prices[data.symbol] = data.price;
             state.chart = chart.appendPrice(state.chart, data.symbol, data.price);
+            ensureTickerCard(data.symbol);
+            updateTickerPrice(data.symbol);
+            redrawSparkline(data.symbol);
+            updateHints();
         },
         ORDER_FILLED: function (data) {
             if (!data.playerId) return;
             state.chart = chart.appendAnnotation(state.chart, data.symbol, data.side);
+            redrawSparkline(data.symbol);
         },
         GAME_TICK: function (data) {
             state.currentTick = data.tick;
@@ -229,49 +309,51 @@
             if (!state.gameFinished) {
                 state.status = "Connected";
             }
-            renderOverlay();
         },
         GAME_FINISHED: function () {
             state.gameFinished = true;
             state.status = "Connected";
-            queueToast("Market Closed", "Trading is over. Final balances are locked.", "bad",
-                "game-finished", 4200);
-            renderOverlay();
+            updateHints();
         },
         POWERUP_AWARDED: function (data) {
             if (data.recipient === playerId) {
-                queueToast("Powerup", "You received " + data.powerupName + ".", "good",
-                    "powerup-self:" + data.powerupName, 3600);
-            } else {
-                queueToast("Powerup", data.recipient + " received " + data.powerupName + ".", "info",
-                    "powerup-other:" + data.recipient + ":" + data.powerupName, 3200);
+                state.inventory = state.inventory.concat([data.powerupName]);
+                updateInventory();
             }
         },
-        FREEZE_STARTED: function () {
-            state.localFreezeActive = true;
-            queueToast("Freeze", "Your orders are frozen.", "warn", "freeze-started", 4200);
-            renderOverlay();
+        POWERUP_ACTIVATED: function (data) {
+            if (data.user === playerId) {
+                var idx = state.inventory.indexOf(data.powerupName);
+                if (idx !== -1) {
+                    state.inventory = state.inventory.slice(0, idx).concat(state.inventory.slice(idx + 1));
+                }
+                updateInventory();
+            }
         },
-        FREEZE_EXPIRED: function () {
+        FREEZE_STARTED: function (data) {
+            if (data.frozenPlayer && data.frozenPlayer !== playerId) return;
+            state.localFreezeActive = true;
+            updatePlayerBox(playerId);
+            updateHints();
+        },
+        FREEZE_EXPIRED: function (data) {
+            if (data.frozenPlayer && data.frozenPlayer !== playerId) return;
             state.localFreezeActive = false;
-            queueToast("Freeze", "Order freeze expired. Trading restored.", "good",
-                "freeze-expired", 3600);
-            renderOverlay();
+            updatePlayerBox(playerId);
+            updateHints();
         },
         ERROR: function (data) {
             if (data.code === "ORDER_REJECTED" && /frozen/i.test(data.message || "")) {
                 state.localFreezeActive = true;
+                updatePlayerBox(playerId);
+                updateHints();
             }
-            queueToast("Server Error", data.message || "Unknown error.", "bad",
-                "error:" + data.code + ":" + data.message, 3800);
-            renderOverlay();
         }
     };
 
     // --------------- WebSocket ---------------
     ws.onopen = function () {
         state.status = "Connected. Joining...";
-        renderOverlay();
         ws.send(JSON.stringify({ type: "JOIN", payload: { playerId: playerId } }));
     };
 
@@ -285,84 +367,80 @@
 
     ws.onclose = function () {
         state.status = "Disconnected";
-        renderOverlay();
+        updateHints();
     };
 
     ws.onerror = function () {
         state.status = "Connection error";
-        renderOverlay();
+        updateHints();
     };
 
     // --------------- input ---------------
-    function queueBlockedTradeToast(reason) {
-        var title = reason === "Orders frozen" ? "Freeze" : "Trading Locked";
-        var tone = reason === "Connection unavailable" ? "bad" :
-            (reason === "Orders frozen" ? "warn" : "info");
-        queueToast(title, reason + ".", tone, "blocked-trade:" + reason, 2200);
-    }
-
     function sendOrder(type, symbol) {
         syncDerivedState();
-        if (state.tradingDisabledReason) {
-            queueBlockedTradeToast(state.tradingDisabledReason);
-            return;
-        }
-        if (state.prices[symbol] === undefined) {
-            queueToast("Trading Locked", "No live price is available for " + symbol + ".", "info",
-                "missing-price:" + symbol, 2200);
-            return;
-        }
+        if (state.tradingDisabledReason) return;
+        if (state.prices[symbol] === undefined) return;
         ws.send(JSON.stringify({
             type: type,
             payload: { ticker: symbol, price: state.prices[symbol] },
         }));
     }
 
-    onKeyPress("b", function () {
-        if (state.hoveredSymbol) sendOrder("BUY", state.hoveredSymbol);
-    });
-
-    onKeyPress("s", function () {
-        if (state.hoveredSymbol) sendOrder("SELL", state.hoveredSymbol);
-    });
-
-    onClick(function () {
-        var mp = mousePos();
-        handleClick(mp.x, mp.y);
-    });
-
-    function handleClick(mx, my) {
-        var symbols = draw.visibleSymbols(state);
-        if (symbols.length === 0) return;
-        var layouts = draw.computeCardLayout(symbols, W(), H());
-        for (var i = 0; i < layouts.length; i++) {
-            var lay = layouts[i];
-            if (draw.pointInRect(mx, my, lay.buyBtnRect.x, lay.buyBtnRect.y, lay.buyBtnRect.w, lay.buyBtnRect.h)) {
-                sendOrder("BUY", lay.symbol);
-                return;
-            }
-            if (draw.pointInRect(mx, my, lay.sellBtnRect.x, lay.sellBtnRect.y, lay.sellBtnRect.w, lay.sellBtnRect.h)) {
-                sendOrder("SELL", lay.symbol);
-                return;
-            }
-        }
+    function sendUsePowerup(powerupName) {
+        ws.send(JSON.stringify({
+            type: "USE_POWERUP",
+            payload: { powerupName: powerupName },
+        }));
     }
 
-    onUpdate(function () {
-        pruneExpiredNotifications();
+    var ORDER_REPEAT_MS = 150;
+    var activeOrderInterval = null;
+    var activeOrderKey = null;
+
+    function startOrderRepeat(key, type) {
+        if (activeOrderKey === key) return;
+        stopOrderRepeat();
+        activeOrderKey = key;
+        // fire immediately, then repeat
+        if (state.hoveredSymbol) sendOrder(type, state.hoveredSymbol);
+        activeOrderInterval = setInterval(function () {
+            if (state.hoveredSymbol) sendOrder(type, state.hoveredSymbol);
+        }, ORDER_REPEAT_MS);
+    }
+
+    function stopOrderRepeat() {
+        if (activeOrderInterval !== null) {
+            clearInterval(activeOrderInterval);
+            activeOrderInterval = null;
+        }
+        activeOrderKey = null;
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.repeat && (e.key === "b" || e.key === "s")) return; // we handle repeat ourselves
+        if (e.key === "b") {
+            startOrderRepeat("b", "BUY");
+        } else if (e.key === "s") {
+            startOrderRepeat("s", "SELL");
+        } else if (e.key === "u" && state.inventory.length > 0) {
+            sendUsePowerup(state.inventory[0]);
+        }
     });
 
-    // --------------- main draw loop ---------------
-    onDraw(function () {
-        var mp = mousePos();
-        var cw = W();
-        var ch = H();
-
-        syncDerivedState();
-        draw.drawStatusBar(state, cw);
-        draw.drawPlayers(state, cw);
-        draw.drawTickerCards(state, mp, cw, ch);
+    document.addEventListener("keyup", function (e) {
+        if (e.key === activeOrderKey) {
+            stopOrderRepeat();
+        }
     });
 
-    renderOverlay();
+    // --------------- resize ---------------
+    window.addEventListener("resize", function () {
+        var symbols = Object.keys(tickerCardEls);
+        for (var i = 0; i < symbols.length; i++) {
+            var c = tickerCardEls[symbols[i]].canvas;
+            c.width = c.clientWidth;
+            c.height = c.clientHeight;
+        }
+        redrawAllSparklines();
+    });
 })();
