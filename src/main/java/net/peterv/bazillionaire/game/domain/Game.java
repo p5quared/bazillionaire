@@ -172,6 +172,8 @@ public class Game {
 
 	public void start() {
 		status = GameStatus.READY;
+		emit(GameMessage.broadcast(
+				new GameEvent.GameState(List.copyOf(tickers.keySet()), currentPrices(), playerPortfolios())));
 		emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
 	}
 
@@ -192,6 +194,7 @@ public class Game {
 		Portfolio portfolio = players.get(playerId);
 		if (portfolio != null) {
 			portfolio.addCash(amount);
+			emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
 		}
 	}
 

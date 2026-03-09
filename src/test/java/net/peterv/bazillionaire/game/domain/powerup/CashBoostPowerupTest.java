@@ -8,9 +8,11 @@ import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CashBoostPowerupTest {
@@ -26,6 +28,10 @@ class CashBoostPowerupTest {
 
 		GameEvent.PlayerPortfolio portfolio = game.snapshot().players().get(player);
 		assertEquals(new Money(150000), portfolio.cashBalance());
+		List<GameMessage> messages = game.drainMessages();
+		assertEquals(1, messages.size());
+		GameEvent.PlayersState playersState = assertInstanceOf(GameEvent.PlayersState.class, messages.get(0).event());
+		assertEquals(new Money(150000), playersState.players().get(player).cashBalance());
 	}
 
 	@Test
@@ -36,11 +42,19 @@ class CashBoostPowerupTest {
 				Map.of(), 60);
 		game.registerTrigger(new RandomTickTrigger(1.0, new Money(50000), new java.util.Random(42)));
 		game.start();
+		game.drainMessages();
 		game.tick();
 
-		boolean awarded = game.drainMessages().stream()
+		List<GameMessage> messages = game.drainMessages();
+		boolean awarded = messages.stream()
 				.map(GameMessage::event)
-				.anyMatch(e -> e instanceof GameEvent.PowerupAwarded);
+				.anyMatch(GameEvent.PowerupAwarded.class::isInstance);
+		boolean playerStateUpdated = messages.stream()
+				.map(GameMessage::event)
+				.filter(GameEvent.PlayersState.class::isInstance)
+				.map(GameEvent.PlayersState.class::cast)
+				.anyMatch(state -> state.players().get(player).cashBalance().equals(new Money(150000)));
 		assertTrue(awarded);
+		assertTrue(playerStateUpdated);
 	}
 }

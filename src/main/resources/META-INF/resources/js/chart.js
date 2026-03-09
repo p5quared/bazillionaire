@@ -6,12 +6,17 @@ var COLORS = {
     fg:       "rgb(17, 17, 17)",
     bg:       "rgb(255, 255, 255)",
     bgHover:  "rgb(245, 245, 255)",
+    bgLocal:  "rgb(255, 248, 230)",
+    bgFrozen: "rgb(255, 238, 238)",
+    disabled: "rgb(190, 190, 190)",
     muted:    "rgb(85, 85, 85)",
+    border:   "rgb(17, 17, 17)",
     canvas:   "rgb(240, 240, 240)",
     green:    "rgb(10, 143, 63)",
     greenHov: "rgb(8, 120, 50)",
     red:      "rgb(214, 40, 40)",
     redHov:   "rgb(180, 30, 30)",
+    amber:    "rgb(185, 120, 20)",
 };
 
 // --------------- layout constants ---------------

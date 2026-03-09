@@ -60,6 +60,22 @@ class GameJoinTest {
 		check(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
 	}
 
+	@Test
+	void startBroadcastsInitialGameStateAndPlayers() {
+		var game = createGame(List.of(PLAYER_1, PLAYER_2));
+		game.join(PLAYER_1);
+		game.drainMessages();
+		game.join(PLAYER_2);
+		game.drainMessages();
+
+		game.start();
+
+		var messages = game.drainMessages();
+		assertEquals(2, messages.size());
+		assertInstanceOf(GameEvent.GameState.class, messages.get(0).event());
+		assertInstanceOf(GameEvent.PlayersState.class, messages.get(1).event());
+	}
+
 	/**
 	 * Calls {@link Game#join(PlayerId)}
 	 * and asserts that the result against {@code expectedResult}
