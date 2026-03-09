@@ -2,17 +2,37 @@
 <html>
 <head>
     <title>Login - Bazillionaire</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>Bazillionaire</h1>
-    {#if flash:error}
-    <p style="color: red;">{flash:error}</p>
-    {/if}
-    <form action="{uri:AuthController.login()}" method="post">
-        {#authenticityToken/}
-        <label for="username">Choose a username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Join</button>
-    </form>
+    <div class="page login-page">
+        <header class="masthead">
+            <hr class="masthead-rule-top">
+            <div class="masthead-title">Bazillionaire</div>
+            <div class="masthead-meta">
+                <span class="edition">Vol. I, No. 1</span>
+                <span class="date" id="masthead-date"></span>
+                <span class="edition">Final Edition</span>
+            </div>
+            <hr class="masthead-rule-bottom">
+        </header>
+        <div class="page-inner">
+            <div class="banner">Markets are open</div>
+            {#if flash:error}
+            <p class="error">{flash:error}</p>
+            {/if}
+            <form action="{uri:AuthController.login()}" method="post">
+                {#authenticityToken/}
+                <label for="username">Choose a username:</label>
+                <input type="text" id="username" name="username" required>
+                <button type="submit" class="btn">Enter the Exchange</button>
+            </form>
+        </div>
+        <div class="page-footer">&copy; Bazillionaire</div>
+    </div>
+    <script>
+    document.getElementById('masthead-date').textContent =
+        new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
 </body>
 </html>

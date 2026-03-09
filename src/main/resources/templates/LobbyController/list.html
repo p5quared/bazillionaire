@@ -2,43 +2,67 @@
 <html>
 <head>
     <title>Lobbies - Bazillionaire</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>Lobbies</h1>
-    {#if flash:error}
-    <p style="color: red;">{flash:error}</p>
-    {/if}
+    <div class="page">
+        <header class="masthead">
+            <hr class="masthead-rule-top">
+            <div class="masthead-title">Bazillionaire</div>
+            <div class="masthead-meta">
+                <span class="edition">Vol. I, No. 1</span>
+                <span class="date" id="masthead-date"></span>
+                <span class="edition">Final Edition</span>
+            </div>
+            <hr class="masthead-rule-bottom">
+        </header>
+        <div class="page-inner">
+            <div class="nav">
+                <a href="/">Home</a>
+                <a href="/lobby" class="active">Lobbies</a>
+                <a href="/users">Players</a>
+            </div>
+            <h1>Trading Floor</h1>
+            <p class="byline">Where fortunes are made &amp; lost</p>
+            {#if flash:error}
+            <p class="error">{flash:error}</p>
+            {/if}
 
-    <h2>Create a Lobby</h2>
-    <form action="/lobby" method="post">
-        {#authenticityToken/}
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name">
-        <label for="maxPlayers">Max Players (1-16):</label>
-        <input type="number" id="maxPlayers" name="maxPlayers" min="1" max="16" value="8">
-        <button type="submit">Create</button>
-    </form>
+            <h2>Create a Lobby</h2>
+            <form action="/lobby" method="post">
+                {#authenticityToken/}
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name">
+                <label for="maxPlayers">Max Players (1-16)</label>
+                <input type="number" id="maxPlayers" name="maxPlayers" min="1" max="16" value="8">
+                <button type="submit" class="btn">Create</button>
+            </form>
 
-    <h2>Open Lobbies</h2>
-    {#if lobbies.empty}
-    <p>No open lobbies.</p>
-    {#else}
-    <ul>
-    {#for lobby in lobbies}
-    <li>
-        <a href="/lobby/{lobby.id}">{lobby.name}</a>
-        ({lobby.members.size}/{lobby.maxPlayers} players)
-        {#if !lobby.full}
-        <form action="/lobby/{lobby.id}/join" method="post" style="display:inline">
-            {#authenticityToken/}
-            <button type="submit">Join</button>
-        </form>
-        {/if}
-    </li>
-    {/for}
-    </ul>
-    {/if}
-
-    <a href="/">Home</a>
+            <h2>Open Lobbies</h2>
+            {#if lobbies.empty}
+            <p class="lead">No open lobbies at present. Be the first to start one.</p>
+            {#else}
+            <ul>
+            {#for lobby in lobbies}
+            <li>
+                <a href="/lobby/{lobby.id}">{lobby.name}</a>
+                <span class="status">{lobby.members.size}/{lobby.maxPlayers} players</span>
+                {#if !lobby.full}
+                <form action="/lobby/{lobby.id}/join" method="post" class="inline-form">
+                    {#authenticityToken/}
+                    <button type="submit" class="btn btn-inline">Join</button>
+                </form>
+                {/if}
+            </li>
+            {/for}
+            </ul>
+            {/if}
+        </div>
+        <div class="page-footer">&copy; Bazillionaire</div>
+    </div>
+    <script>
+    document.getElementById('masthead-date').textContent =
+        new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
 </body>
 </html>

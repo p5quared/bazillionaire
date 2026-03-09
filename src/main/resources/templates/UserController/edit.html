@@ -2,25 +2,50 @@
 <html>
 <head>
     <title>Edit User - Bazillionaire</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>Edit User</h1>
-    {#if flash:error}
-    <p style="color: red;">{flash:error}</p>
-    {/if}
+    <div class="page">
+        <header class="masthead">
+            <hr class="masthead-rule-top">
+            <div class="masthead-title">Bazillionaire</div>
+            <div class="masthead-meta">
+                <span class="edition">Vol. I, No. 1</span>
+                <span class="date" id="masthead-date"></span>
+                <span class="edition">Final Edition</span>
+            </div>
+            <hr class="masthead-rule-bottom">
+        </header>
+        <div class="page-inner">
+            <div class="nav">
+                <a href="/">Home</a>
+                <a href="/lobby">Lobbies</a>
+                <a href="/users" class="active">Players</a>
+            </div>
+            <h1>Edit Profile</h1>
+            {#if flash:error}
+            <p class="error">{flash:error}</p>
+            {/if}
 
-    <form action="/users/{user.id}" method="post">
-        {#authenticityToken/}
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" value="{user.username}">
-        <button type="submit">Save</button>
-    </form>
+            <form action="/users/{user.id}" method="post">
+                {#authenticityToken/}
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{user.username}">
+                <button type="submit" class="btn">Save Changes</button>
+            </form>
 
-    <form action="/users/{user.id}/delete" method="post">
-        {#authenticityToken/}
-        <button type="submit">Delete</button>
-    </form>
+            <hr class="section-rule">
 
-    <a href="/users">Back to Users</a>
+            <form action="/users/{user.id}/delete" method="post">
+                {#authenticityToken/}
+                <button type="submit" class="btn btn-danger">Delete Account</button>
+            </form>
+        </div>
+        <div class="page-footer">&copy; Bazillionaire</div>
+    </div>
+    <script>
+    document.getElementById('masthead-date').textContent =
+        new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
 </body>
 </html>
