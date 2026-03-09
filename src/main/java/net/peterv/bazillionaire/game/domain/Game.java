@@ -1,6 +1,7 @@
 package net.peterv.bazillionaire.game.domain;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
+import net.peterv.bazillionaire.game.domain.powerup.CatchUpFreezeTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.GameContext;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
@@ -55,6 +56,7 @@ public class Game {
 
 		Game game = new Game(players, tickers, totalDuration);
 		game.registerTrigger(new RandomTickTrigger(0.05, new Money(500_00), random));
+		game.registerTrigger(new CatchUpFreezeTrigger(0.02, 3, random));
 		game.emit(GameMessage.broadcast(
 				new GameEvent.GameCreated(List.copyOf(tickers.keySet()))));
 		return game;
@@ -86,7 +88,7 @@ public class Game {
 			return new OrderResult.InvalidOrder("Unknown symbol: " + order.symbol().value());
 		}
 
-		OrderResult intercepted = powerupManager.checkInterceptors(order, ticker);
+		OrderResult intercepted = powerupManager.checkInterceptors(order, playerId, ticker);
 		if (intercepted != null) {
 			return intercepted;
 		}

@@ -168,6 +168,10 @@ public class StockGameWebSocketAdapter {
 					new GameFinishedData());
 			case GameEvent.PowerupAwarded pa -> new ServerMessage("POWERUP_AWARDED",
 					new PowerupAwardedData(pa.recipient().value(), pa.powerupName()));
+			case GameEvent.FreezeStarted fs -> new ServerMessage("FREEZE_STARTED",
+					new FreezeStartedData(fs.frozenPlayer().value(), fs.duration()));
+			case GameEvent.FreezeExpired fe -> new ServerMessage("FREEZE_EXPIRED",
+					new FreezeExpiredData(fe.frozenPlayer().value()));
 		};
 	}
 
@@ -241,6 +245,12 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private record PowerupAwardedData(String recipient, String powerupName) {
+	}
+
+	private record FreezeStartedData(String frozenPlayer, int duration) {
+	}
+
+	private record FreezeExpiredData(String frozenPlayer) {
 	}
 
 	private record ErrorData(String code, String message) {

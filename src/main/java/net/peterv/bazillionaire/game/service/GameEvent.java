@@ -10,7 +10,8 @@ import java.util.Map;
 
 public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.TickerTicked, GameEvent.GameCreated,
 		GameEvent.PlayerJoined, GameEvent.AllPlayersReady, GameEvent.GameState, GameEvent.PlayersState,
-		GameEvent.GameFinished, GameEvent.GameTickProgressed, GameEvent.PowerupAwarded {
+		GameEvent.GameFinished, GameEvent.GameTickProgressed, GameEvent.PowerupAwarded,
+		GameEvent.FreezeStarted, GameEvent.FreezeExpired {
 	record OrderFilled(Order order, PlayerId playerId) implements GameEvent {
 	}
 
@@ -43,5 +44,11 @@ public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.Ticke
 	}
 
 	record PowerupAwarded(PlayerId recipient, String powerupName) implements GameEvent {
+	}
+
+	record FreezeStarted(PlayerId frozenPlayer, int duration) implements GameEvent {
+	}
+
+	record FreezeExpired(PlayerId frozenPlayer) implements GameEvent {
 	}
 }

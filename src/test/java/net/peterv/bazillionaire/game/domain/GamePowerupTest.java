@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.game.domain;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.OrderInterceptor;
+import net.peterv.bazillionaire.game.domain.powerup.OrderFreezePowerup;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.Money;
@@ -11,6 +12,7 @@ import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +46,7 @@ class GamePowerupTest {
         public String name() { return "blocking-interceptor"; }
 
         @Override
-        public OrderResult intercept(Order order, Ticker ticker) {
+        public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {
             return new OrderResult.Rejected("blocked by powerup");
         }
     }
@@ -103,5 +105,43 @@ class GamePowerupTest {
         game.tick();
 
         assertEquals(1, game.currentTick());
+    }
+
+    @Test
+    void orderFreezeBlocksOrdersUntilExpiry() {
+        PlayerId frozenPlayer = new PlayerId("player1");
+        PlayerId otherPlayer = new PlayerId("player2");
+        Symbol symbol = new Symbol("ABC");
+        Game game = new Game(
+                Map.of(
+                        frozenPlayer, new Portfolio(INITIAL_BALANCE),
+                        otherPlayer, new Portfolio(INITIAL_BALANCE)),
+                Map.of(symbol, new Ticker(INITIAL_PRICE, new Random(SEED))),
+                TOTAL_DURATION);
+        game.start();
+        game.drainMessages();
+
+        game.activatePowerup(new OrderFreezePowerup(frozenPlayer, 2));
+        game.drainMessages();
+
+        OrderResult blocked = game.placeOrder(
+                new Order.Buy(symbol, game.currentPrices().get(symbol)),
+                frozenPlayer);
+        assertInstanceOf(OrderResult.Rejected.class, blocked);
+
+        OrderResult allowed = game.placeOrder(
+                new Order.Buy(symbol, game.currentPrices().get(symbol)),
+                otherPlayer);
+        assertInstanceOf(OrderResult.Filled.class, allowed);
+        game.drainMessages();
+
+        game.tick();
+        game.tick();
+        game.drainMessages();
+
+        OrderResult afterExpiry = game.placeOrder(
+                new Order.Buy(symbol, game.currentPrices().get(symbol)),
+                frozenPlayer);
+        assertInstanceOf(OrderResult.Filled.class, afterExpiry);
     }
 }

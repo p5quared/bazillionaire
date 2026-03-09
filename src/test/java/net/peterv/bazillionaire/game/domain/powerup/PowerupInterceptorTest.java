@@ -4,6 +4,7 @@ import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,7 +18,7 @@ class PowerupInterceptorTest {
         public String name() { return "pass-through"; }
 
         @Override
-        public OrderResult intercept(Order order, Ticker ticker) { return null; }
+        public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) { return null; }
     }
 
     static class BlockingInterceptor extends Powerup implements OrderInterceptor {
@@ -32,7 +33,7 @@ class PowerupInterceptorTest {
         public String name() { return "blocking"; }
 
         @Override
-        public OrderResult intercept(Order order, Ticker ticker) { return result; }
+        public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) { return result; }
     }
 
     static class NeverReachedInterceptor extends Powerup implements OrderInterceptor {
@@ -42,7 +43,7 @@ class PowerupInterceptorTest {
         public String name() { return "never-reached"; }
 
         @Override
-        public OrderResult intercept(Order order, Ticker ticker) {
+        public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {
             throw new AssertionError("should not be called");
         }
     }
@@ -50,14 +51,14 @@ class PowerupInterceptorTest {
     @Test
     void returnsNullWhenNoPowerupsActive() {
         var manager = new PowerupManager();
-        assertNull(manager.checkInterceptors(null, null));
+        assertNull(manager.checkInterceptors(null, new PlayerId("p1"), null));
     }
 
     @Test
     void returnsNullWhenNoPowerupImplementsInterceptor() {
         var manager = new PowerupManager();
         manager.activate(new TrackingPowerup(5), null);
-        assertNull(manager.checkInterceptors(null, null));
+        assertNull(manager.checkInterceptors(null, new PlayerId("p1"), null));
     }
 
     @Test
@@ -69,6 +70,6 @@ class PowerupInterceptorTest {
         manager.activate(new BlockingInterceptor(blocked), null); // returns result — short-circuit
         manager.activate(new NeverReachedInterceptor(), null);   // must never be called
 
-        assertSame(blocked, manager.checkInterceptors(null, null));
+        assertSame(blocked, manager.checkInterceptors(null, new PlayerId("p1"), null));
     }
 }

@@ -4,6 +4,7 @@ import net.peterv.bazillionaire.game.domain.Game;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.service.GameEvent;
 import net.peterv.bazillionaire.game.service.GameMessage;
 
@@ -46,10 +47,10 @@ public class PowerupManager {
 	 * Returns the first non-null result (a rejection/block),
 	 * or null if no interceptor cares.
 	 */
-	public OrderResult checkInterceptors(Order order, Ticker ticker) {
+	public OrderResult checkInterceptors(Order order, PlayerId playerId, Ticker ticker) {
 		for (Powerup powerup : activePowerups) {
 			if (powerup instanceof OrderInterceptor interceptor) {
-				OrderResult result = interceptor.intercept(order, ticker);
+				OrderResult result = interceptor.intercept(order, playerId, ticker);
 				if (result != null) {
 					return result;
 				}
