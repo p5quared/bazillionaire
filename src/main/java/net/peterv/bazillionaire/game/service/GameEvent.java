@@ -11,7 +11,8 @@ import java.util.Map;
 public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.TickerTicked, GameEvent.GameCreated,
 		GameEvent.PlayerJoined, GameEvent.AllPlayersReady, GameEvent.GameState, GameEvent.PlayersState,
 		GameEvent.GameFinished, GameEvent.GameTickProgressed, GameEvent.PowerupAwarded,
-		GameEvent.FreezeStarted, GameEvent.FreezeExpired, GameEvent.PowerupActivated {
+		GameEvent.FreezeStarted, GameEvent.FreezeExpired, GameEvent.PowerupActivated,
+		GameEvent.DividendPaid {
 	record OrderFilled(Order order, PlayerId playerId) implements GameEvent {
 	}
 
@@ -53,5 +54,8 @@ public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.Ticke
 	}
 
 	record PowerupActivated(PlayerId user, String powerupName) implements GameEvent {
+	}
+
+	record DividendPaid(PlayerId playerId, Symbol symbol, Money amount, String tierName) implements GameEvent {
 	}
 }

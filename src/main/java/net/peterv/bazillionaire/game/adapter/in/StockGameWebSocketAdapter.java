@@ -200,6 +200,9 @@ public class StockGameWebSocketAdapter {
 					new FreezeExpiredData(fe.frozenPlayer().value()));
 			case GameEvent.PowerupActivated pa -> new ServerMessage("POWERUP_ACTIVATED",
 					new PowerupActivatedData(pa.user().value(), pa.powerupName()));
+			case GameEvent.DividendPaid dp -> new ServerMessage("DIVIDEND_PAID",
+					new DividendPaidData(dp.playerId().value(), dp.symbol().value(), dp.amount().cents(),
+							dp.tierName()));
 		};
 	}
 
@@ -282,6 +285,9 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private record PowerupActivatedData(String user, String powerupName) {
+	}
+
+	private record DividendPaidData(String playerId, String symbol, int amount, String tierName) {
 	}
 
 	private record ErrorData(String code, String message) {
