@@ -19,14 +19,13 @@
 
     <p>Waiting for players... ({minPlayers} minimum to start)</p>
 
-    {#if lobby.status.name == "WAITING"}
+    {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
     <form action="/lobby/{lobby.id}/start" method="post">
         {#authenticityToken/}
         <label>Ticker Count: <input type="number" name="tickerCount" value="2" min="1" required></label>
         <label>Initial Balance ($): <input type="number" name="initialBalance" value="1000" min="1" required></label>
         <label>Initial Price ($): <input type="number" name="initialPrice" value="100" min="1" required></label>
         <label>Game Duration (seconds): <input type="number" name="gameDuration" value="600" min="1" required></label>
-        <label>Strategy Duration (seconds): <input type="number" name="strategyDuration" value="120" min="1" required></label>
         <button type="submit">Start Game</button>
     </form>
     <form action="/lobby/{lobby.id}/leave" method="post">
@@ -36,6 +35,11 @@
     <form action="/lobby/{lobby.id}/delete" method="post">
         {#authenticityToken/}
         <button type="submit">Delete Lobby</button>
+    </form>
+    {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember && !lobby.full}
+    <form action="/lobby/{lobby.id}/join" method="post">
+        {#authenticityToken/}
+        <button type="submit">Join Lobby</button>
     </form>
     {/if}
 

@@ -10,15 +10,16 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import net.peterv.bazillionaire.game.domain.types.Money;
-import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
-import net.peterv.bazillionaire.game.port.in.CreateGameUseCase;
 import net.peterv.bazillionaire.services.lobby.Lobby;
+import net.peterv.bazillionaire.services.lobby.LobbyMemberRequiredException;
+import net.peterv.bazillionaire.services.lobby.LobbyNotFoundException;
+import net.peterv.bazillionaire.services.lobby.LobbyStartFailedException;
 import net.peterv.bazillionaire.services.lobby.LobbyService;
+import net.peterv.bazillionaire.services.lobby.StartLobbySettings;
 import org.jboss.resteasy.reactive.RestForm;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Random;
 
 @Path("/lobby")
 public class LobbyController extends Controller {
@@ -29,14 +30,11 @@ public class LobbyController extends Controller {
 	@Inject
 	LobbyService lobbyService;
 
-	@Inject
-	CreateGameUseCase createGameUseCase;
-
 	@CheckedTemplate
 	static class Templates {
 		public static native TemplateInstance list(List<Lobby> lobbies);
 
-		public static native TemplateInstance detail(Lobby lobby, String currentPlayerId, int minPlayers);
+		public static native TemplateInstance detail(Lobby lobby, boolean currentPlayerIsMember, int minPlayers);
 	}
 
 	@GET
@@ -68,26 +66,45 @@ public class LobbyController extends Controller {
 		Lobby lobby = Lobby.findById(id);
 		if (lobby == null) {
 			flash("error", "Lobby not found");
-			throw new RedirectException(Response.seeOther(URI.create("/lobby")).build());
+			throw redirect("/lobby");
 		}
 		if (lobby.status == Lobby.LobbyStatus.STARTED) {
-			throw new RedirectException(Response.seeOther(URI.create("/game/" + id)).build());
+			throw redirect("/game/" + id);
 		}
-		return Templates.detail(lobby, currentSession.getUsername(), Lobby.MIN_PLAYERS);
+		return Templates.detail(lobby, lobby.hasMember(currentSession.getUsername()), Lobby.MIN_PLAYERS);
 	}
 
 	@POST
 	@Path("/{id}/join")
 	public void join(@PathParam("id") String id) {
-		lobbyService.joinLobby(id, currentSession.getUsername());
-		throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
+		try {
+			lobbyService.joinLobby(id, currentSession.getUsername());
+		} catch (LobbyNotFoundException e) {
+			flash("error", "Lobby not found");
+			throw redirect("/lobby");
+		} catch (Lobby.LobbyFullException e) {
+			flash("error", "Lobby is full");
+			throw redirect("/lobby/" + id);
+		} catch (Lobby.LobbyNotOpenException e) {
+			flash("error", "Lobby is not open");
+			throw redirect("/lobby/" + id);
+		}
+		throw redirect("/lobby/" + id);
 	}
 
 	@POST
 	@Path("/{id}/leave")
 	public void leave(@PathParam("id") String id) {
-		lobbyService.leaveLobby(id, currentSession.getUsername());
-		throw new RedirectException(Response.seeOther(URI.create("/lobby")).build());
+		try {
+			lobbyService.leaveLobby(id, currentSession.getUsername());
+		} catch (LobbyNotFoundException e) {
+			flash("error", "Lobby not found");
+			throw redirect("/lobby");
+		} catch (Lobby.LobbyNotOpenException e) {
+			flash("error", "Lobby is not open");
+			throw redirect("/lobby/" + id);
+		}
+		throw redirect("/lobby");
 	}
 
 	@POST
@@ -99,35 +116,49 @@ public class LobbyController extends Controller {
 			@RestForm @DefaultValue("100") int initialPrice,
 			@RestForm @DefaultValue("600") int gameDuration) {
 		try {
-			var result = lobbyService.startLobby(id);
-			createGameUseCase.createGame(new CreateGameCommand(
-					result.gameId(),
-					result.playerIds(),
-					tickerCount,
-					new Money(initialBalance * 100),
-					new Money(initialPrice * 100),
-					gameDuration,
-					new Random()));
+			lobbyService.startLobby(
+					id,
+					currentSession.getUsername(),
+					new StartLobbySettings(
+							tickerCount,
+							new Money(initialBalance * 100),
+							new Money(initialPrice * 100),
+							gameDuration));
 		} catch (Lobby.NotEnoughPlayersException e) {
 			flash("error", "Need at least " + Lobby.MIN_PLAYERS + " players to start");
-			throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
+			throw redirect("/lobby/" + id);
 		} catch (Lobby.LobbyNotOpenException e) {
 			flash("error", "Lobby is not open");
-			throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
+			throw redirect("/lobby/" + id);
+		} catch (LobbyMemberRequiredException e) {
+			flash("error", "Only lobby members can start the game");
+			throw redirect("/lobby/" + id);
+		} catch (LobbyNotFoundException e) {
+			flash("error", "Lobby not found");
+			throw redirect("/lobby");
+		} catch (LobbyStartFailedException e) {
+			flash("error", "Unable to start the game right now");
+			throw redirect("/lobby/" + id);
 		}
-		throw new RedirectException(Response.seeOther(URI.create("/game/" + id)).build());
+		throw redirect("/game/" + id);
 	}
 
 	@POST
 	@Path("/{id}/delete")
 	public void delete(@PathParam("id") String id) {
 		try {
-			lobbyService.deleteLobby(id);
+			lobbyService.deleteLobby(id, currentSession.getUsername());
 		} catch (Lobby.LobbyNotOpenException e) {
 			flash("error", "Cannot delete a lobby that has already started");
-			throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
+			throw redirect("/lobby/" + id);
+		} catch (LobbyMemberRequiredException e) {
+			flash("error", "Only lobby members can delete this lobby");
+			throw redirect("/lobby/" + id);
+		} catch (LobbyNotFoundException e) {
+			flash("error", "Lobby not found");
+			throw redirect("/lobby");
 		}
-		throw new RedirectException(Response.seeOther(URI.create("/lobby")).build());
+		throw redirect("/lobby");
 	}
 
 	@GET
@@ -145,5 +176,9 @@ public class LobbyController extends Controller {
 	}
 
 	public record LobbyStatusResponse(String id, String status, List<String> members, String redirectUrl) {
+	}
+
+	private RedirectException redirect(String path) {
+		return new RedirectException(Response.seeOther(URI.create(path)).build());
 	}
 }

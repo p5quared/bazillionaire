@@ -1,15 +1,20 @@
 package net.peterv.bazillionaire.services.lobby;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.NotFoundException;
+import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
+import net.peterv.bazillionaire.game.port.in.CreateGameUseCase;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @ApplicationScoped
 public class LobbyService {
+
+	@Inject
+	CreateGameUseCase createGameUseCase;
 
 	@Transactional
 	public String createLobby(String name, int maxPlayers, String playerId) {
@@ -27,9 +32,7 @@ public class LobbyService {
 
 	@Transactional
 	public void joinLobby(String lobbyId, String playerId) {
-		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null)
-			return;
+		Lobby lobby = findLobbyOrThrow(lobbyId);
 		try {
 			lobby.addMember(playerId, playerId);
 		} catch (Lobby.AlreadyInLobbyException ignored) {
@@ -39,36 +42,57 @@ public class LobbyService {
 
 	@Transactional
 	public void leaveLobby(String lobbyId, String playerId) {
-		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null)
-			return;
+		Lobby lobby = findLobbyOrThrow(lobbyId);
+		if (lobby.status != Lobby.LobbyStatus.WAITING)
+			throw new Lobby.LobbyNotOpenException();
 		lobby.removeMember(playerId);
 	}
 
-	public record StartedLobby(String gameId, List<String> playerIds) {
-	}
-
 	@Transactional
-	public StartedLobby startLobby(String lobbyId) {
-		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null)
-			throw new NotFoundException("Lobby not found");
+	public void startLobby(String lobbyId, String actorId, StartLobbySettings settings) {
+		Lobby lobby = findLobbyOrThrow(lobbyId);
+		requireMember(lobby, actorId);
 		lobby.start();
-		var playerIds = lobby.members.stream().map(m -> m.playerId).toList();
-		return new StartedLobby(lobbyId, playerIds);
+		try {
+			createGameUseCase.createGame(new CreateGameCommand(
+					lobby.id,
+					lobby.members.stream().map(m -> m.playerId).toList(),
+					settings.tickerCount(),
+					settings.initialBalance(),
+					settings.initialPrice(),
+					settings.gameDuration(),
+					new Random()));
+		} catch (RuntimeException e) {
+			throw new LobbyStartFailedException(lobbyId, e);
+		}
 	}
 
 	@Transactional
-	public void deleteLobby(String lobbyId) {
-		Lobby lobby = Lobby.findById(lobbyId);
-		if (lobby == null)
-			return;
+	public void deleteLobby(String lobbyId, String actorId) {
+		Lobby lobby = findLobbyOrThrow(lobbyId);
+		requireMember(lobby, actorId);
 		if (lobby.status != Lobby.LobbyStatus.WAITING)
 			throw new Lobby.LobbyNotOpenException();
 		lobby.delete();
 	}
 
 	private String generateId() {
-		return UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+		String id;
+		do {
+			id = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+		} while (Lobby.findById(id) != null);
+		return id;
+	}
+
+	private Lobby findLobbyOrThrow(String lobbyId) {
+		Lobby lobby = Lobby.findById(lobbyId);
+		if (lobby == null)
+			throw new LobbyNotFoundException(lobbyId);
+		return lobby;
+	}
+
+	private void requireMember(Lobby lobby, String actorId) {
+		if (!lobby.hasMember(actorId))
+			throw new LobbyMemberRequiredException(lobby.id, actorId);
 	}
 }

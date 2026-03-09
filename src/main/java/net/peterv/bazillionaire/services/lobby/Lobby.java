@@ -32,7 +32,7 @@ public class Lobby extends PanacheEntityBase {
 	public List<LobbyMember> members = new ArrayList<>();
 
 	public enum LobbyStatus {
-		WAITING, STARTED, CANCELLED
+		WAITING, STARTED
 	}
 
 	public boolean isFull() {
@@ -46,10 +46,10 @@ public class Lobby extends PanacheEntityBase {
 	public void addMember(String playerId, String displayName) {
 		if (status != LobbyStatus.WAITING)
 			throw new LobbyNotOpenException();
-		if (isFull())
-			throw new LobbyFullException();
 		if (hasMember(playerId))
 			throw new AlreadyInLobbyException();
+		if (isFull())
+			throw new LobbyFullException();
 
 		LobbyMember member = new LobbyMember();
 		member.lobby = this;

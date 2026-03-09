@@ -50,6 +50,13 @@ class LobbyTest {
 	}
 
 	@Test
+	void addMember_staysIdempotentForExistingPlayerWhenLobbyIsFull() {
+		var lobby = lobby(1);
+		lobby.addMember("alice", "Alice");
+		assertThrows(Lobby.AlreadyInLobbyException.class, () -> lobby.addMember("alice", "Alice"));
+	}
+
+	@Test
 	void hasMember_returnsTrueForExistingMember() {
 		var lobby = lobby(4);
 		lobby.addMember("alice", "Alice");
