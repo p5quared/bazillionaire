@@ -2,6 +2,8 @@ package net.peterv.bazillionaire.game.domain;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.powerup.GameContext;
+import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
+import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
@@ -52,6 +54,7 @@ public class Game {
 		}
 
 		Game game = new Game(players, tickers, totalDuration);
+		game.registerTrigger(new RandomTickTrigger(0.05, new Money(500_00), random));
 		game.emit(GameMessage.broadcast(
 				new GameEvent.GameCreated(List.copyOf(tickers.keySet()))));
 		return game;
@@ -181,6 +184,17 @@ public class Game {
 		Map<Symbol, Money> prices = new HashMap<>();
 		tickers.forEach((symbol, ticker) -> prices.put(symbol, ticker.currentPrice()));
 		return prices;
+	}
+
+	public void addCashToPlayer(PlayerId playerId, Money amount) {
+		Portfolio portfolio = players.get(playerId);
+		if (portfolio != null) {
+			portfolio.addCash(amount);
+		}
+	}
+
+	public void registerTrigger(PowerupTrigger trigger) {
+		powerupManager.registerTrigger(trigger);
 	}
 
 	public void activatePowerup(Powerup powerup) {

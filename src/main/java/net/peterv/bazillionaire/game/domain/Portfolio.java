@@ -47,6 +47,10 @@ public class Portfolio {
 		return holdings.getOrDefault(symbol, 0);
 	}
 
+	public void addCash(Money amount) {
+		this.cashBalance = this.cashBalance.add(amount);
+	}
+
 	public Money cashBalance() {
 		return cashBalance;
 	}
