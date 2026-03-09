@@ -172,6 +172,8 @@ public class StockGameWebSocketAdapter {
 					new FreezeStartedData(fs.frozenPlayer().value(), fs.duration()));
 			case GameEvent.FreezeExpired fe -> new ServerMessage("FREEZE_EXPIRED",
 					new FreezeExpiredData(fe.frozenPlayer().value()));
+			case GameEvent.PowerupActivated pa -> new ServerMessage("POWERUP_ACTIVATED",
+					new PowerupActivatedData(pa.user().value(), pa.powerupName()));
 		};
 	}
 
@@ -251,6 +253,9 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private record FreezeExpiredData(String frozenPlayer) {
+	}
+
+	private record PowerupActivatedData(String user, String powerupName) {
 	}
 
 	private record ErrorData(String code, String message) {

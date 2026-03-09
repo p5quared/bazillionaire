@@ -11,7 +11,7 @@ import java.util.Map;
 public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.TickerTicked, GameEvent.GameCreated,
 		GameEvent.PlayerJoined, GameEvent.AllPlayersReady, GameEvent.GameState, GameEvent.PlayersState,
 		GameEvent.GameFinished, GameEvent.GameTickProgressed, GameEvent.PowerupAwarded,
-		GameEvent.FreezeStarted, GameEvent.FreezeExpired {
+		GameEvent.FreezeStarted, GameEvent.FreezeExpired, GameEvent.PowerupActivated {
 	record OrderFilled(Order order, PlayerId playerId) implements GameEvent {
 	}
 
@@ -50,5 +50,8 @@ public sealed interface GameEvent permits GameEvent.OrderFilled, GameEvent.Ticke
 	}
 
 	record FreezeExpired(PlayerId frozenPlayer) implements GameEvent {
+	}
+
+	record PowerupActivated(PlayerId user, String powerupName) implements GameEvent {
 	}
 }

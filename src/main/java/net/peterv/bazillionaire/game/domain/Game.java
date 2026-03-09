@@ -8,6 +8,7 @@ import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
+import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
@@ -204,6 +205,14 @@ public class Game {
 
 	public void activatePowerup(Powerup powerup) {
 		powerupManager.activate(powerup, this);
+	}
+
+	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName) {
+		return powerupManager.usePowerup(playerId, powerupName, this);
+	}
+
+	public List<Powerup> getInventory(PlayerId playerId) {
+		return powerupManager.getInventory(playerId);
 	}
 
 	public void emit(GameMessage message) {

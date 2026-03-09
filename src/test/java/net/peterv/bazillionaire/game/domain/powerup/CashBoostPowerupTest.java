@@ -35,7 +35,7 @@ class CashBoostPowerupTest {
 	}
 
 	@Test
-	void cashBoostAppliedDuringTick() {
+	void cashBoostCollectedIntoInventoryDuringTick() {
 		PlayerId player = new PlayerId("p1");
 		Game game = new Game(
 				Map.of(player, new Portfolio(new Money(100000))),
@@ -49,12 +49,10 @@ class CashBoostPowerupTest {
 		boolean awarded = messages.stream()
 				.map(GameMessage::event)
 				.anyMatch(GameEvent.PowerupAwarded.class::isInstance);
-		boolean playerStateUpdated = messages.stream()
-				.map(GameMessage::event)
-				.filter(GameEvent.PlayersState.class::isInstance)
-				.map(GameEvent.PlayersState.class::cast)
-				.anyMatch(state -> state.players().get(player).cashBalance().equals(new Money(150000)));
 		assertTrue(awarded);
-		assertTrue(playerStateUpdated);
+		// Powerup is in inventory, not yet activated — cash unchanged
+		assertEquals(1, game.getInventory(player).size());
+		GameEvent.PlayerPortfolio portfolio = game.snapshot().players().get(player);
+		assertEquals(new Money(100000), portfolio.cashBalance());
 	}
 }

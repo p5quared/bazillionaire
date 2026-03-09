@@ -64,7 +64,7 @@ class PowerupManagerTest {
 	}
 
 	@Test
-	void trigger_awardedPowerupActivatedAndEventEmitted() {
+	void trigger_awardedPowerupCollectedAndEventEmitted() {
 		PlayerId player = new PlayerId("p1");
 		Game game = Game.create(List.of(player), 1, new Money(100_000_00), new Money(100_00), 200, new Random(42));
 		game.drainMessages();
@@ -84,6 +84,8 @@ class PowerupManagerTest {
 				.anyMatch(e -> e instanceof GameEvent.PowerupAwarded pa
 						&& pa.recipient().equals(player)
 						&& pa.powerupName().equals("tracking")));
-		assertEquals(1, awarded.activateCount);
+		// Powerup is now collected into inventory, not immediately activated
+		assertEquals(0, awarded.activateCount);
+		assertEquals(1, manager.getInventory(player).size());
 	}
 }
