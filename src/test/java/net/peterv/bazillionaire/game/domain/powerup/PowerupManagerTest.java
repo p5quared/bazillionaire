@@ -1,6 +1,14 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
+import net.peterv.bazillionaire.game.domain.Game;
+import net.peterv.bazillionaire.game.domain.types.Money;
+import net.peterv.bazillionaire.game.domain.types.PlayerId;
+import net.peterv.bazillionaire.game.service.GameEvent;
+import net.peterv.bazillionaire.game.service.GameMessage;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -53,5 +61,29 @@ class PowerupManagerTest {
 			manager.tick(null);
 		assertEquals(0, p.deactivateCount);
 		assertEquals(10, p.tickCount);
+	}
+
+	@Test
+	void trigger_awardedPowerupActivatedAndEventEmitted() {
+		PlayerId player = new PlayerId("p1");
+		Game game = Game.create(List.of(player), 1, new Money(100_000_00), new Money(100_00), 200, new Random(42));
+		game.drainMessages();
+		game.join(player);
+		game.start();
+		game.drainMessages();
+
+		var manager = new PowerupManager();
+		var awarded = new TrackingPowerup(5);
+		manager.registerTrigger(context -> List.of(new AwardedPowerup(player, awarded)));
+
+		manager.tick(game);
+		List<GameMessage> messages = game.drainMessages();
+
+		assertTrue(messages.stream()
+				.map(GameMessage::event)
+				.anyMatch(e -> e instanceof GameEvent.PowerupAwarded pa
+						&& pa.recipient().equals(player)
+						&& pa.powerupName().equals("tracking")));
+		assertEquals(1, awarded.activateCount);
 	}
 }

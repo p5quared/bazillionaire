@@ -166,6 +166,8 @@ public class StockGameWebSocketAdapter {
 					new GameTickData(progress.tick(), progress.ticksRemaining()));
 			case GameEvent.GameFinished ignored -> new ServerMessage("GAME_FINISHED",
 					new GameFinishedData());
+			case GameEvent.PowerupAwarded pa -> new ServerMessage("POWERUP_AWARDED",
+					new PowerupAwardedData(pa.recipient().value(), pa.powerupName()));
 		};
 	}
 
@@ -236,6 +238,9 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private record GameTickData(int tick, int ticksRemaining) {
+	}
+
+	private record PowerupAwardedData(String recipient, String powerupName) {
 	}
 
 	private record ErrorData(String code, String message) {

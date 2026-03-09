@@ -12,6 +12,9 @@ class TrackingPowerup extends Powerup {
     }
 
     @Override
+    public String name() { return "tracking"; }
+
+    @Override
     public void onActivate(Game game) { activateCount++; }
 
     @Override

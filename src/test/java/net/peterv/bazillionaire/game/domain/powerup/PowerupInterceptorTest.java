@@ -14,6 +14,9 @@ class PowerupInterceptorTest {
         PassThroughInterceptor() { super(5); }
 
         @Override
+        public String name() { return "pass-through"; }
+
+        @Override
         public OrderResult intercept(Order order, Ticker ticker) { return null; }
     }
 
@@ -26,11 +29,17 @@ class PowerupInterceptorTest {
         }
 
         @Override
+        public String name() { return "blocking"; }
+
+        @Override
         public OrderResult intercept(Order order, Ticker ticker) { return result; }
     }
 
     static class NeverReachedInterceptor extends Powerup implements OrderInterceptor {
         NeverReachedInterceptor() { super(5); }
+
+        @Override
+        public String name() { return "never-reached"; }
 
         @Override
         public OrderResult intercept(Order order, Ticker ticker) {

@@ -41,6 +41,9 @@ class GamePowerupTest {
         BlockingInterceptor() { super(5); }
 
         @Override
+        public String name() { return "blocking-interceptor"; }
+
+        @Override
         public OrderResult intercept(Order order, Ticker ticker) {
             return new OrderResult.Rejected("blocked by powerup");
         }
@@ -50,6 +53,9 @@ class GamePowerupTest {
         int onTickCount = 0;
 
         TickCountingPowerup(int duration) { super(duration); }
+
+        @Override
+        public String name() { return "tick-counting"; }
 
         @Override
         public void onTick(Game game) { onTickCount++; }

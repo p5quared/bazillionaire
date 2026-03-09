@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.game.domain.powerup;
 import net.peterv.bazillionaire.game.domain.Game;
 
 public abstract class Powerup {
+	public abstract String name();
 	protected int remainingTicks;
 
 	protected Powerup(int duration) {

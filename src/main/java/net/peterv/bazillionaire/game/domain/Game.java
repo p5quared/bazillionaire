@@ -1,6 +1,7 @@
 package net.peterv.bazillionaire.game.domain;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
+import net.peterv.bazillionaire.game.domain.powerup.GameContext;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
@@ -186,7 +187,14 @@ public class Game {
 		powerupManager.activate(powerup, this);
 	}
 
-	private void emit(GameMessage message) {
+	public void emit(GameMessage message) {
 		pendingMessages.add(message);
+	}
+
+	public GameContext snapshot() {
+		List<GameEvent> recentEvents = pendingMessages.stream()
+				.map(GameMessage::event)
+				.toList();
+		return new GameContext(currentTick(), playerPortfolios(), currentPrices(), recentEvents);
 	}
 }
