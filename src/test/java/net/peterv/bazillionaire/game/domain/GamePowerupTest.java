@@ -2,6 +2,7 @@ package net.peterv.bazillionaire.game.domain;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
+import net.peterv.bazillionaire.game.domain.powerup.ConsumptionMode;
 import net.peterv.bazillionaire.game.domain.powerup.OrderInterceptor;
 import net.peterv.bazillionaire.game.domain.powerup.OrderFreezePowerup;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
@@ -36,6 +37,9 @@ class GamePowerupTest {
         public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
 
         @Override
+        public ConsumptionMode consumptionMode() { return ConsumptionMode.SINGLE; }
+
+        @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {
             return new OrderResult.Rejected("blocked by powerup");
         }
@@ -54,6 +58,9 @@ class GamePowerupTest {
 
         @Override
         public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
+
+        @Override
+        public ConsumptionMode consumptionMode() { return ConsumptionMode.SINGLE; }
 
         @Override
         public List<PowerupEffect> onTick() { onTickCount++; return List.of(); }

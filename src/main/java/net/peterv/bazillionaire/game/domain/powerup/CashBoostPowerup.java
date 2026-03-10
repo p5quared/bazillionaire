@@ -34,4 +34,9 @@ public class CashBoostPowerup extends Powerup {
 	public PowerupUsageType usageType() {
 		return PowerupUsageType.INSTANT;
 	}
+
+	@Override
+	public ConsumptionMode consumptionMode() {
+		return ConsumptionMode.ALL;
+	}
 }

@@ -8,6 +8,7 @@ public abstract class Powerup {
 	public abstract String name();
 	public abstract String description();
 	public abstract PowerupUsageType usageType();
+	public abstract ConsumptionMode consumptionMode();
 	protected int remainingTicks;
 
 	protected Powerup(int duration) {

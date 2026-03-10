@@ -94,6 +94,11 @@ class PowerupInventoryTest {
 			}
 
 			@Override
+			public ConsumptionMode consumptionMode() {
+				return ConsumptionMode.SINGLE;
+			}
+
+			@Override
 			public List<PowerupEffect> onActivate() {
 				return List.of();
 			}

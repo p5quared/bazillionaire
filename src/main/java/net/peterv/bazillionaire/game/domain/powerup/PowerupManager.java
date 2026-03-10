@@ -28,25 +28,38 @@ public class PowerupManager {
 	}
 
 	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, PlayerId target) {
+		return usePowerup(playerId, powerupName, 1, target);
+	}
+
+	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, int quantity, PlayerId target) {
 		List<Powerup> owned = inventory.getOrDefault(playerId, Collections.emptyList());
-		Powerup match = owned.stream().filter(p -> p.name().equals(powerupName)).findFirst().orElse(null);
-		if (match == null) {
+		List<Powerup> matches = owned.stream()
+				.filter(p -> p.name().equals(powerupName))
+				.limit(Math.max(quantity, 1))
+				.toList();
+		if (matches.isEmpty()) {
 			return new UsePowerupResult.NotOwned();
 		}
-		if (match.usageType() == PowerupUsageType.TARGET_PLAYER) {
+		// Validate target once (all same type)
+		Powerup first = matches.get(0);
+		if (first.usageType() == PowerupUsageType.TARGET_PLAYER) {
 			if (target == null) {
 				return new UsePowerupResult.InvalidTarget("Must select a target");
 			}
 			if (target.equals(playerId)) {
 				return new UsePowerupResult.InvalidTarget("Cannot target yourself");
 			}
-			match.setTarget(target);
 		}
-		owned.remove(match);
-		List<PowerupEffect> effects = activate(match);
-		List<PowerupEffect> allEffects = new ArrayList<>(effects);
-		allEffects.add(new PowerupEffect.Emit(
-				GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName))));
+		List<PowerupEffect> allEffects = new ArrayList<>();
+		for (Powerup match : matches) {
+			if (match.usageType() == PowerupUsageType.TARGET_PLAYER) {
+				match.setTarget(target);
+			}
+			owned.remove(match);
+			allEffects.addAll(activate(match));
+			allEffects.add(new PowerupEffect.Emit(
+					GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName))));
+		}
 		return new UsePowerupResult.Activated(allEffects);
 	}
 
@@ -72,7 +85,8 @@ public class PowerupManager {
 					effects.add(new PowerupEffect.Emit(GameMessage.broadcast(
 							new GameEvent.PowerupAwarded(award.recipient(), award.powerup().name(),
 									award.powerup().description(),
-									award.powerup().usageType().name().toLowerCase()))));
+									award.powerup().usageType().name().toLowerCase(),
+									award.powerup().consumptionMode().name().toLowerCase()))));
 				}
 			}
 		}

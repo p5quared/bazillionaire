@@ -23,6 +23,9 @@ class PowerupInterceptorTest {
         public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
 
         @Override
+        public ConsumptionMode consumptionMode() { return ConsumptionMode.SINGLE; }
+
+        @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) { return null; }
     }
 
@@ -44,6 +47,9 @@ class PowerupInterceptorTest {
         public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
 
         @Override
+        public ConsumptionMode consumptionMode() { return ConsumptionMode.SINGLE; }
+
+        @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) { return result; }
     }
 
@@ -58,6 +64,9 @@ class PowerupInterceptorTest {
 
         @Override
         public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
+
+        @Override
+        public ConsumptionMode consumptionMode() { return ConsumptionMode.SINGLE; }
 
         @Override
         public OrderResult intercept(Order order, PlayerId playerId, Ticker ticker) {

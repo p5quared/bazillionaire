@@ -129,7 +129,7 @@
             if (map[key]) {
                 map[key].count++;
             } else {
-                map[key] = { name: p.name, description: p.description, usageType: p.usageType, count: 1 };
+                map[key] = { name: p.name, description: p.description, usageType: p.usageType, consumptionMode: p.consumptionMode || "single", count: 1 };
                 order.push(key);
             }
         }
@@ -186,6 +186,8 @@
                 pill.addEventListener("click", function () {
                     if (g.usageType === "target_player") {
                         showTargetPicker(g.name);
+                    } else if (g.consumptionMode === "all") {
+                        sendUsePowerup(g.name, null, g.count);
                     } else {
                         sendUsePowerup(g.name);
                     }
@@ -197,6 +199,8 @@
                         e.preventDefault();
                         if (g.usageType === "target_player") {
                             showTargetPicker(g.name);
+                        } else if (g.consumptionMode === "all") {
+                            sendUsePowerup(g.name, null, g.count);
                         } else {
                             sendUsePowerup(g.name);
                         }
@@ -483,7 +487,8 @@
                 state.inventory = state.inventory.concat([{
                     name: data.powerupName,
                     description: data.description || "",
-                    usageType: data.usageType || "instant"
+                    usageType: data.usageType || "instant",
+                    consumptionMode: data.consumptionMode || "single"
                 }]);
                 updateInventory();
                 addNotification("You received " + data.powerupName + "!", "positive");
@@ -576,9 +581,10 @@
         }));
     }
 
-    function sendUsePowerup(powerupName, targetPlayerId) {
+    function sendUsePowerup(powerupName, targetPlayerId, quantity) {
         var payload = { powerupName: powerupName };
         if (targetPlayerId) payload.targetPlayerId = targetPlayerId;
+        if (quantity && quantity > 1) payload.quantity = quantity;
         ws.send(JSON.stringify({ type: "USE_POWERUP", payload: payload }));
     }
 
@@ -651,11 +657,14 @@
         } else if (e.key === "s") {
             startOrderRepeat("s", "SELL");
         } else if (e.key === "u" && state.inventory.length > 0) {
-            var powerup = state.inventory[0];
-            if (powerup.usageType === "target_player") {
-                showTargetPicker(powerup.name);
+            var groups = groupInventory(state.inventory);
+            var g = groups[0];
+            if (g.usageType === "target_player") {
+                showTargetPicker(g.name);
+            } else if (g.consumptionMode === "all") {
+                sendUsePowerup(g.name, null, g.count);
             } else {
-                sendUsePowerup(powerup.name);
+                sendUsePowerup(g.name);
             }
         } else if (e.key === "Escape") {
             removeTargetPicker();

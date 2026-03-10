@@ -21,6 +21,9 @@ class TrackingPowerup extends Powerup {
     public PowerupUsageType usageType() { return PowerupUsageType.INSTANT; }
 
     @Override
+    public ConsumptionMode consumptionMode() { return ConsumptionMode.SINGLE; }
+
+    @Override
     public List<PowerupEffect> onActivate() { activateCount++; return List.of(); }
 
     @Override

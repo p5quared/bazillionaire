@@ -211,7 +211,11 @@ public class Game {
 	}
 
 	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, PlayerId target) {
-		UsePowerupResult result = powerupManager.usePowerup(playerId, powerupName, target);
+		return usePowerup(playerId, powerupName, 1, target);
+	}
+
+	public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, int quantity, PlayerId target) {
+		UsePowerupResult result = powerupManager.usePowerup(playerId, powerupName, quantity, target);
 		if (result instanceof UsePowerupResult.Activated activated) {
 			applyEffects(activated.effects());
 		}

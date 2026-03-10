@@ -45,6 +45,11 @@ public class DividendPowerup extends Powerup {
 		return PowerupUsageType.INSTANT;
 	}
 
+	@Override
+	public ConsumptionMode consumptionMode() {
+		return ConsumptionMode.ALL;
+	}
+
 	public PlayerId recipient() {
 		return recipient;
 	}

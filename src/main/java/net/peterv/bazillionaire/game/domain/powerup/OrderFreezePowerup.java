@@ -64,4 +64,9 @@ public final class OrderFreezePowerup extends Powerup implements OrderIntercepto
 	public PowerupUsageType usageType() {
 		return PowerupUsageType.TARGET_PLAYER;
 	}
+
+	@Override
+	public ConsumptionMode consumptionMode() {
+		return ConsumptionMode.SINGLE;
+	}
 }
