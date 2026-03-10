@@ -15,3 +15,7 @@ format:
 
 format-check:
   ./mvnw spotless:check
+
+setup:
+  git config blame.ignoreRevsFile .git-blame-ignore-revs
+  git config core.hooksPath .githooks
