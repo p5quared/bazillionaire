@@ -58,7 +58,7 @@ public class Game {
 		}
 
 		Game game = new Game(players, tickers, totalDuration);
-		game.registerTrigger(new RandomTickTrigger(0.05, new Money(500_00), random));
+		game.registerTrigger(new RandomTickTrigger(0.01, new Money(500_00), random));
 		game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
 		game.registerTrigger(new DividendTrigger(20, initialPrice));
 		game.emit(GameMessage.broadcast(
