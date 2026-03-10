@@ -370,6 +370,15 @@
         }
     }
 
+    function updateTimer() {
+        var el = document.getElementById("game-timer");
+        var t = state.ticksRemaining;
+        if (t === null || t === undefined) { el.textContent = ""; return; }
+        var mins = Math.floor(t / 60);
+        var secs = t % 60;
+        el.textContent = mins + ":" + (secs < 10 ? "0" : "") + secs;
+    }
+
     function updateInventory() {
         renderPowerupTray();
     }
@@ -411,6 +420,7 @@
         },
         GAME_STATE: function (data) {
             setGameState(data);
+            if (data.ticksRemaining !== undefined) state.ticksRemaining = data.ticksRemaining;
             if (!state.gameFinished) {
                 state.status = "Connected";
             }
@@ -424,6 +434,7 @@
                 updatePlayerBox(pids[j]);
             }
             updateHints();
+            updateTimer();
             // delay sparkline draw until canvases have layout dimensions
             requestAnimationFrame(function () {
                 var syms = Object.keys(tickerCardEls);
@@ -460,11 +471,14 @@
             if (!state.gameFinished) {
                 state.status = "Connected";
             }
+            updateTimer();
         },
         GAME_FINISHED: function () {
             state.gameFinished = true;
+            state.ticksRemaining = 0;
             state.status = "Connected";
             updateHints();
+            updateTimer();
         },
         POWERUP_AWARDED: function (data) {
             if (data.recipient === playerId) {
