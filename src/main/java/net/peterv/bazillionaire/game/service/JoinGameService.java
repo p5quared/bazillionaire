@@ -7,6 +7,8 @@ import net.peterv.bazillionaire.game.port.in.JoinGameUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
 
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
+
 import java.util.List;
 
 @ApplicationScoped

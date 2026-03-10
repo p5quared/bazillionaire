@@ -1,7 +1,7 @@
 package net.peterv.bazillionaire.game.domain;
 
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
-import net.peterv.bazillionaire.game.service.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

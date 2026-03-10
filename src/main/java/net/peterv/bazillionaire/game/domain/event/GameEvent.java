@@ -1,4 +1,4 @@
-package net.peterv.bazillionaire.game.service;
+package net.peterv.bazillionaire.game.domain.event;
 
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.types.Money;

@@ -1,6 +1,6 @@
 package net.peterv.bazillionaire.game.port.in;
 
-import net.peterv.bazillionaire.game.service.GameMessage;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
 
 import java.util.List;
 

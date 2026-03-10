@@ -10,8 +10,8 @@ import net.peterv.bazillionaire.game.port.in.TickProgress;
 import net.peterv.bazillionaire.game.port.in.TickUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
-import net.peterv.bazillionaire.game.service.GameEvent;
-import net.peterv.bazillionaire.game.service.GameMessage;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
 
 import io.quarkus.logging.Log;
 

@@ -4,8 +4,8 @@ import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
-import net.peterv.bazillionaire.game.service.GameEvent;
-import net.peterv.bazillionaire.game.service.GameMessage;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
 
 import java.util.List;
 

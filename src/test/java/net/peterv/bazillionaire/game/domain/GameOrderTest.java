@@ -5,7 +5,7 @@ import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
-import net.peterv.bazillionaire.game.service.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import org.junit.jupiter.api.Test;
 
 import static net.peterv.bazillionaire.game.domain.GameTestDefaults.*;

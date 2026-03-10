@@ -23,8 +23,8 @@ import net.peterv.bazillionaire.game.port.in.StartGameUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
 import net.peterv.bazillionaire.game.port.in.UsePowerupCommand;
 import net.peterv.bazillionaire.game.port.in.UsePowerupUseCase;
-import net.peterv.bazillionaire.game.service.GameEvent;
-import net.peterv.bazillionaire.game.service.GameMessage;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -210,7 +210,7 @@ public class StockGameWebSocketAdapter {
 	}
 
 	private Map<String, PlayerSnapshotData> serializePlayers(
-			Map<net.peterv.bazillionaire.game.domain.types.PlayerId, net.peterv.bazillionaire.game.service.GameEvent.PlayerPortfolio> players) {
+			Map<net.peterv.bazillionaire.game.domain.types.PlayerId, net.peterv.bazillionaire.game.domain.event.GameEvent.PlayerPortfolio> players) {
 		Map<String, PlayerSnapshotData> result = new LinkedHashMap<>();
 		players.forEach((pid, portfolio) -> {
 			Map<String, Integer> holdings = new LinkedHashMap<>();
