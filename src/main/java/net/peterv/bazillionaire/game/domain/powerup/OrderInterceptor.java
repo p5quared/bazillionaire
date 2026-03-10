@@ -7,5 +7,5 @@ import net.peterv.bazillionaire.game.domain.types.PlayerId;
 
 @FunctionalInterface
 public interface OrderInterceptor {
-	OrderResult intercept(Order order, PlayerId playerId, Ticker ticker);
+  OrderResult intercept(Order order, PlayerId playerId, Ticker ticker);
 }

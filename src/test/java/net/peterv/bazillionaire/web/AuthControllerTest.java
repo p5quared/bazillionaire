@@ -1,54 +1,54 @@
 package net.peterv.bazillionaire.web;
 
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
-import net.peterv.bazillionaire.services.auth.AuthService;
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.util.UUID;
+import net.peterv.bazillionaire.services.auth.AuthService;
+import org.junit.jupiter.api.Test;
+
 @QuarkusTest
 class AuthControllerTest {
 
-	private static final String LOGIN_PATH = "/login";
-	private static final String INDEX_PAGE_PATH = "/";
+  private static final String LOGIN_PATH = "/login";
+  private static final String INDEX_PAGE_PATH = "/";
 
-	@Inject
-	AuthService authService;
+  @Inject AuthService authService;
 
-	@Test
-	void showsLoginPage() {
-		given()
-				.when()
-				.get(LOGIN_PATH)
-				.then()
-				.statusCode(200)
-				.body(containsString("Choose a username:"));
-	}
+  @Test
+  void showsLoginPage() {
+    given()
+        .when()
+        .get(LOGIN_PATH)
+        .then()
+        .statusCode(200)
+        .body(containsString("Choose a username:"));
+  }
 
-	@Test
-	void logsInAndSetsSessionCookie() {
-		String randomUsername = "login-test-" + UUID.randomUUID();
+  @Test
+  void logsInAndSetsSessionCookie() {
+    String randomUsername = "login-test-" + UUID.randomUUID();
 
-		var response = given()
-				.redirects().follow(false)
-				.formParam("username", randomUsername)
-				.when()
-				.post(LOGIN_PATH)
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith(INDEX_PAGE_PATH))
-				.extract()
-				.response();
+    var response =
+        given()
+            .redirects()
+            .follow(false)
+            .formParam("username", randomUsername)
+            .when()
+            .post(LOGIN_PATH)
+            .then()
+            .statusCode(303)
+            .header("Location", endsWith(INDEX_PAGE_PATH))
+            .extract()
+            .response();
 
-		String sessionToken = response.getCookie("SESSION_TOKEN");
-		assertNotNull(sessionToken);
-		assertEquals(randomUsername, authService.getUsername(sessionToken).orElseThrow());
-	}
+    String sessionToken = response.getCookie("SESSION_TOKEN");
+    assertNotNull(sessionToken);
+    assertEquals(randomUsername, authService.getUsername(sessionToken).orElseThrow());
+  }
 }

@@ -1,45 +1,48 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
+import java.util.List;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 
-import java.util.List;
-
 public abstract class Powerup {
-	public abstract String name();
-	public abstract String description();
-	public abstract PowerupUsageType usageType();
-	public abstract ConsumptionMode consumptionMode();
-	protected int remainingTicks;
+  public abstract String name();
 
-	protected Powerup(int duration) {
-		this.remainingTicks = duration;
-	}
+  public abstract String description();
 
-	public void setTarget(PlayerId target) {}
+  public abstract PowerupUsageType usageType();
 
-	public List<PowerupEffect> onActivate() {
-		return List.of();
-	}
+  public abstract ConsumptionMode consumptionMode();
 
-	public List<PowerupEffect> onTick() {
-		return List.of();
-	}
+  protected int remainingTicks;
 
-	public List<PowerupEffect> onDeactivate() {
-		return List.of();
-	}
+  protected Powerup(int duration) {
+    this.remainingTicks = duration;
+  }
 
-	public boolean isExpired() {
-		return remainingTicks == 0;
-	}
+  public void setTarget(PlayerId target) {}
 
-	public List<PowerupEffect> tick() {
-		if (remainingTicks > 0) {
-			remainingTicks--;
-		}
-		if (!isExpired()) {
-			return onTick();
-		}
-		return List.of();
-	}
+  public List<PowerupEffect> onActivate() {
+    return List.of();
+  }
+
+  public List<PowerupEffect> onTick() {
+    return List.of();
+  }
+
+  public List<PowerupEffect> onDeactivate() {
+    return List.of();
+  }
+
+  public boolean isExpired() {
+    return remainingTicks == 0;
+  }
+
+  public List<PowerupEffect> tick() {
+    if (remainingTicks > 0) {
+      remainingTicks--;
+    }
+    if (!isExpired()) {
+      return onTick();
+    }
+    return List.of();
+  }
 }

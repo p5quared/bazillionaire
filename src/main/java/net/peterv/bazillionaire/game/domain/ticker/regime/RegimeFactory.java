@@ -1,92 +1,93 @@
 package net.peterv.bazillionaire.game.domain.ticker.regime;
 
-import net.peterv.bazillionaire.game.domain.types.Money;
-
 import java.util.List;
 import java.util.Random;
+import net.peterv.bazillionaire.game.domain.types.Money;
 
 public class RegimeFactory {
 
-	private final Random random;
-	private Money nextStartPrice;
+  private final Random random;
+  private Money nextStartPrice;
 
-	public RegimeFactory(Money initialPrice, Random random) {
-		this.nextStartPrice = initialPrice;
-		this.random = random;
-	}
+  public RegimeFactory(Money initialPrice, Random random) {
+    this.nextStartPrice = initialPrice;
+    this.random = random;
+  }
 
-	public RegimeStrategy nextRegime() {
-		MarketSentiment sentiment = pickSentiment();
-		RegimeStrategy regime = switch (sentiment) {
-			case BULL -> createBullRegime(nextStartPrice);
-			case FLAT -> createFlatRegime(nextStartPrice);
-			case BEAR -> createBearRegime(nextStartPrice);
-		};
-		List<Money> prices = regime.prices();
-		nextStartPrice = prices.get(prices.size() - 1);
-		return regime;
-	}
+  public RegimeStrategy nextRegime() {
+    MarketSentiment sentiment = pickSentiment();
+    RegimeStrategy regime =
+        switch (sentiment) {
+          case BULL -> createBullRegime(nextStartPrice);
+          case FLAT -> createFlatRegime(nextStartPrice);
+          case BEAR -> createBearRegime(nextStartPrice);
+        };
+    List<Money> prices = regime.prices();
+    nextStartPrice = prices.get(prices.size() - 1);
+    return regime;
+  }
 
-	private MarketSentiment pickSentiment() {
-		double roll = random.nextDouble();
-		if (roll < 0.50) return MarketSentiment.FLAT;
-		if (roll < 0.80) return MarketSentiment.BULL;
-		return MarketSentiment.BEAR;
-	}
+  private MarketSentiment pickSentiment() {
+    double roll = random.nextDouble();
+    if (roll < 0.50) return MarketSentiment.FLAT;
+    if (roll < 0.80) return MarketSentiment.BULL;
+    return MarketSentiment.BEAR;
+  }
 
-	private RegimeStrategy createBullRegime(Money startPrice) {
-		if (random.nextDouble() < 0.30) {
-			// Strong/explosive
-			int duration = 8 + random.nextInt(13);
-			double gain = 0.35 + random.nextDouble() * 0.65;
-			Money endPrice = scalePrice(startPrice, 1.0 + gain);
-			double curvature = 1.0 + random.nextDouble() * 4.0;
-			return new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
-		} else {
-			// Moderate
-			int duration = 20 + random.nextInt(21);
-			double gain = 0.10 + random.nextDouble() * 0.20;
-			Money endPrice = scalePrice(startPrice, 1.0 + gain);
-			double steepness = 4.0 + random.nextDouble() * 8.0;
-			return new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
-		}
-	}
+  private RegimeStrategy createBullRegime(Money startPrice) {
+    if (random.nextDouble() < 0.30) {
+      // Strong/explosive
+      int duration = 8 + random.nextInt(13);
+      double gain = 0.35 + random.nextDouble() * 0.65;
+      Money endPrice = scalePrice(startPrice, 1.0 + gain);
+      double curvature = 1.0 + random.nextDouble() * 4.0;
+      return new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
+    } else {
+      // Moderate
+      int duration = 20 + random.nextInt(21);
+      double gain = 0.10 + random.nextDouble() * 0.20;
+      Money endPrice = scalePrice(startPrice, 1.0 + gain);
+      double steepness = 4.0 + random.nextDouble() * 8.0;
+      return new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
+    }
+  }
 
-	private RegimeStrategy createFlatRegime(Money startPrice) {
-		int duration = 25 + random.nextInt(36);
-		double change = -0.08 + random.nextDouble() * 0.23;
-		Money endPrice = scalePrice(startPrice, 1.0 + change);
-		if (Math.abs(change) < 0.03) {
-			int amplitudeCents = Math.max(1, (int) (startPrice.cents() * (0.05 + random.nextDouble() * 0.10)));
-			int direction = random.nextBoolean() ? 1 : -1;
-			return new CycleRegimeStrategy(startPrice, amplitudeCents, duration, direction);
-		} else {
-			int deltaCents = Math.abs(endPrice.cents() - startPrice.cents());
-			int stepCents = Math.max(1, deltaCents / duration);
-			int direction = endPrice.cents() >= startPrice.cents() ? 1 : -1;
-			return new LinearRegimeStrategy(startPrice, stepCents, duration, direction);
-		}
-	}
+  private RegimeStrategy createFlatRegime(Money startPrice) {
+    int duration = 25 + random.nextInt(36);
+    double change = -0.08 + random.nextDouble() * 0.23;
+    Money endPrice = scalePrice(startPrice, 1.0 + change);
+    if (Math.abs(change) < 0.03) {
+      int amplitudeCents =
+          Math.max(1, (int) (startPrice.cents() * (0.05 + random.nextDouble() * 0.10)));
+      int direction = random.nextBoolean() ? 1 : -1;
+      return new CycleRegimeStrategy(startPrice, amplitudeCents, duration, direction);
+    } else {
+      int deltaCents = Math.abs(endPrice.cents() - startPrice.cents());
+      int stepCents = Math.max(1, deltaCents / duration);
+      int direction = endPrice.cents() >= startPrice.cents() ? 1 : -1;
+      return new LinearRegimeStrategy(startPrice, stepCents, duration, direction);
+    }
+  }
 
-	private RegimeStrategy createBearRegime(Money startPrice) {
-		if (random.nextDouble() < 0.30) {
-			// Long gradual
-			int duration = 50 + random.nextInt(51);
-			double loss = 0.05 + random.nextDouble() * 0.15;
-			Money endPrice = scalePrice(startPrice, 1.0 - loss);
-			double steepness = 4.0 + random.nextDouble() * 8.0;
-			return new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
-		} else {
-			// Steep short
-			int duration = 8 + random.nextInt(13);
-			double loss = 0.25 + random.nextDouble() * 0.25;
-			Money endPrice = scalePrice(startPrice, 1.0 - loss);
-			double curvature = 1.0 + random.nextDouble() * 4.0;
-			return new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
-		}
-	}
+  private RegimeStrategy createBearRegime(Money startPrice) {
+    if (random.nextDouble() < 0.30) {
+      // Long gradual
+      int duration = 50 + random.nextInt(51);
+      double loss = 0.05 + random.nextDouble() * 0.15;
+      Money endPrice = scalePrice(startPrice, 1.0 - loss);
+      double steepness = 4.0 + random.nextDouble() * 8.0;
+      return new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
+    } else {
+      // Steep short
+      int duration = 8 + random.nextInt(13);
+      double loss = 0.25 + random.nextDouble() * 0.25;
+      Money endPrice = scalePrice(startPrice, 1.0 - loss);
+      double curvature = 1.0 + random.nextDouble() * 4.0;
+      return new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
+    }
+  }
 
-	private Money scalePrice(Money price, double factor) {
-		return new Money(Math.max(1, (int) (price.cents() * factor)));
-	}
+  private Money scalePrice(Money price, double factor) {
+    return new Money(Math.max(1, (int) (price.cents() * factor)));
+  }
 }

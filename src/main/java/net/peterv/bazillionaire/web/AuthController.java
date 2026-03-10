@@ -8,52 +8,50 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
-import net.peterv.bazillionaire.services.auth.AuthService;
 import java.net.URI;
+import net.peterv.bazillionaire.services.auth.AuthService;
 import org.jboss.resteasy.reactive.RestForm;
 
 @Path("/")
 public class AuthController extends Controller {
 
-	@Inject
-	AuthService authService;
+  @Inject AuthService authService;
 
-	@CheckedTemplate
-	public static class Templates {
-		public static native TemplateInstance login();
-	}
+  @CheckedTemplate
+  public static class Templates {
+    public static native TemplateInstance login();
+  }
 
-	public TemplateInstance login() {
-		return Templates.login();
-	}
+  public TemplateInstance login() {
+    return Templates.login();
+  }
 
-	@POST
-	public void login(@RestForm String username) {
-		if (username == null || username.isBlank()) {
-			validation.addError("username", "Username is required");
-			validationFailed();
-		}
+  @POST
+  public void login(@RestForm String username) {
+    if (username == null || username.isBlank()) {
+      validation.addError("username", "Username is required");
+      validationFailed();
+    }
 
-		username = username.strip();
+    username = username.strip();
 
-		var result = authService.createSession(username);
-		switch (result) {
-			case AuthService.CreateSessionResult.Success success -> {
-				NewCookie cookie = new NewCookie.Builder("SESSION_TOKEN")
-						.value(success.token())
-						.path("/")
-						.httpOnly(true)
-						.sameSite(NewCookie.SameSite.STRICT)
-						.build();
-				throw new io.quarkiverse.renarde.util.RedirectException(
-						Response.seeOther(URI.create("/"))
-								.cookie(cookie)
-								.build());
-			}
-			case AuthService.CreateSessionResult.UsernameTaken() -> {
-				flash("error", "Username '" + username + "' is already taken");
-				login();
-			}
-		}
-	}
+    var result = authService.createSession(username);
+    switch (result) {
+      case AuthService.CreateSessionResult.Success success -> {
+        NewCookie cookie =
+            new NewCookie.Builder("SESSION_TOKEN")
+                .value(success.token())
+                .path("/")
+                .httpOnly(true)
+                .sameSite(NewCookie.SameSite.STRICT)
+                .build();
+        throw new io.quarkiverse.renarde.util.RedirectException(
+            Response.seeOther(URI.create("/")).cookie(cookie).build());
+      }
+      case AuthService.CreateSessionResult.UsernameTaken() -> {
+        flash("error", "Username '" + username + "' is already taken");
+        login();
+      }
+    }
+  }
 }

@@ -12,6 +12,8 @@ just build                  # Package JAR
 just deploy                 # Build and deploy to Fly.io
 just verify                 # Full verification
 just get-coverage           # Run coverage and open report
+just format                 # Auto-format Java files
+just format-check           # Check formatting (CI)
 ```
 
 Run a single test class:

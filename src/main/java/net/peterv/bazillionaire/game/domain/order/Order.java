@@ -4,13 +4,11 @@ import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public sealed interface Order {
-	Symbol symbol();
+  Symbol symbol();
 
-	Money price();
+  Money price();
 
-	record Buy(Symbol symbol, Money price) implements Order {
-	}
+  record Buy(Symbol symbol, Money price) implements Order {}
 
-	record Sell(Symbol symbol, Money price) implements Order {
-	}
+  record Sell(Symbol symbol, Money price) implements Order {}
 }

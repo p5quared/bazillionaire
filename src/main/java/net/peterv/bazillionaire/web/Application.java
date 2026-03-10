@@ -9,17 +9,16 @@ import jakarta.ws.rs.Path;
 @Path("/")
 public class Application extends Controller {
 
-	@Inject
-	CurrentSession currentSession;
+  @Inject CurrentSession currentSession;
 
-	@CheckedTemplate
-	public static class Templates {
-		public static native TemplateInstance index(String username);
-	}
+  @CheckedTemplate
+  public static class Templates {
+    public static native TemplateInstance index(String username);
+  }
 
-	@Path("/")
-	public TemplateInstance index() {
-		String username = currentSession.getUsername();
-		return Templates.index(username);
-	}
+  @Path("/")
+  public TemplateInstance index() {
+    String username = currentSession.getUsername();
+    return Templates.index(username);
+  }
 }

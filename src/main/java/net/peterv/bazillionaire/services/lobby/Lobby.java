@@ -2,7 +2,6 @@ package net.peterv.bazillionaire.services.lobby;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,79 +10,74 @@ import java.util.List;
 @Table(name = "lobbies")
 public class Lobby extends PanacheEntityBase {
 
-	public static final int MIN_PLAYERS = 1;
-	public static final int DEFAULT_MAX = 8;
-	public static final int MAX_HARD_CAP = 16;
+  public static final int MIN_PLAYERS = 1;
+  public static final int DEFAULT_MAX = 8;
+  public static final int MAX_HARD_CAP = 16;
 
-	@Id
-	public String id;
+  @Id public String id;
 
-	public String name;
+  public String name;
 
-	@Enumerated(EnumType.STRING)
-	public LobbyStatus status;
+  @Enumerated(EnumType.STRING)
+  public LobbyStatus status;
 
-	public int maxPlayers;
+  public int maxPlayers;
 
-	public Instant createdAt;
+  public Instant createdAt;
 
-	@OneToMany(mappedBy = "lobby", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-	@OrderBy("joinedAt ASC")
-	public List<LobbyMember> members = new ArrayList<>();
+  @OneToMany(
+      mappedBy = "lobby",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.EAGER)
+  @OrderBy("joinedAt ASC")
+  public List<LobbyMember> members = new ArrayList<>();
 
-	public enum LobbyStatus {
-		WAITING, STARTED
-	}
+  public enum LobbyStatus {
+    WAITING,
+    STARTED
+  }
 
-	public boolean isFull() {
-		return members.size() >= maxPlayers;
-	}
+  public boolean isFull() {
+    return members.size() >= maxPlayers;
+  }
 
-	public boolean hasMember(String playerId) {
-		return members.stream().anyMatch(m -> m.playerId.equals(playerId));
-	}
+  public boolean hasMember(String playerId) {
+    return members.stream().anyMatch(m -> m.playerId.equals(playerId));
+  }
 
-	public void addMember(String playerId, String displayName) {
-		if (status != LobbyStatus.WAITING)
-			throw new LobbyNotOpenException();
-		if (hasMember(playerId))
-			throw new AlreadyInLobbyException();
-		if (isFull())
-			throw new LobbyFullException();
+  public void addMember(String playerId, String displayName) {
+    if (status != LobbyStatus.WAITING) throw new LobbyNotOpenException();
+    if (hasMember(playerId)) throw new AlreadyInLobbyException();
+    if (isFull()) throw new LobbyFullException();
 
-		LobbyMember member = new LobbyMember();
-		member.lobby = this;
-		member.playerId = playerId;
-		member.displayName = displayName;
-		member.joinedAt = Instant.now();
-		members.add(member);
-	}
+    LobbyMember member = new LobbyMember();
+    member.lobby = this;
+    member.playerId = playerId;
+    member.displayName = displayName;
+    member.joinedAt = Instant.now();
+    members.add(member);
+  }
 
-	public void removeMember(String playerId) {
-		members.removeIf(m -> m.playerId.equals(playerId));
-	}
+  public void removeMember(String playerId) {
+    members.removeIf(m -> m.playerId.equals(playerId));
+  }
 
-	public void start() {
-		if (status != LobbyStatus.WAITING)
-			throw new LobbyNotOpenException();
-		if (members.size() < MIN_PLAYERS)
-			throw new NotEnoughPlayersException();
-		status = LobbyStatus.STARTED;
-	}
+  public void start() {
+    if (status != LobbyStatus.WAITING) throw new LobbyNotOpenException();
+    if (members.size() < MIN_PLAYERS) throw new NotEnoughPlayersException();
+    status = LobbyStatus.STARTED;
+  }
 
-	public static List<Lobby> findOpen() {
-		return list("status", LobbyStatus.WAITING);
-	}
+  public static List<Lobby> findOpen() {
+    return list("status", LobbyStatus.WAITING);
+  }
 
-	public static class LobbyFullException extends RuntimeException {
-	}
+  public static class LobbyFullException extends RuntimeException {}
 
-	public static class LobbyNotOpenException extends RuntimeException {
-	}
+  public static class LobbyNotOpenException extends RuntimeException {}
 
-	public static class AlreadyInLobbyException extends RuntimeException {
-	}
+  public static class AlreadyInLobbyException extends RuntimeException {}
 
-	public static class NotEnoughPlayersException extends RuntimeException {
-	}
+  public static class NotEnoughPlayersException extends RuntimeException {}
 }

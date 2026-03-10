@@ -1,47 +1,46 @@
 package net.peterv.bazillionaire.web;
 
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
-import net.peterv.bazillionaire.services.auth.AuthService;
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.util.UUID;
+import net.peterv.bazillionaire.services.auth.AuthService;
+import org.junit.jupiter.api.Test;
+
 @QuarkusTest
 class ApplicationTest {
-	private static final String APPLICATION_PATH = "/";
+  private static final String APPLICATION_PATH = "/";
 
-	@Inject
-	AuthService authService;
+  @Inject AuthService authService;
 
-	@Test
-	void redirectsToLoginWhenUserIsNotLoggedIn() {
-		given()
-				.redirects().follow(false)
-				.when()
-				.get(APPLICATION_PATH)
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/login"));
-	}
+  @Test
+  void redirectsToLoginWhenUserIsNotLoggedIn() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get(APPLICATION_PATH)
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/login"));
+  }
 
-	@Test
-	void showsUsernameWhenUserIsLoggedIn() {
-		String username = "test-" + UUID.randomUUID();
-		var created = authService.createSession(username);
-		var success = assertInstanceOf(AuthService.CreateSessionResult.Success.class, created);
+  @Test
+  void showsUsernameWhenUserIsLoggedIn() {
+    String username = "test-" + UUID.randomUUID();
+    var created = authService.createSession(username);
+    var success = assertInstanceOf(AuthService.CreateSessionResult.Success.class, created);
 
-		given()
-				.cookie("SESSION_TOKEN", success.token())
-				.when()
-				.get(APPLICATION_PATH)
-				.then()
-				.statusCode(200)
-				.body(containsString("welcome, " + username));
-	}
+    given()
+        .cookie("SESSION_TOKEN", success.token())
+        .when()
+        .get(APPLICATION_PATH)
+        .then()
+        .statusCode(200)
+        .body(containsString("welcome, " + username));
+  }
 }

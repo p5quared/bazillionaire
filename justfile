@@ -9,3 +9,9 @@ build:
 
 deploy: build
   fly deploy
+
+format:
+  ./mvnw spotless:apply
+
+format-check:
+  ./mvnw spotless:check

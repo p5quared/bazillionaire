@@ -9,22 +9,23 @@ import net.peterv.bazillionaire.game.port.out.GameRepository;
 
 @ApplicationScoped
 public class CreateGameService implements CreateGameUseCase {
-	private final GameRepository gameRepository;
+  private final GameRepository gameRepository;
 
-	public CreateGameService(GameRepository gameRepository) {
-		this.gameRepository = gameRepository;
-	}
+  public CreateGameService(GameRepository gameRepository) {
+    this.gameRepository = gameRepository;
+  }
 
-	@Override
-	public UseCaseResult<Void> createGame(CreateGameCommand cmd) {
-		Game game = Game.create(
-				cmd.toPlayerIds(),
-				cmd.tickerCount(),
-				cmd.initialBalance(),
-				cmd.initialPrice(),
-				cmd.gameDuration(),
-				cmd.random());
-		gameRepository.saveGame(cmd.toGameId(), game);
-		return new UseCaseResult<>(null, game.drainMessages());
-	}
+  @Override
+  public UseCaseResult<Void> createGame(CreateGameCommand cmd) {
+    Game game =
+        Game.create(
+            cmd.toPlayerIds(),
+            cmd.tickerCount(),
+            cmd.initialBalance(),
+            cmd.initialPrice(),
+            cmd.gameDuration(),
+            cmd.random());
+    gameRepository.saveGame(cmd.toGameId(), game);
+    return new UseCaseResult<>(null, game.drainMessages());
+  }
 }

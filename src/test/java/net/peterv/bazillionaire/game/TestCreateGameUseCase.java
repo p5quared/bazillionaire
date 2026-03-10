@@ -15,34 +15,34 @@ import net.peterv.bazillionaire.game.port.out.GameRepository;
 @ApplicationScoped
 public class TestCreateGameUseCase implements CreateGameUseCase {
 
-	private static volatile boolean failNextCreate;
+  private static volatile boolean failNextCreate;
 
-	@Inject
-	GameRepository gameRepository;
+  @Inject GameRepository gameRepository;
 
-	@Override
-	public UseCaseResult<Void> createGame(CreateGameCommand cmd) {
-		if (failNextCreate) {
-			failNextCreate = false;
-			throw new IllegalStateException("Simulated game creation failure");
-		}
+  @Override
+  public UseCaseResult<Void> createGame(CreateGameCommand cmd) {
+    if (failNextCreate) {
+      failNextCreate = false;
+      throw new IllegalStateException("Simulated game creation failure");
+    }
 
-		Game game = Game.create(
-				cmd.toPlayerIds(),
-				cmd.tickerCount(),
-				cmd.initialBalance(),
-				cmd.initialPrice(),
-				cmd.gameDuration(),
-				cmd.random());
-		gameRepository.saveGame(cmd.toGameId(), game);
-		return new UseCaseResult<>(null, game.drainMessages());
-	}
+    Game game =
+        Game.create(
+            cmd.toPlayerIds(),
+            cmd.tickerCount(),
+            cmd.initialBalance(),
+            cmd.initialPrice(),
+            cmd.gameDuration(),
+            cmd.random());
+    gameRepository.saveGame(cmd.toGameId(), game);
+    return new UseCaseResult<>(null, game.drainMessages());
+  }
 
-	public static void failNextCreate() {
-		failNextCreate = true;
-	}
+  public static void failNextCreate() {
+    failNextCreate = true;
+  }
 
-	public static void reset() {
-		failNextCreate = false;
-	}
+  public static void reset() {
+    failNextCreate = false;
+  }
 }

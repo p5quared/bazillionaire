@@ -1,145 +1,148 @@
 package net.peterv.bazillionaire.web;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.util.UUID;
 import net.peterv.bazillionaire.services.auth.AuthService;
 import net.peterv.bazillionaire.services.user.User;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
-
 @QuarkusTest
 class UserControllerTest {
 
-	@Inject
-	AuthService authService;
+  @Inject AuthService authService;
 
-	private String sessionCookie(String username) {
-		var result = (AuthService.CreateSessionResult.Success) authService.createSession(username);
-		return result.token();
-	}
+  private String sessionCookie(String username) {
+    var result = (AuthService.CreateSessionResult.Success) authService.createSession(username);
+    return result.token();
+  }
 
-	@Test
-	void list_requiresAuth() {
-		given()
-				.redirects().follow(false)
-				.when()
-				.get("/users")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/login"));
-	}
+  @Test
+  void list_requiresAuth() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/users")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/login"));
+  }
 
-	@Test
-	void list_showsUsers() {
-		String username = "list-user-" + UUID.randomUUID();
-		String token = sessionCookie(username);
+  @Test
+  void list_showsUsers() {
+    String username = "list-user-" + UUID.randomUUID();
+    String token = sessionCookie(username);
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.when()
-				.get("/users")
-				.then()
-				.statusCode(200)
-				.body(containsString(username));
-	}
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .when()
+        .get("/users")
+        .then()
+        .statusCode(200)
+        .body(containsString(username));
+  }
 
-	@Test
-	void edit_showsForm() {
-		String username = "edit-user-" + UUID.randomUUID();
-		String token = sessionCookie(username);
-		Long userId = User.findByUsername(username).orElseThrow().id;
+  @Test
+  void edit_showsForm() {
+    String username = "edit-user-" + UUID.randomUUID();
+    String token = sessionCookie(username);
+    Long userId = User.findByUsername(username).orElseThrow().id;
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.when()
-				.get("/users/" + userId)
-				.then()
-				.statusCode(200)
-				.body(containsString(username));
-	}
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .when()
+        .get("/users/" + userId)
+        .then()
+        .statusCode(200)
+        .body(containsString(username));
+  }
 
-	@Test
-	void edit_nonExistentUser_redirects() {
-		String token = sessionCookie("edit-missing-" + UUID.randomUUID());
+  @Test
+  void edit_nonExistentUser_redirects() {
+    String token = sessionCookie("edit-missing-" + UUID.randomUUID());
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.redirects().follow(false)
-				.when()
-				.get("/users/999999")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/users"));
-	}
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/users/999999")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/users"));
+  }
 
-	@Test
-	void update_changesUsername() {
-		String originalUsername = "update-user-" + UUID.randomUUID();
-		String token = sessionCookie(originalUsername);
-		Long userId = User.findByUsername(originalUsername).orElseThrow().id;
-		String newUsername = "updated-" + UUID.randomUUID();
+  @Test
+  void update_changesUsername() {
+    String originalUsername = "update-user-" + UUID.randomUUID();
+    String token = sessionCookie(originalUsername);
+    Long userId = User.findByUsername(originalUsername).orElseThrow().id;
+    String newUsername = "updated-" + UUID.randomUUID();
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.formParam("username", newUsername)
-				.redirects().follow(false)
-				.when()
-				.post("/users/" + userId)
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/users"));
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .formParam("username", newUsername)
+        .redirects()
+        .follow(false)
+        .when()
+        .post("/users/" + userId)
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/users"));
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.when()
-				.get("/users")
-				.then()
-				.statusCode(200)
-				.body(containsString(newUsername));
-	}
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .when()
+        .get("/users")
+        .then()
+        .statusCode(200)
+        .body(containsString(newUsername));
+  }
 
-	@Test
-	void update_blankUsername_flashesError() {
-		String username = "blank-user-" + UUID.randomUUID();
-		String token = sessionCookie(username);
-		Long userId = User.findByUsername(username).orElseThrow().id;
+  @Test
+  void update_blankUsername_flashesError() {
+    String username = "blank-user-" + UUID.randomUUID();
+    String token = sessionCookie(username);
+    Long userId = User.findByUsername(username).orElseThrow().id;
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.formParam("username", "")
-				.redirects().follow(false)
-				.when()
-				.post("/users/" + userId)
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/users/" + userId));
-	}
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .formParam("username", "")
+        .redirects()
+        .follow(false)
+        .when()
+        .post("/users/" + userId)
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/users/" + userId));
+  }
 
-	@Test
-	void delete_removesUser() {
-		String username = "delete-user-" + UUID.randomUUID();
-		String token = sessionCookie(username);
-		Long userId = User.findByUsername(username).orElseThrow().id;
+  @Test
+  void delete_removesUser() {
+    String username = "delete-user-" + UUID.randomUUID();
+    String token = sessionCookie(username);
+    Long userId = User.findByUsername(username).orElseThrow().id;
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.redirects().follow(false)
-				.when()
-				.post("/users/" + userId + "/delete")
-				.then()
-				.statusCode(303)
-				.header("Location", endsWith("/users"));
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .redirects()
+        .follow(false)
+        .when()
+        .post("/users/" + userId + "/delete")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/users"));
 
-		given()
-				.cookie("SESSION_TOKEN", token)
-				.when()
-				.get("/users")
-				.then()
-				.statusCode(200)
-				.body(not(containsString(username)));
-	}
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .when()
+        .get("/users")
+        .then()
+        .statusCode(200)
+        .body(not(containsString(username)));
+  }
 }

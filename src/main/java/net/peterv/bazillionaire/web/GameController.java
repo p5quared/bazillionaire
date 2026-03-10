@@ -11,17 +11,16 @@ import jakarta.ws.rs.PathParam;
 @Path("/game")
 public class GameController extends Controller {
 
-	@Inject
-	CurrentSession currentSession;
+  @Inject CurrentSession currentSession;
 
-	@CheckedTemplate
-	static class Templates {
-		public static native TemplateInstance game(String gameId, String playerId);
-	}
+  @CheckedTemplate
+  static class Templates {
+    public static native TemplateInstance game(String gameId, String playerId);
+  }
 
-	@GET
-	@Path("/{id}")
-	public TemplateInstance game(@PathParam("id") String id) {
-		return Templates.game(id, currentSession.getUsername());
-	}
+  @GET
+  @Path("/{id}")
+  public TemplateInstance game(@PathParam("id") String id) {
+    return Templates.game(id, currentSession.getUsername());
+  }
 }

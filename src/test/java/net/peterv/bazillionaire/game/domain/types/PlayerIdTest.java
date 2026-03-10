@@ -1,25 +1,25 @@
 package net.peterv.bazillionaire.game.domain.types;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.junit.jupiter.api.Test;
+
 class PlayerIdTest {
 
-	@Test
-	void validPlayerIdConstructs() {
-		assertEquals("alice", new PlayerId("alice").value());
-	}
+  @Test
+  void validPlayerIdConstructs() {
+    assertEquals("alice", new PlayerId("alice").value());
+  }
 
-	@Test
-	void nullThrows() {
-		assertThrows(IllegalArgumentException.class, () -> new PlayerId(null));
-	}
+  @Test
+  void nullThrows() {
+    assertThrows(IllegalArgumentException.class, () -> new PlayerId(null));
+  }
 
-	@Test
-	void blankThrows() {
-		assertThrows(IllegalArgumentException.class, () -> new PlayerId(""));
-		assertThrows(IllegalArgumentException.class, () -> new PlayerId("   "));
-	}
+  @Test
+  void blankThrows() {
+    assertThrows(IllegalArgumentException.class, () -> new PlayerId(""));
+    assertThrows(IllegalArgumentException.class, () -> new PlayerId("   "));
+  }
 }
