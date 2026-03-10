@@ -83,6 +83,32 @@
         state.tradingDisabledReason = tradeBlocker();
     }
 
+    // --------------- notifications ---------------
+    var NOTIF_MAX = 5;
+    var NOTIF_DURATION_MS = 3500;
+    var NOTIF_FADE_MS = 400;
+    var notifContainer = document.getElementById("notifications");
+
+    function addNotification(text, tone) {
+        var el = document.createElement("div");
+        el.className = "notif notif--" + (tone || "neutral");
+        el.textContent = text;
+        notifContainer.insertBefore(el, notifContainer.firstChild);
+
+        // enforce max
+        while (notifContainer.children.length > NOTIF_MAX) {
+            notifContainer.removeChild(notifContainer.lastChild);
+        }
+
+        // auto-fade
+        setTimeout(function () {
+            el.classList.add("notif--fading");
+            setTimeout(function () {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            }, NOTIF_FADE_MS);
+        }, NOTIF_DURATION_MS);
+    }
+
     function setGameState(data) {
         state.prevPrices = Object.assign({}, state.prices);
         state.prices = Object.assign({}, data.prices || {});
@@ -423,6 +449,10 @@
             if (!data.playerId) return;
             state.chart = chart.appendAnnotation(state.chart, data.symbol, data.side);
             redrawSparkline(data.symbol);
+            if (data.playerId === playerId && activeOrderInterval === null) {
+                var verb = data.side === "BUY" ? "Bought" : "Sold";
+                addNotification(verb + " " + data.symbol + " at " + formatPrice(data.price), "positive");
+            }
         },
         GAME_TICK: function (data) {
             state.currentTick = data.tick;
@@ -444,6 +474,9 @@
                     usageType: data.usageType || "instant"
                 }]);
                 updateInventory();
+                addNotification("You received " + data.powerupName + "!", "positive");
+            } else {
+                addNotification(data.recipient + " received " + data.powerupName, "neutral");
             }
         },
         POWERUP_ACTIVATED: function (data) {
@@ -456,6 +489,9 @@
                     state.inventory = state.inventory.slice(0, idx).concat(state.inventory.slice(idx + 1));
                 }
                 updateInventory();
+                addNotification("You used " + data.powerupName, "neutral");
+            } else {
+                addNotification(data.user + " used " + data.powerupName, "neutral");
             }
         },
         FREEZE_STARTED: function (data) {
@@ -463,18 +499,32 @@
             state.localFreezeActive = true;
             updatePlayerBox(playerId);
             updateHints();
+            var secs = data.durationSeconds ? data.durationSeconds + "s" : "a while";
+            addNotification("Orders frozen for " + secs + "!", "negative");
         },
         FREEZE_EXPIRED: function (data) {
             if (data.frozenPlayer && data.frozenPlayer !== playerId) return;
             state.localFreezeActive = false;
             updatePlayerBox(playerId);
             updateHints();
+            addNotification("Freeze expired \u2014 trading resumed", "positive");
+        },
+        DIVIDEND_PAID: function (data) {
+            if (data.playerId === playerId) {
+                var tier = data.tier ? " (" + data.tier + ")" : "";
+                addNotification("Dividend: +" + formatPrice(data.amount) + " from " + data.symbol + tier, "positive");
+            } else if (data.playerId) {
+                addNotification(data.playerId + " received dividend from " + data.symbol, "neutral");
+            }
         },
         ERROR: function (data) {
-            if (data.code === "ORDER_REJECTED" && /frozen/i.test(data.message || "")) {
-                state.localFreezeActive = true;
-                updatePlayerBox(playerId);
-                updateHints();
+            if (data.code === "ORDER_REJECTED") {
+                if (/frozen/i.test(data.message || "")) {
+                    state.localFreezeActive = true;
+                    updatePlayerBox(playerId);
+                    updateHints();
+                }
+                addNotification("Order rejected: " + (data.message || "unknown"), "negative");
             }
         }
     };

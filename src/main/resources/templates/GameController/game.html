@@ -197,6 +197,47 @@
             color: #999;
         }
 
+        /* ---- notifications ---- */
+        #notifications {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 50;
+            max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
+        }
+
+        .notif {
+            border: 2px solid #111;
+            background: #fff;
+            padding: 4px 8px;
+            font-size: 11px;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        .notif--positive {
+            border-color: #0a8f3f;
+            background: #eafff2;
+        }
+
+        .notif--negative {
+            border-color: #d62828;
+            background: #ffeeee;
+        }
+
+        .notif--neutral {
+            border-color: #b97814;
+            background: #fff8e6;
+        }
+
+        .notif--fading {
+            opacity: 0;
+        }
+
         /* ---- ticker cards ---- */
         #ticker-cards {
             display: flex;
@@ -259,6 +300,7 @@
     </style>
 </head>
 <body>
+    <div id="notifications"></div>
     <div id="game-data" data-game-id="{gameId}" data-player-id="{playerId}"></div>
     <div id="player-bar"></div>
     <div id="powerup-tray"></div>
