@@ -41,7 +41,9 @@ public class DividendTrigger implements PowerupTrigger {
         int holdDuration = context.currentTick() - since;
         DividendTier tier = DividendTier.highestQualifying(shares, holdDuration);
         if (tier != null) {
-          long payout = (long) tier.yieldBasisPoints() * initialPrice.cents() * shares / 10000;
+          Money currentPrice = context.currentPrices().getOrDefault(symbol, initialPrice);
+          long blendedPriceCents = (initialPrice.cents() + currentPrice.cents()) / 2;
+          long payout = (long) tier.yieldBasisPoints() * blendedPriceCents * shares / 10000;
           Money payoutMoney = new Money((int) payout);
           awards.add(
               new AwardedPowerup(

@@ -187,6 +187,27 @@ class DividendTriggerTest {
   }
 
   @Test
+  void payoutBlendsInitialAndCurrentPrice() {
+    // Tier 1: 500 basis points, initial=$100 (10000c), current=$200 (20000c), 5 shares
+    // blended = (10000 + 20000) / 2 = 15000
+    // payout = 500 * 15000 * 5 / 10000 = 3750 cents = $37.50
+    Money highPrice = new Money(200_00);
+    DividendTrigger blendTrigger = new DividendTrigger(20, INITIAL_PRICE);
+    Map<PlayerId, GameEvent.PlayerPortfolio> players = new HashMap<>();
+    players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of(AAPL, 5)));
+    for (int tick = 0; tick < 300; tick++) {
+      blendTrigger.evaluate(
+          new GameContext(tick, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of()));
+    }
+    List<AwardedPowerup> awards =
+        blendTrigger.evaluate(
+            new GameContext(300, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of()));
+    assertEquals(1, awards.size());
+    DividendPowerup powerup = (DividendPowerup) awards.get(0).powerup();
+    assertEquals(new Money(3750), powerup.payoutAmount());
+  }
+
+  @Test
   void dividendPowerupActivationReturnsCorrectEffects() {
     DividendPowerup powerup = new DividendPowerup(PLAYER_1, new Money(250), AAPL, "Tier 1");
     List<PowerupEffect> effects = powerup.onActivate();
