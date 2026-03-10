@@ -528,7 +528,7 @@
         },
         DIVIDEND_PAID: function (data) {
             if (data.playerId === playerId) {
-                var tier = data.tier ? " (" + data.tier + ")" : "";
+                var tier = data.tierName ? " (" + data.tierName + ")" : "";
                 addNotification("Dividend: +" + formatPrice(data.amount) + " from " + data.symbol + tier, "positive");
             } else if (data.playerId) {
                 addNotification(data.playerId + " received dividend from " + data.symbol, "neutral");
