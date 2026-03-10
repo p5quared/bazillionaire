@@ -374,9 +374,7 @@
         var el = document.getElementById("game-timer");
         var t = state.ticksRemaining;
         if (t === null || t === undefined) { el.textContent = ""; return; }
-        var mins = Math.floor(t / 60);
-        var secs = t % 60;
-        el.textContent = mins + ":" + (secs < 10 ? "0" : "") + secs;
+        el.textContent = t + " ticks remaining";
     }
 
     function updateInventory() {
