@@ -97,83 +97,149 @@
             display: none;
         }
 
-        /* ---- powerup tray ---- */
-        #powerup-tray {
+        /* ---- powerup footer ---- */
+        #powerup-footer {
+            border-top: 3px solid #111111;
+            padding: 8px 12px;
+            background: #eae6dd;
+            flex-shrink: 0;
+            max-height: 30px;
+            clip-path: inset(0 0 -10px 0);
+            overflow: visible;
+            transition: max-height 0.25s ease;
+        }
+
+        #powerup-footer:hover,
+        #powerup-footer.powerup-footer--expanded {
+            max-height: 160px;
+            clip-path: inset(-10px 0 -10px 0);
+        }
+
+        #powerup-footer__label {
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 0 12px 8px;
-            min-height: 0;
-            flex-wrap: wrap;
-        }
-
-        #powerup-tray:empty {
-            display: none;
-        }
-
-        #powerup-tray__label {
             font-size: 10px;
             color: #999;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-right: 2px;
+            margin-bottom: 6px;
+            cursor: default;
+        }
+
+        #powerup-footer__count {
+            display: none;
+            font-size: 9px;
+            font-weight: bold;
+            background: #b97814;
+            color: #fff;
+            padding: 1px 6px;
+            border-radius: 8px;
+            animation: powerup-pulse 2s ease-in-out infinite;
+        }
+
+        #powerup-footer__count.visible {
+            display: inline-block;
+        }
+
+        @keyframes powerup-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #powerup-tray {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-top: 6px;
         }
 
         #powerup-desc {
             font-size: 10px;
             color: #777;
-            padding: 0 12px 4px;
+            text-align: center;
             min-height: 14px;
+            margin-bottom: 4px;
         }
 
         #powerup-desc:empty {
-            display: none;
+            min-height: 0;
+            margin-bottom: 0;
         }
 
-        .powerup-pill {
-            display: inline-flex;
+        .powerup-card {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
+            justify-content: center;
+            width: 70px;
+            height: 96px;
             border: 2px solid #b97814;
+            border-radius: 6px;
             background: #fff8e6;
             color: #111;
-            font-size: 11px;
             font-family: inherit;
             cursor: pointer;
             user-select: none;
-            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+            padding: 6px 4px;
+            box-sizing: border-box;
         }
 
-        .powerup-pill:hover, .powerup-pill:focus {
+        .powerup-card:hover, .powerup-card:focus {
             background: #f5e6b8;
             outline: none;
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
-        .powerup-pill--targeted {
+        .powerup-card--targeted {
             border-color: #d62828;
             background: #ffeeee;
         }
 
-        .powerup-pill--targeted:hover, .powerup-pill--targeted:focus {
+        .powerup-card--targeted:hover, .powerup-card--targeted:focus {
             background: #fdd;
         }
 
-        .powerup-pill--dragging {
+        .powerup-card--dragging {
             opacity: 0.5;
         }
 
-        .powerup-pill__badge {
+        .powerup-card__name {
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .powerup-card__badge {
             font-size: 9px;
             font-weight: bold;
             background: #b97814;
             color: #fff;
-            padding: 0 4px;
+            padding: 1px 5px;
             border-radius: 2px;
+            margin-top: 4px;
         }
 
-        .powerup-pill--targeted .powerup-pill__badge {
+        .powerup-card--targeted .powerup-card__badge {
             background: #d62828;
+        }
+
+        .powerup-card__type {
+            font-size: 8px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            position: absolute;
+            bottom: 4px;
         }
 
         /* ---- target picker ---- */
@@ -321,9 +387,15 @@
     <div id="game-data" data-game-id="{gameId}" data-player-id="{playerId}"></div>
     <div id="game-timer"></div>
     <div id="player-bar"></div>
-    <div id="powerup-tray"></div>
-    <div id="powerup-desc"></div>
     <div id="ticker-cards"></div>
+    <footer id="powerup-footer">
+        <div id="powerup-footer__label">
+            Powerups &amp; Consumables
+            <span id="powerup-footer__count"></span>
+        </div>
+        <div id="powerup-desc"></div>
+        <div id="powerup-tray"></div>
+    </footer>
     <script src="/js/chart.js"></script>
     <script src="/js/draw.js"></script>
     <script src="/js/game.js"></script>

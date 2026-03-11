@@ -142,49 +142,60 @@
 
     var powerupTrayEl = null;
     var powerupDescEl = null;
+    var powerupCountEl = null;
 
     function renderPowerupTray() {
         if (!powerupTrayEl) powerupTrayEl = document.getElementById("powerup-tray");
         if (!powerupDescEl) powerupDescEl = document.getElementById("powerup-desc");
+        if (!powerupCountEl) powerupCountEl = document.getElementById("powerup-footer__count");
 
         powerupTrayEl.innerHTML = "";
         powerupDescEl.textContent = "";
 
+        var total = state.inventory.length;
+        if (powerupCountEl) {
+            powerupCountEl.textContent = total > 0 ? total : "";
+            powerupCountEl.classList.toggle("visible", total > 0);
+        }
+
         var groups = groupInventory(state.inventory);
 
-        if (groups.length > 0) {
-            var label = document.createElement("span");
-            label.id = "powerup-tray__label";
-            label.textContent = "Powerups";
-            powerupTrayEl.appendChild(label);
-        }
         for (var i = 0; i < groups.length; i++) {
             (function (g) {
-                var pill = document.createElement("div");
-                pill.className = "powerup-pill";
-                pill.setAttribute("tabindex", "0");
-                pill.title = g.description;
-                pill.setAttribute("data-powerup-name", g.name);
+                var card = document.createElement("div");
+                card.className = "powerup-card";
+                card.setAttribute("tabindex", "0");
 
-                if (g.usageType === "target_player") {
-                    pill.classList.add("powerup-pill--targeted");
-                    pill.setAttribute("draggable", "true");
+                card.setAttribute("data-powerup-name", g.name);
+
+                var isTargeted = g.usageType === "target_player";
+                if (isTargeted) {
+                    card.classList.add("powerup-card--targeted");
+                    card.setAttribute("draggable", "true");
                 } else {
-                    pill.classList.add("powerup-pill--instant");
+                    card.classList.add("powerup-card--instant");
                 }
 
-                pill.textContent = g.name;
+                var nameEl = document.createElement("span");
+                nameEl.className = "powerup-card__name";
+                nameEl.textContent = g.name;
+                card.appendChild(nameEl);
 
                 if (g.count > 1) {
                     var badge = document.createElement("span");
-                    badge.className = "powerup-pill__badge";
+                    badge.className = "powerup-card__badge";
                     badge.textContent = "\u00d7" + g.count;
-                    pill.appendChild(badge);
+                    card.appendChild(badge);
                 }
 
+                var typeEl = document.createElement("span");
+                typeEl.className = "powerup-card__type";
+                typeEl.textContent = isTargeted ? "targeted" : "instant";
+                card.appendChild(typeEl);
+
                 // click
-                pill.addEventListener("click", function () {
-                    if (g.usageType === "target_player") {
+                card.addEventListener("click", function () {
+                    if (isTargeted) {
                         showTargetPicker(g.name);
                     } else if (g.consumptionMode === "all") {
                         sendUsePowerup(g.name, null, g.count);
@@ -194,10 +205,10 @@
                 });
 
                 // keyboard
-                pill.addEventListener("keydown", function (e) {
+                card.addEventListener("keydown", function (e) {
                     if (e.key === " " || e.key === "Enter") {
                         e.preventDefault();
-                        if (g.usageType === "target_player") {
+                        if (isTargeted) {
                             showTargetPicker(g.name);
                         } else if (g.consumptionMode === "all") {
                             sendUsePowerup(g.name, null, g.count);
@@ -207,18 +218,12 @@
                     }
                 });
 
-                // description on hover/focus
-                pill.addEventListener("mouseenter", function () { powerupDescEl.textContent = g.description; });
-                pill.addEventListener("focus", function () { powerupDescEl.textContent = g.description; });
-                pill.addEventListener("mouseleave", function () { powerupDescEl.textContent = ""; });
-                pill.addEventListener("blur", function () { powerupDescEl.textContent = ""; });
 
                 // drag for targeted powerups
-                if (g.usageType === "target_player") {
-                    pill.addEventListener("dragstart", function (e) {
+                if (isTargeted) {
+                    card.addEventListener("dragstart", function (e) {
                         e.dataTransfer.setData("text/plain", g.name);
-                        pill.classList.add("powerup-pill--dragging");
-                        // highlight opponent player boxes
+                        card.classList.add("powerup-card--dragging");
                         var pids = Object.keys(playerBoxEls);
                         for (var k = 0; k < pids.length; k++) {
                             if (pids[k] !== playerId) {
@@ -226,8 +231,8 @@
                             }
                         }
                     });
-                    pill.addEventListener("dragend", function () {
-                        pill.classList.remove("powerup-pill--dragging");
+                    card.addEventListener("dragend", function () {
+                        card.classList.remove("powerup-card--dragging");
                         var pids = Object.keys(playerBoxEls);
                         for (var k = 0; k < pids.length; k++) {
                             playerBoxEls[pids[k]].root.classList.remove("player-box--drop-target");
@@ -235,7 +240,7 @@
                     });
                 }
 
-                powerupTrayEl.appendChild(pill);
+                powerupTrayEl.appendChild(card);
             })(groups[i]);
         }
     }
