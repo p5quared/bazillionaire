@@ -294,15 +294,20 @@
         var root = document.createElement("div");
         root.className = "ticker-card";
 
+        var infoCol = document.createElement("div");
+        infoCol.className = "ticker-card__info";
+
         var symbolEl = document.createElement("div");
         symbolEl.className = "ticker-card__symbol";
         symbolEl.textContent = symbol;
-        root.appendChild(symbolEl);
+        infoCol.appendChild(symbolEl);
 
         var priceEl = document.createElement("div");
         priceEl.className = "ticker-card__price";
         priceEl.textContent = "Waiting...";
-        root.appendChild(priceEl);
+        infoCol.appendChild(priceEl);
+
+        root.appendChild(infoCol);
 
         var canvas = document.createElement("canvas");
         canvas.className = "ticker-card__sparkline";
