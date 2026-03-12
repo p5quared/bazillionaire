@@ -30,6 +30,7 @@ public class Game {
   private final Map<Symbol, Ticker> tickers;
   private final List<GameMessage> pendingMessages = new ArrayList<>();
   private final PowerupManager powerupManager = new PowerupManager();
+  private final OrderLiquidityLimiter liquidityLimiter = new OrderLiquidityLimiter();
   private final Set<PlayerId> readyPlayers = new HashSet<>();
   private final int totalDuration;
   private int tickCount = 0;
@@ -99,12 +100,17 @@ public class Game {
       return new OrderResult.Rejected("Ticker cannot fill order");
     }
 
+    if (!liquidityLimiter.canFill(playerId, order.symbol(), currentTick())) {
+      return new OrderResult.Rejected("Volume limit exceeded");
+    }
+
     OrderResult result = player.fill(order);
 
     return switch (result) {
       case OrderResult.Rejected r -> r;
       case OrderResult.InvalidOrder i -> i;
       case OrderResult.Filled f -> {
+        liquidityLimiter.recordFill(playerId, order.symbol(), currentTick());
         emit(GameMessage.broadcast(new GameEvent.OrderFilled(order, playerId)));
         emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
         yield f;
@@ -120,6 +126,7 @@ public class Game {
             emit(GameMessage.broadcast(new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
           });
       applyEffects(powerupManager.tick(snapshot()));
+      liquidityLimiter.pruneExpired(currentTick());
       tickCount++;
       emit(
           GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
