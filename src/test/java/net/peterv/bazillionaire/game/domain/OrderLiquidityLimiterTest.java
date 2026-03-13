@@ -68,7 +68,7 @@ class OrderLiquidityLimiterTest {
       limiter.recordFill(PLAYER_1, AAPL, 0);
     }
     assertFalse(limiter.canFill(PLAYER_1, AAPL, 50));
-    limiter.pruneExpired(100);
+    limiter.onTick(100);
     assertTrue(limiter.canFill(PLAYER_1, AAPL, 100));
   }
 }

@@ -30,7 +30,7 @@ public class Game {
   private final Map<Symbol, Ticker> tickers;
   private final List<GameMessage> pendingMessages = new ArrayList<>();
   private final PowerupManager powerupManager = new PowerupManager();
-  private final OrderLiquidityLimiter liquidityLimiter = new OrderLiquidityLimiter();
+  private final LiquidityProvider liquidityProvider;
   private final Set<PlayerId> readyPlayers = new HashSet<>();
   private final int totalDuration;
   private int tickCount = 0;
@@ -75,9 +75,18 @@ public class Game {
   }
 
   public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers, int totalDuration) {
+    this(players, tickers, totalDuration, new OrderLiquidityLimiter());
+  }
+
+  public Game(
+      Map<PlayerId, Portfolio> players,
+      Map<Symbol, Ticker> tickers,
+      int totalDuration,
+      LiquidityProvider liquidityProvider) {
     this.players = new HashMap<>(players);
     this.tickers = new HashMap<>(tickers);
     this.totalDuration = totalDuration;
+    this.liquidityProvider = liquidityProvider;
   }
 
   public OrderResult placeOrder(Order order, PlayerId playerId) {
@@ -100,7 +109,7 @@ public class Game {
       return new OrderResult.Rejected("Ticker cannot fill order");
     }
 
-    if (!liquidityLimiter.canFill(playerId, order.symbol(), currentTick())) {
+    if (!liquidityProvider.canFill(playerId, order.symbol(), currentTick())) {
       return new OrderResult.Rejected("Volume limit exceeded");
     }
 
@@ -110,7 +119,7 @@ public class Game {
       case OrderResult.Rejected r -> r;
       case OrderResult.InvalidOrder i -> i;
       case OrderResult.Filled f -> {
-        liquidityLimiter.recordFill(playerId, order.symbol(), currentTick());
+        liquidityProvider.recordFill(playerId, order.symbol(), currentTick());
         emit(GameMessage.broadcast(new GameEvent.OrderFilled(order, playerId)));
         emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
         yield f;
@@ -126,7 +135,7 @@ public class Game {
             emit(GameMessage.broadcast(new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
           });
       applyEffects(powerupManager.tick(snapshot()));
-      liquidityLimiter.pruneExpired(currentTick());
+      liquidityProvider.onTick(currentTick());
       tickCount++;
       emit(
           GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
