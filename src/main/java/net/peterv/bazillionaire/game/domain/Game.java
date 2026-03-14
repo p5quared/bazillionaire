@@ -105,22 +105,21 @@ public class Game {
       return intercepted;
     }
 
-    if (!ticker.canFill(order)) {
-      return new OrderResult.Rejected("Ticker cannot fill order");
-    }
-
     if (!liquidityProvider.canFill(playerId, order.symbol(), currentTick())) {
       return new OrderResult.Rejected("Volume limit exceeded");
     }
 
-    OrderResult result = player.fill(order);
+    Money fillPrice = ticker.currentPrice();
+    OrderResult result = player.fill(order, fillPrice);
 
     return switch (result) {
       case OrderResult.Rejected r -> r;
       case OrderResult.InvalidOrder i -> i;
       case OrderResult.Filled f -> {
         liquidityProvider.recordFill(playerId, order.symbol(), currentTick());
-        emit(GameMessage.broadcast(new GameEvent.OrderFilled(order, playerId)));
+        emit(
+            GameMessage.broadcast(
+                new GameEvent.OrderFilled(order, playerId, f.fillPrice(), f.costBasis())));
         emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
         yield f;
       }

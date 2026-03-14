@@ -22,7 +22,8 @@ public sealed interface GameEvent
         GameEvent.FreezeExpired,
         GameEvent.PowerupActivated,
         GameEvent.DividendPaid {
-  record OrderFilled(Order order, PlayerId playerId) implements GameEvent {}
+  record OrderFilled(Order order, PlayerId playerId, Money fillPrice, Money costBasis)
+      implements GameEvent {}
 
   record TickerTicked(Symbol symbol, Money price) implements GameEvent {}
 

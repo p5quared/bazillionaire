@@ -103,21 +103,22 @@ public class StockGameWebSocketAdapter {
       Map<String, Object> payload,
       PlaceOrderCommand.OrderSide side) {
     String ticker = (String) payload.get("ticker");
-    int price = ((Number) payload.get("price")).intValue();
     String playerIdStr = registry.findPlayer(connection.id()).map(PlayerId::value).orElse(null);
     if (playerIdStr == null) {
       sendError(connection, "NOT_JOINED", "Must join game before placing orders");
       return;
     }
     UseCaseResult<OrderResult> result =
-        placeOrderUseCase.placeOrder(
-            new PlaceOrderCommand(gameId, playerIdStr, ticker, side, price));
+        placeOrderUseCase.placeOrder(new PlaceOrderCommand(gameId, playerIdStr, ticker, side));
     switch (result.result()) {
-      case OrderResult.Filled ignored -> {
+      case OrderResult.Filled filled -> {
         String sideStr = side == PlaceOrderCommand.OrderSide.BUY ? "BUY" : "SELL";
         sendMessage(
             connection,
-            new ServerMessage("ORDER_FILLED", new OrderFilledResponseData(ticker, price, sideStr)));
+            new ServerMessage(
+                "ORDER_FILLED",
+                new OrderFilledResponseData(
+                    ticker, filled.fillPrice().cents(), sideStr, filled.costBasis().cents())));
       }
       case OrderResult.Rejected rej -> sendError(connection, "ORDER_REJECTED", rej.reason());
       case OrderResult.InvalidOrder inv -> sendError(connection, "INVALID_ORDER", inv.reason());
@@ -181,7 +182,11 @@ public class StockGameWebSocketAdapter {
         yield new ServerMessage(
             "ORDER_FILLED",
             new OrderFilledData(
-                order.symbol().value(), order.price().cents(), side, of.playerId().value()));
+                order.symbol().value(),
+                of.fillPrice().cents(),
+                side,
+                of.playerId().value(),
+                of.costBasis().cents()));
       }
       case GameEvent.PlayerJoined pj ->
           new ServerMessage("PLAYER_JOINED", new PlayerJoinedData(pj.playerId().value()));
@@ -270,7 +275,8 @@ public class StockGameWebSocketAdapter {
 
   private record TickerTickedData(String symbol, int price) {}
 
-  private record OrderFilledData(String symbol, int price, String side, String playerId) {}
+  private record OrderFilledData(
+      String symbol, int price, String side, String playerId, int costBasis) {}
 
   private record PlayerJoinedData(String playerId) {}
 
@@ -287,7 +293,7 @@ public class StockGameWebSocketAdapter {
 
   private record JoinedData(String playerId) {}
 
-  private record OrderFilledResponseData(String symbol, int price, String side) {}
+  private record OrderFilledResponseData(String symbol, int price, String side, int costBasis) {}
 
   private record GameFinishedData() {}
 
