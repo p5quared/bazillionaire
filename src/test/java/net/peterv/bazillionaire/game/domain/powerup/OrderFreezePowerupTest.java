@@ -10,7 +10,6 @@ import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.types.Audience;
-import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ class OrderFreezePowerupTest {
     PlayerId other = new PlayerId("p2");
     OrderFreezePowerup powerup = new OrderFreezePowerup(3);
     powerup.setTarget(frozen);
-    Order blockedOrder = new Order.Buy(new Symbol("ABC"), new Money(100_00));
+    Order blockedOrder = new Order.Buy(new Symbol("ABC"));
 
     assertInstanceOf(OrderResult.Rejected.class, powerup.intercept(blockedOrder, frozen, null));
     assertNull(powerup.intercept(blockedOrder, other, null));

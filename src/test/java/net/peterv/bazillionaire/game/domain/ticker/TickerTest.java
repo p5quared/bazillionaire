@@ -3,9 +3,7 @@ package net.peterv.bazillionaire.game.domain.ticker;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Random;
-import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.types.Money;
-import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
 
 class TickerTest {
@@ -53,21 +51,6 @@ class TickerTest {
   }
 
   @Test
-  void canFillBuyOrderAtOrBelowCurrentPrice() {
-    var ticker = createTicker();
-    var symbol = new Symbol("TEST");
-
-    var exactBuy = new Order.Buy(symbol, INITIAL_PRICE);
-    assertTrue(ticker.canFill(exactBuy), "Buy at current price should fill");
-
-    var highBuy = new Order.Buy(symbol, new Money(INITIAL_PRICE.cents() + 100));
-    assertTrue(ticker.canFill(highBuy), "Buy above current price should fill");
-
-    var lowBuy = new Order.Buy(symbol, new Money(INITIAL_PRICE.cents() - 100));
-    assertFalse(ticker.canFill(lowBuy), "Buy below current price should not fill");
-  }
-
-  @Test
   void tickBeyondDurationDoesNotThrow() {
     var ticker = createTicker();
     for (int i = 0; i < TOTAL_DURATION * 3; i++) {
@@ -85,20 +68,5 @@ class TickerTest {
     }
 
     assertTrue(ticker.currentPrice().cents() > 0);
-  }
-
-  @Test
-  void canFillSellOrderAtOrAboveCurrentPrice() {
-    var ticker = createTicker();
-    var symbol = new Symbol("TEST");
-
-    var exactSell = new Order.Sell(symbol, INITIAL_PRICE);
-    assertTrue(ticker.canFill(exactSell), "Sell at current price should fill");
-
-    var lowSell = new Order.Sell(symbol, new Money(INITIAL_PRICE.cents() - 100));
-    assertTrue(ticker.canFill(lowSell), "Sell below current price should fill");
-
-    var highSell = new Order.Sell(symbol, new Money(INITIAL_PRICE.cents() + 100));
-    assertFalse(ticker.canFill(highSell), "Sell above current price should not fill");
   }
 }

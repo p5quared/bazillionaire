@@ -94,7 +94,7 @@ class GamePowerupTest {
 
     game.activatePowerup(new BlockingInterceptor());
 
-    OrderResult result = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+    OrderResult result = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
     assertInstanceOf(OrderResult.Rejected.class, result);
     assertTrue(game.drainMessages().isEmpty());
   }
@@ -117,7 +117,7 @@ class GamePowerupTest {
     Game game = startedGame(PLAYER_1);
     Symbol symbol = anySymbol(game);
 
-    OrderResult result = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+    OrderResult result = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
     assertInstanceOf(OrderResult.Filled.class, result);
   }
 
@@ -150,12 +150,10 @@ class GamePowerupTest {
     game.activatePowerup(freeze);
     game.drainMessages();
 
-    OrderResult blocked =
-        game.placeOrder(new Order.Buy(symbol, game.currentPrices().get(symbol)), frozenPlayer);
+    OrderResult blocked = game.placeOrder(new Order.Buy(symbol), frozenPlayer);
     assertInstanceOf(OrderResult.Rejected.class, blocked);
 
-    OrderResult allowed =
-        game.placeOrder(new Order.Buy(symbol, game.currentPrices().get(symbol)), otherPlayer);
+    OrderResult allowed = game.placeOrder(new Order.Buy(symbol), otherPlayer);
     assertInstanceOf(OrderResult.Filled.class, allowed);
     game.drainMessages();
 
@@ -163,8 +161,7 @@ class GamePowerupTest {
     game.tick();
     game.drainMessages();
 
-    OrderResult afterExpiry =
-        game.placeOrder(new Order.Buy(symbol, game.currentPrices().get(symbol)), frozenPlayer);
+    OrderResult afterExpiry = game.placeOrder(new Order.Buy(symbol), frozenPlayer);
     assertInstanceOf(OrderResult.Filled.class, afterExpiry);
   }
 }

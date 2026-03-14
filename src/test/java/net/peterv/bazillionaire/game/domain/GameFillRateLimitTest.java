@@ -15,7 +15,7 @@ class GameFillRateLimitTest {
     var game = startedGame(PLAYER_1);
     var symbol = anySymbol(game);
     for (int i = 0; i < 10; i++) {
-      var result = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+      var result = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
       assertInstanceOf(OrderResult.Filled.class, result, "Fill #" + i + " should succeed");
       game.drainMessages();
     }
@@ -29,15 +29,15 @@ class GameFillRateLimitTest {
     var symbol2 = symbols.get(1);
 
     for (int i = 0; i < 10; i++) {
-      game.placeOrder(new Order.Buy(symbol1, INITIAL_PRICE), PLAYER_1);
+      game.placeOrder(new Order.Buy(symbol1), PLAYER_1);
       game.drainMessages();
     }
 
-    var rejected = game.placeOrder(new Order.Buy(symbol1, INITIAL_PRICE), PLAYER_1);
+    var rejected = game.placeOrder(new Order.Buy(symbol1), PLAYER_1);
     assertInstanceOf(OrderResult.Rejected.class, rejected);
     assertEquals("Volume limit exceeded", ((OrderResult.Rejected) rejected).reason());
 
-    var filled = game.placeOrder(new Order.Buy(symbol2, INITIAL_PRICE), PLAYER_1);
+    var filled = game.placeOrder(new Order.Buy(symbol2), PLAYER_1);
     assertInstanceOf(OrderResult.Filled.class, filled);
     game.drainMessages();
   }
@@ -48,15 +48,15 @@ class GameFillRateLimitTest {
     var symbol = anySymbol(game);
 
     for (int i = 0; i < 5; i++) {
-      game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+      game.placeOrder(new Order.Buy(symbol), PLAYER_1);
       game.drainMessages();
     }
     for (int i = 0; i < 5; i++) {
-      game.placeOrder(new Order.Sell(symbol, INITIAL_PRICE), PLAYER_1);
+      game.placeOrder(new Order.Sell(symbol), PLAYER_1);
       game.drainMessages();
     }
 
-    var rejected = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+    var rejected = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
     assertInstanceOf(OrderResult.Rejected.class, rejected);
     assertEquals("Volume limit exceeded", ((OrderResult.Rejected) rejected).reason());
   }
@@ -67,11 +67,11 @@ class GameFillRateLimitTest {
     var symbol = anySymbol(game);
 
     for (int i = 0; i < 10; i++) {
-      game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+      game.placeOrder(new Order.Buy(symbol), PLAYER_1);
       game.drainMessages();
     }
 
-    var rejected = game.placeOrder(new Order.Buy(symbol, INITIAL_PRICE), PLAYER_1);
+    var rejected = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
     assertInstanceOf(OrderResult.Rejected.class, rejected);
 
     for (int i = 0; i < 100; i++) {
@@ -79,7 +79,7 @@ class GameFillRateLimitTest {
       game.drainMessages();
     }
 
-    var filled = game.placeOrder(new Order.Buy(symbol, game.currentPrices().get(symbol)), PLAYER_1);
+    var filled = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
     assertInstanceOf(OrderResult.Filled.class, filled);
   }
 }
