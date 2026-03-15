@@ -21,6 +21,7 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
@@ -102,6 +103,15 @@ public class Game {
 
     OrderResult intercepted = powerupManager.checkInterceptors(order, playerId, ticker);
     if (intercepted != null) {
+      String reason =
+          switch (intercepted) {
+            case OrderResult.Rejected r -> r.reason();
+            case OrderResult.InvalidOrder i -> i.reason();
+            case OrderResult.Filled f -> "Order intercepted";
+          };
+      emit(
+          new GameMessage(
+              new GameEvent.OrderBlocked(playerId, order, reason), new Audience.Everyone()));
       return intercepted;
     }
 

@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.ConsumptionMode;
@@ -96,7 +98,9 @@ class GamePowerupTest {
 
     OrderResult result = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
     assertInstanceOf(OrderResult.Rejected.class, result);
-    assertTrue(game.drainMessages().isEmpty());
+    List<GameMessage> messages = game.drainMessages();
+    assertEquals(1, messages.size());
+    assertInstanceOf(GameEvent.OrderBlocked.class, messages.getFirst().event());
   }
 
   @Test
@@ -163,5 +167,40 @@ class GamePowerupTest {
 
     OrderResult afterExpiry = game.placeOrder(new Order.Buy(symbol), frozenPlayer);
     assertInstanceOf(OrderResult.Filled.class, afterExpiry);
+  }
+
+  @Test
+  void orderBlockedEventBroadcastWhenPowerupInterceptsOrder() {
+    PlayerId frozenPlayer = new PlayerId("player1");
+    PlayerId otherPlayer = new PlayerId("player2");
+    Symbol symbol = new Symbol("ABC");
+    Game game =
+        new Game(
+            Map.of(
+                frozenPlayer, new Portfolio(INITIAL_BALANCE),
+                otherPlayer, new Portfolio(INITIAL_BALANCE)),
+            Map.of(symbol, new Ticker(INITIAL_PRICE, new Random(SEED))),
+            TOTAL_DURATION);
+    game.start();
+    game.drainMessages();
+
+    OrderFreezePowerup freeze = new OrderFreezePowerup(2);
+    freeze.setTarget(frozenPlayer);
+    game.activatePowerup(freeze);
+    game.drainMessages();
+
+    game.placeOrder(new Order.Buy(symbol), frozenPlayer);
+    List<GameMessage> messages = game.drainMessages();
+
+    List<GameEvent.OrderBlocked> blocked =
+        messages.stream()
+            .map(GameMessage::event)
+            .filter(e -> e instanceof GameEvent.OrderBlocked)
+            .map(e -> (GameEvent.OrderBlocked) e)
+            .toList();
+
+    assertEquals(1, blocked.size());
+    assertEquals(frozenPlayer, blocked.getFirst().playerId());
+    assertInstanceOf(Order.Buy.class, blocked.getFirst().order());
   }
 }
