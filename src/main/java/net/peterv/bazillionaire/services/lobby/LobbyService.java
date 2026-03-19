@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.Random;
 import java.util.UUID;
+import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
 import net.peterv.bazillionaire.game.port.in.CreateGameUseCase;
 
@@ -46,7 +47,20 @@ public class LobbyService {
   }
 
   @Transactional
-  public void startLobby(String lobbyId, String actorId, StartLobbySettings settings) {
+  public void updateSettings(
+      String lobbyId,
+      String actorId,
+      int tickerCount,
+      int initialBalanceCents,
+      int initialPriceCents,
+      int gameDurationSeconds) {
+    Lobby lobby = findLobbyOrThrow(lobbyId);
+    requireMember(lobby, actorId);
+    lobby.updateSettings(tickerCount, initialBalanceCents, initialPriceCents, gameDurationSeconds);
+  }
+
+  @Transactional
+  public void startLobby(String lobbyId, String actorId) {
     Lobby lobby = findLobbyOrThrow(lobbyId);
     requireMember(lobby, actorId);
     lobby.start();
@@ -55,10 +69,10 @@ public class LobbyService {
           new CreateGameCommand(
               lobby.id,
               lobby.members.stream().map(m -> m.playerId).toList(),
-              settings.tickerCount(),
-              settings.initialBalance(),
-              settings.initialPrice(),
-              settings.gameDuration(),
+              lobby.tickerCount,
+              new Money(lobby.initialBalanceCents),
+              new Money(lobby.initialPriceCents),
+              lobby.gameDurationSeconds,
               new Random()));
     } catch (RuntimeException e) {
       throw new LobbyStartFailedException(lobbyId, e);

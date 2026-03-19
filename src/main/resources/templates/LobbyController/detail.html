@@ -42,18 +42,23 @@
 
             <div class="callout">Awaiting traders &mdash; {minPlayers} minimum to open the floor.</div>
 
-            {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
             <h2>Game Settings</h2>
-            <form action="/lobby/{lobby.id}/start" method="post">
+            {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
+            <form action="/lobby/{lobby.id}/settings" method="post">
                 {#authenticityToken/}
                 <label>Ticker Count</label>
-                <input type="number" name="tickerCount" value="2" min="1" required>
+                <input type="number" name="tickerCount" value="{lobby.tickerCount}" min="1" required>
                 <label>Initial Balance ($)</label>
-                <input type="number" name="initialBalance" value="1000" min="1" required>
+                <input type="number" name="initialBalance" value="{lobby.initialBalanceDollars}" min="1" required>
                 <label>Initial Price ($)</label>
-                <input type="number" name="initialPrice" value="100" min="1" required>
+                <input type="number" name="initialPrice" value="{lobby.initialPriceDollars}" min="1" required>
                 <label>Game Duration (seconds)</label>
-                <input type="number" name="gameDuration" value="600" min="1" required>
+                <input type="number" name="gameDuration" value="{lobby.gameDurationSeconds}" min="1" required>
+                <button type="submit" class="btn btn-secondary">Save Settings</button>
+            </form>
+            <hr class="section-rule">
+            <form action="/lobby/{lobby.id}/start" method="post">
+                {#authenticityToken/}
                 <button type="submit" class="btn">Start Game</button>
             </form>
             <hr class="section-rule">
@@ -65,11 +70,19 @@
                 {#authenticityToken/}
                 <button type="submit" class="btn btn-danger">Delete Lobby</button>
             </form>
-            {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember && !lobby.full}
+            {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember}
+            <ul>
+                <li>Ticker Count: {lobby.tickerCount}</li>
+                <li>Initial Balance: ${lobby.initialBalanceDollars}</li>
+                <li>Initial Price: ${lobby.initialPriceDollars}</li>
+                <li>Game Duration: {lobby.gameDurationSeconds}s</li>
+            </ul>
+            {#if !lobby.full}
             <form action="/lobby/{lobby.id}/join" method="post">
                 {#authenticityToken/}
                 <button type="submit" class="btn">Join Lobby</button>
             </form>
+            {/if}
             {/if}
         </div>
         <div class="page-footer">&copy; Bazillionaire</div>

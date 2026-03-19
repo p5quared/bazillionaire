@@ -11,13 +11,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.services.lobby.Lobby;
 import net.peterv.bazillionaire.services.lobby.LobbyMemberRequiredException;
 import net.peterv.bazillionaire.services.lobby.LobbyNotFoundException;
 import net.peterv.bazillionaire.services.lobby.LobbyService;
 import net.peterv.bazillionaire.services.lobby.LobbyStartFailedException;
-import net.peterv.bazillionaire.services.lobby.StartLobbySettings;
 import org.jboss.resteasy.reactive.RestForm;
 
 @Path("/lobby")
@@ -108,22 +106,39 @@ public class LobbyController extends Controller {
   }
 
   @POST
-  @Path("/{id}/start")
-  public void start(
+  @Path("/{id}/settings")
+  public void settings(
       @PathParam("id") String id,
-      @RestForm @DefaultValue("2") int tickerCount,
-      @RestForm @DefaultValue("1000") int initialBalance,
-      @RestForm @DefaultValue("100") int initialPrice,
-      @RestForm @DefaultValue("600") int gameDuration) {
+      @RestForm int tickerCount,
+      @RestForm int initialBalance,
+      @RestForm int initialPrice,
+      @RestForm int gameDuration) {
     try {
-      lobbyService.startLobby(
+      lobbyService.updateSettings(
           id,
           currentSession.getUsername(),
-          new StartLobbySettings(
-              tickerCount,
-              new Money(initialBalance * 100),
-              new Money(initialPrice * 100),
-              gameDuration));
+          tickerCount,
+          initialBalance * 100,
+          initialPrice * 100,
+          gameDuration);
+    } catch (LobbyNotFoundException e) {
+      flash("error", "Lobby not found");
+      throw redirect("/lobby");
+    } catch (LobbyMemberRequiredException e) {
+      flash("error", "Only lobby members can change settings");
+      throw redirect("/lobby/" + id);
+    } catch (Lobby.LobbyNotOpenException e) {
+      flash("error", "Lobby is not open");
+      throw redirect("/lobby/" + id);
+    }
+    throw redirect("/lobby/" + id);
+  }
+
+  @POST
+  @Path("/{id}/start")
+  public void start(@PathParam("id") String id) {
+    try {
+      lobbyService.startLobby(id, currentSession.getUsername());
     } catch (Lobby.NotEnoughPlayersException e) {
       flash("error", "Need at least " + Lobby.MIN_PLAYERS + " players to start");
       throw redirect("/lobby/" + id);

@@ -14,6 +14,11 @@ public class Lobby extends PanacheEntityBase {
   public static final int DEFAULT_MAX = 8;
   public static final int MAX_HARD_CAP = 16;
 
+  public static final int DEFAULT_TICKER_COUNT = 2;
+  public static final int DEFAULT_INITIAL_BALANCE_CENTS = 100_000;
+  public static final int DEFAULT_INITIAL_PRICE_CENTS = 10_000;
+  public static final int DEFAULT_GAME_DURATION_SECONDS = 600;
+
   @Id public String id;
 
   public String name;
@@ -24,6 +29,11 @@ public class Lobby extends PanacheEntityBase {
   public int maxPlayers;
 
   public Instant createdAt;
+
+  public int tickerCount = DEFAULT_TICKER_COUNT;
+  public int initialBalanceCents = DEFAULT_INITIAL_BALANCE_CENTS;
+  public int initialPriceCents = DEFAULT_INITIAL_PRICE_CENTS;
+  public int gameDurationSeconds = DEFAULT_GAME_DURATION_SECONDS;
 
   @OneToMany(
       mappedBy = "lobby",
@@ -61,6 +71,23 @@ public class Lobby extends PanacheEntityBase {
 
   public void removeMember(String playerId) {
     members.removeIf(m -> m.playerId.equals(playerId));
+  }
+
+  public int getInitialBalanceDollars() {
+    return initialBalanceCents / 100;
+  }
+
+  public int getInitialPriceDollars() {
+    return initialPriceCents / 100;
+  }
+
+  public void updateSettings(
+      int tickerCount, int initialBalanceCents, int initialPriceCents, int gameDurationSeconds) {
+    if (status != LobbyStatus.WAITING) throw new LobbyNotOpenException();
+    this.tickerCount = tickerCount;
+    this.initialBalanceCents = initialBalanceCents;
+    this.initialPriceCents = initialPriceCents;
+    this.gameDurationSeconds = gameDurationSeconds;
   }
 
   public void start() {

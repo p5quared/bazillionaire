@@ -405,4 +405,100 @@ class LobbyControllerTest {
         .body("members", hasSize(0))
         .body("redirectUrl", nullValue());
   }
+
+  @Test
+  void settings_updatesAndRedirects() {
+    String token = sessionCookie("settings-user-" + UUID.randomUUID());
+    String lobbyId = createLobby(token, "Settings Lobby");
+
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .formParam("tickerCount", "5")
+        .formParam("initialBalance", "2000")
+        .formParam("initialPrice", "200")
+        .formParam("gameDuration", "300")
+        .redirects()
+        .follow(false)
+        .when()
+        .post("/lobby/" + lobbyId + "/settings")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/lobby/" + lobbyId));
+
+    checkGetLobby(token, lobbyId)
+        .statusCode(200)
+        .body(containsString("value=\"5\""))
+        .body(containsString("value=\"2000\""))
+        .body(containsString("value=\"200\""))
+        .body(containsString("value=\"300\""));
+  }
+
+  @Test
+  void settings_requiresMembership() {
+    String aliceToken = sessionCookie("alice-settings-" + UUID.randomUUID());
+    String bobToken = sessionCookie("bob-settings-" + UUID.randomUUID());
+    String lobbyId = createLobby(aliceToken, "Settings Auth Lobby");
+
+    given()
+        .cookie("SESSION_TOKEN", bobToken)
+        .formParam("tickerCount", "5")
+        .formParam("initialBalance", "2000")
+        .formParam("initialPrice", "200")
+        .formParam("gameDuration", "300")
+        .redirects()
+        .follow(false)
+        .when()
+        .post("/lobby/" + lobbyId + "/settings")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/lobby/" + lobbyId));
+  }
+
+  @Test
+  void detail_showsDefaultSettings() {
+    String token = sessionCookie("default-settings-" + UUID.randomUUID());
+    String lobbyId = createLobby(token, "Default Settings Lobby");
+
+    checkGetLobby(token, lobbyId)
+        .statusCode(200)
+        .body(containsString("value=\"2\""))
+        .body(containsString("value=\"1000\""))
+        .body(containsString("value=\"100\""))
+        .body(containsString("value=\"600\""));
+  }
+
+  @Test
+  void detail_nonMemberSeesSettingsReadOnly() {
+    String aliceToken = sessionCookie("alice-readonly-" + UUID.randomUUID());
+    String bobToken = sessionCookie("bob-readonly-" + UUID.randomUUID());
+    String lobbyId = createLobby(aliceToken, "Read Only Settings Lobby");
+
+    checkGetLobby(bobToken, lobbyId)
+        .statusCode(200)
+        .body(containsString("Ticker Count: 2"))
+        .body(containsString("$1000"))
+        .body(containsString("$100"))
+        .body(containsString("600s"));
+  }
+
+  @Test
+  void start_usesPersistedSettings() {
+    String token = sessionCookie("persisted-start-" + UUID.randomUUID());
+    String lobbyId = createLobby(token, "Persisted Start Lobby");
+
+    // Update settings first
+    given()
+        .cookie("SESSION_TOKEN", token)
+        .formParam("tickerCount", "3")
+        .formParam("initialBalance", "500")
+        .formParam("initialPrice", "50")
+        .formParam("gameDuration", "120")
+        .redirects()
+        .follow(false)
+        .when()
+        .post("/lobby/" + lobbyId + "/settings");
+
+    // Start without any settings params
+    checkStart(token, lobbyId, "/game/" + lobbyId);
+  }
 }
