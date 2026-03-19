@@ -7,16 +7,16 @@ import java.util.Map;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 
-public class OrderLiquidityLimiter implements LiquidityProvider {
+public class SlidingWindowLiquidityLimiter implements LiquidityProvider {
   private final Map<PlayerId, Map<Symbol, Deque<Integer>>> fillHistory = new HashMap<>();
   private final int windowSize;
   private final int maxFills;
 
-  public OrderLiquidityLimiter() {
+  public SlidingWindowLiquidityLimiter() {
     this(100, 10);
   }
 
-  public OrderLiquidityLimiter(int windowSize, int maxFills) {
+  public SlidingWindowLiquidityLimiter(int windowSize, int maxFills) {
     this.windowSize = windowSize;
     this.maxFills = maxFills;
   }

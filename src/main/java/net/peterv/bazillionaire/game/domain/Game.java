@@ -76,7 +76,7 @@ public class Game {
   }
 
   public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers, int totalDuration) {
-    this(players, tickers, totalDuration, new OrderLiquidityLimiter());
+    this(players, tickers, totalDuration, new TokenBucketLiquidityLimiter());
   }
 
   public Game(

@@ -6,7 +6,7 @@ import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
 
-class OrderLiquidityLimiterTest {
+class SlidingWindowLiquidityLimiterTest {
 
   private static final PlayerId PLAYER_1 = new PlayerId("player1");
   private static final PlayerId PLAYER_2 = new PlayerId("player2");
@@ -15,7 +15,7 @@ class OrderLiquidityLimiterTest {
 
   @Test
   void allowsFillsWithinCap() {
-    var limiter = new OrderLiquidityLimiter(100, 10);
+    var limiter = new SlidingWindowLiquidityLimiter(100, 10);
     for (int i = 0; i < 10; i++) {
       assertTrue(limiter.canFill(PLAYER_1, AAPL, 0));
       limiter.recordFill(PLAYER_1, AAPL, 0);
@@ -24,7 +24,7 @@ class OrderLiquidityLimiterTest {
 
   @Test
   void rejectsWhenCapReached() {
-    var limiter = new OrderLiquidityLimiter(100, 10);
+    var limiter = new SlidingWindowLiquidityLimiter(100, 10);
     for (int i = 0; i < 10; i++) {
       limiter.recordFill(PLAYER_1, AAPL, 0);
     }
@@ -33,7 +33,7 @@ class OrderLiquidityLimiterTest {
 
   @Test
   void differentTickersHaveIndependentCaps() {
-    var limiter = new OrderLiquidityLimiter(100, 10);
+    var limiter = new SlidingWindowLiquidityLimiter(100, 10);
     for (int i = 0; i < 10; i++) {
       limiter.recordFill(PLAYER_1, AAPL, 0);
     }
@@ -43,7 +43,7 @@ class OrderLiquidityLimiterTest {
 
   @Test
   void differentPlayersHaveIndependentCaps() {
-    var limiter = new OrderLiquidityLimiter(100, 10);
+    var limiter = new SlidingWindowLiquidityLimiter(100, 10);
     for (int i = 0; i < 10; i++) {
       limiter.recordFill(PLAYER_1, AAPL, 0);
     }
@@ -53,7 +53,7 @@ class OrderLiquidityLimiterTest {
 
   @Test
   void windowSlides_oldFillsExpire() {
-    var limiter = new OrderLiquidityLimiter(100, 10);
+    var limiter = new SlidingWindowLiquidityLimiter(100, 10);
     for (int i = 0; i < 10; i++) {
       limiter.recordFill(PLAYER_1, AAPL, 0);
     }
@@ -63,7 +63,7 @@ class OrderLiquidityLimiterTest {
 
   @Test
   void pruneRemovesStaleEntries() {
-    var limiter = new OrderLiquidityLimiter(100, 10);
+    var limiter = new SlidingWindowLiquidityLimiter(100, 10);
     for (int i = 0; i < 10; i++) {
       limiter.recordFill(PLAYER_1, AAPL, 0);
     }
