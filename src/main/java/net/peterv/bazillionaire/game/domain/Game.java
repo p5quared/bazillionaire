@@ -21,7 +21,6 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
-import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
@@ -109,9 +108,7 @@ public class Game {
             case OrderResult.InvalidOrder i -> i.reason();
             case OrderResult.Filled f -> "Order intercepted";
           };
-      emit(
-          new GameMessage(
-              new GameEvent.OrderBlocked(playerId, order, reason), new Audience.Everyone()));
+      emit(GameMessage.send(new GameEvent.OrderBlocked(playerId, order, reason), playerId));
       return intercepted;
     }
 
@@ -127,10 +124,13 @@ public class Game {
       case OrderResult.InvalidOrder i -> i;
       case OrderResult.Filled f -> {
         liquidityProvider.recordFill(playerId, order.symbol(), currentTick());
+        String side = order instanceof Order.Buy ? "BUY" : "SELL";
+        emit(GameMessage.broadcast(new GameEvent.OrderActivity(order.symbol(), fillPrice, side)));
         emit(
-            GameMessage.broadcast(
-                new GameEvent.OrderFilled(order, playerId, f.fillPrice(), f.costBasis())));
-        emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
+            GameMessage.send(
+                new GameEvent.OrderFilled(order, playerId, f.fillPrice(), f.costBasis()),
+                playerId));
+        emit(GameMessage.send(new GameEvent.PlayersState(playerPortfolios()), playerId));
         yield f;
       }
     };

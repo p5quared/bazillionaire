@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
+import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
@@ -33,6 +34,25 @@ class GameOrderTest {
   }
 
   @Test
+  void orderFilledIsPrivateAndOrderActivityIsBroadcast() {
+    var game = startedGame(PLAYER_1);
+    var symbol = anySymbol(game);
+
+    game.placeOrder(new Order.Buy(symbol), PLAYER_1);
+    var messages = game.drainMessages();
+
+    assertEquals(3, messages.size());
+    assertInstanceOf(GameEvent.OrderActivity.class, messages.get(0).event());
+    assertInstanceOf(Audience.Everyone.class, messages.get(0).audience());
+    assertInstanceOf(GameEvent.OrderFilled.class, messages.get(1).event());
+    assertInstanceOf(Audience.Only.class, messages.get(1).audience());
+    assertEquals(PLAYER_1, ((Audience.Only) messages.get(1).audience()).playerId());
+    assertInstanceOf(GameEvent.PlayersState.class, messages.get(2).event());
+    assertInstanceOf(Audience.Only.class, messages.get(2).audience());
+    assertEquals(PLAYER_1, ((Audience.Only) messages.get(2).audience()).playerId());
+  }
+
+  @Test
   void invalidOrders() {
     var game = startedGame(PLAYER_1);
     var symbol = anySymbol(game);
@@ -49,6 +69,7 @@ class GameOrderTest {
         new Order.Buy(symbol),
         PLAYER_1,
         OrderResult.Filled.class,
+        GameEvent.OrderActivity.class,
         GameEvent.OrderFilled.class,
         GameEvent.PlayersState.class);
 
@@ -85,6 +106,7 @@ class GameOrderTest {
         new Order.Sell(symbol),
         PLAYER_1,
         OrderResult.Filled.class,
+        GameEvent.OrderActivity.class,
         GameEvent.OrderFilled.class,
         GameEvent.PlayersState.class);
   }

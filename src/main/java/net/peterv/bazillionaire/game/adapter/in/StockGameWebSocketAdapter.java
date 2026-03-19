@@ -235,6 +235,10 @@ public class StockGameWebSocketAdapter {
               "DIVIDEND_PAID",
               new DividendPaidData(
                   dp.playerId().value(), dp.symbol().value(), dp.amount().cents(), dp.tierName()));
+      case GameEvent.OrderActivity oa ->
+          new ServerMessage(
+              "ORDER_ACTIVITY",
+              new OrderActivityData(oa.symbol().value(), oa.price().cents(), oa.side()));
       case GameEvent.OrderBlocked ob -> {
         Order order = ob.order();
         String side = order instanceof Order.Buy ? "BUY" : "SELL";
@@ -322,6 +326,8 @@ public class StockGameWebSocketAdapter {
   private record DividendPaidData(String playerId, String symbol, int amount, String tierName) {}
 
   private record OrderBlockedData(String playerId, String symbol, String side, String reason) {}
+
+  private record OrderActivityData(String symbol, int price, String side) {}
 
   private record ErrorData(String code, String message) {}
 }

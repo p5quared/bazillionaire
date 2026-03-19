@@ -345,7 +345,7 @@
 
         els.nameEl.textContent = isLocal ? pid + " (you)" : pid;
         els.cashEl.textContent = formatPrice(p.cashBalance);
-        els.holdingsEl.textContent = holdingText(p.holdings);
+        els.holdingsEl.textContent = isLocal ? holdingText(p.holdings) : "";
 
         els.root.classList.toggle("player-box--local", isLocal && !isFrozen);
         els.root.classList.toggle("player-box--frozen", isFrozen);
@@ -468,14 +468,13 @@
             redrawSparkline(data.symbol);
             updateHints();
         },
-        ORDER_FILLED: function (data) {
-            if (!data.playerId) return;
+        ORDER_ACTIVITY: function (data) {
             state.chart = chart.appendAnnotation(state.chart, data.symbol, data.side);
             redrawSparkline(data.symbol);
-            if (data.playerId === playerId && activeOrderInterval === null) {
-                var verb = data.side === "BUY" ? "Bought" : "Sold";
-                addNotification(verb + " " + data.symbol + " at " + formatPrice(data.price), "positive");
-            }
+        },
+        ORDER_FILLED: function (data) {
+            var verb = data.side === "BUY" ? "Bought" : "Sold";
+            addNotification(verb + " " + data.symbol + " at " + formatPrice(data.price), "positive");
         },
         GAME_TICK: function (data) {
             state.currentTick = data.tick;

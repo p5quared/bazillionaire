@@ -18,6 +18,7 @@ import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupUsageType;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
@@ -202,5 +203,13 @@ class GamePowerupTest {
     assertEquals(1, blocked.size());
     assertEquals(frozenPlayer, blocked.getFirst().playerId());
     assertInstanceOf(Order.Buy.class, blocked.getFirst().order());
+
+    var blockedMessage =
+        messages.stream()
+            .filter(m -> m.event() instanceof GameEvent.OrderBlocked)
+            .findFirst()
+            .orElseThrow();
+    assertInstanceOf(Audience.Only.class, blockedMessage.audience());
+    assertEquals(frozenPlayer, ((Audience.Only) blockedMessage.audience()).playerId());
   }
 }

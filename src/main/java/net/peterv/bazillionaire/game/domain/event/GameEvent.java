@@ -22,7 +22,8 @@ public sealed interface GameEvent
         GameEvent.FreezeExpired,
         GameEvent.PowerupActivated,
         GameEvent.DividendPaid,
-        GameEvent.OrderBlocked {
+        GameEvent.OrderBlocked,
+        GameEvent.OrderActivity {
   record OrderFilled(Order order, PlayerId playerId, Money fillPrice, Money costBasis)
       implements GameEvent {}
 
@@ -64,4 +65,6 @@ public sealed interface GameEvent
       implements GameEvent {}
 
   record OrderBlocked(PlayerId playerId, Order order, String reason) implements GameEvent {}
+
+  record OrderActivity(Symbol symbol, Money price, String side) implements GameEvent {}
 }
