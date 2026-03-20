@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.game.domain.ticker;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Random;
+import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ class TickerTest {
   private static final long SEED = 42L;
 
   private Ticker createTicker() {
-    return new Ticker(INITIAL_PRICE, new Random(SEED));
+    return new Ticker(new DefaultRegimeFactory(new Random(SEED)), INITIAL_PRICE);
   }
 
   @Test

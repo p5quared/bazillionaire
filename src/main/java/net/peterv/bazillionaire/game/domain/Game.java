@@ -21,6 +21,7 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
+import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
@@ -54,7 +55,7 @@ public class Game {
       do {
         symbol = randomSymbol(random);
       } while (tickers.containsKey(symbol));
-      tickers.put(symbol, new Ticker(initialPrice, random));
+      tickers.put(symbol, new Ticker(new DefaultRegimeFactory(random), initialPrice));
     }
 
     Game game = new Game(players, tickers, totalDuration);
