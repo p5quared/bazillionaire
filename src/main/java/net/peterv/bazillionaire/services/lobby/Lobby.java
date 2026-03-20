@@ -70,7 +70,13 @@ public class Lobby extends PanacheEntityBase {
   }
 
   public void removeMember(String playerId) {
+    if (status != LobbyStatus.WAITING) throw new LobbyNotOpenException();
     members.removeIf(m -> m.playerId.equals(playerId));
+  }
+
+  public void deleteIfOpen() {
+    if (status != LobbyStatus.WAITING) throw new LobbyNotOpenException();
+    delete();
   }
 
   public int getInitialBalanceDollars() {

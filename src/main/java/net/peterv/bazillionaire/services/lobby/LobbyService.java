@@ -42,7 +42,6 @@ public class LobbyService {
   @Transactional
   public void leaveLobby(String lobbyId, String playerId) {
     Lobby lobby = findLobbyOrThrow(lobbyId);
-    if (lobby.status != Lobby.LobbyStatus.WAITING) throw new Lobby.LobbyNotOpenException();
     lobby.removeMember(playerId);
   }
 
@@ -83,8 +82,7 @@ public class LobbyService {
   public void deleteLobby(String lobbyId, String actorId) {
     Lobby lobby = findLobbyOrThrow(lobbyId);
     requireMember(lobby, actorId);
-    if (lobby.status != Lobby.LobbyStatus.WAITING) throw new Lobby.LobbyNotOpenException();
-    lobby.delete();
+    lobby.deleteIfOpen();
   }
 
   private String generateId() {

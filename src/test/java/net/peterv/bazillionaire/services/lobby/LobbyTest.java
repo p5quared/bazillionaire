@@ -107,6 +107,22 @@ class LobbyTest {
   }
 
   @Test
+  void removeMember_throwsWhenNotWaiting() {
+    var lobby = lobby(4);
+    lobby.addMember("alice", "Alice");
+    lobby.start();
+    assertThrows(Lobby.LobbyNotOpenException.class, () -> lobby.removeMember("alice"));
+  }
+
+  @Test
+  void deleteIfOpen_throwsWhenNotWaiting() {
+    var lobby = lobby(4);
+    lobby.addMember("alice", "Alice");
+    lobby.start();
+    assertThrows(Lobby.LobbyNotOpenException.class, lobby::deleteIfOpen);
+  }
+
+  @Test
   void defaults_areSetCorrectly() {
     var lobby = new Lobby();
     assertEquals(2, lobby.tickerCount);

@@ -46,14 +46,14 @@ public class LobbyController extends Controller {
   public void create(@RestForm String name, @RestForm Integer maxPlayers) {
     if (name == null || name.isBlank()) {
       flash("error", "Lobby name is required");
-      throw new RedirectException(Response.seeOther(URI.create("/lobby")).build());
+      throw redirect("/lobby");
     }
     int max =
         maxPlayers != null
             ? Math.min(Math.max(maxPlayers, Lobby.MIN_PLAYERS), Lobby.MAX_HARD_CAP)
             : Lobby.DEFAULT_MAX;
     String id = lobbyService.createLobby(name.strip(), max, currentSession.getUsername());
-    throw new RedirectException(Response.seeOther(URI.create("/lobby/" + id)).build());
+    throw redirect("/lobby/" + id);
   }
 
   @GET
