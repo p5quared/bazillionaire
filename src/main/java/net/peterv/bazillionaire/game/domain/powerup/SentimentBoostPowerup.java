@@ -4,16 +4,17 @@ import java.util.List;
 import java.util.Random;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
-import net.peterv.bazillionaire.game.domain.ticker.regime.MarketSentiment;
 import net.peterv.bazillionaire.game.domain.ticker.regime.SentimentInfluence;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public class SentimentBoostPowerup extends Powerup {
+  private final SentimentBoostTier tier;
   private final Random random;
   private Symbol targetSymbol;
 
-  public SentimentBoostPowerup(Random random) {
+  public SentimentBoostPowerup(SentimentBoostTier tier, Random random) {
     super(0);
+    this.tier = tier;
     this.random = random;
   }
 
@@ -27,23 +28,24 @@ public class SentimentBoostPowerup extends Powerup {
     if (targetSymbol == null) {
       return List.of();
     }
-    int delay = 1 + random.nextInt(3);
-    int duration = 2 + random.nextInt(4);
-    var influence = new SentimentInfluence(MarketSentiment.BULL, delay, duration);
+    int delay = tier.minDelay() + random.nextInt(tier.delayRange());
+    int duration = tier.minDuration() + random.nextInt(tier.durationRange());
+    var influence = new SentimentInfluence(tier.sentiment(), delay, duration);
     return List.of(
         new PowerupEffect.InfluenceSentiment(targetSymbol, influence),
         new PowerupEffect.Emit(
-            GameMessage.broadcast(new GameEvent.SentimentBoostActivated(targetSymbol))));
+            GameMessage.broadcast(
+                new GameEvent.SentimentBoostActivated(targetSymbol, tier.displayName()))));
   }
 
   @Override
   public String name() {
-    return "Sentiment Boost";
+    return tier.displayName();
   }
 
   @Override
   public String description() {
-    return "Boost a stock's sentiment for several regimes";
+    return tier.description();
   }
 
   @Override

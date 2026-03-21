@@ -16,7 +16,7 @@ class SentimentBoostPowerupTest {
 
   @Test
   void onActivateReturnsInfluenceSentimentAndEmit() {
-    var powerup = new SentimentBoostPowerup(new Random(42));
+    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
     powerup.setSymbolTarget(AAPL);
 
     List<PowerupEffect> effects = powerup.onActivate();
@@ -27,9 +27,9 @@ class SentimentBoostPowerupTest {
   }
 
   @Test
-  void influenceHasBullSentimentAndValidRanges() {
+  void minorInfluenceHasBullSentimentAndValidRanges() {
     for (int seed = 0; seed < 50; seed++) {
-      var powerup = new SentimentBoostPowerup(new Random(seed));
+      var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(seed));
       powerup.setSymbolTarget(AAPL);
 
       List<PowerupEffect> effects = powerup.onActivate();
@@ -46,8 +46,27 @@ class SentimentBoostPowerupTest {
   }
 
   @Test
+  void majorInfluenceHasStrongBullSentimentAndValidRanges() {
+    for (int seed = 0; seed < 50; seed++) {
+      var powerup = new SentimentBoostPowerup(SentimentBoostTier.MAJOR, new Random(seed));
+      powerup.setSymbolTarget(AAPL);
+
+      List<PowerupEffect> effects = powerup.onActivate();
+      var influence = ((PowerupEffect.InfluenceSentiment) effects.get(0)).influence();
+
+      assertEquals(MarketSentiment.STRONG_BULL, influence.forcedSentiment());
+      assertTrue(
+          influence.delayRegimes() >= 3 && influence.delayRegimes() <= 5,
+          "delay should be 3-5 but was " + influence.delayRegimes());
+      assertTrue(
+          influence.durationRegimes() >= 5 && influence.durationRegimes() <= 7,
+          "duration should be 5-7 but was " + influence.durationRegimes());
+    }
+  }
+
+  @Test
   void influenceTargetsCorrectSymbol() {
-    var powerup = new SentimentBoostPowerup(new Random(42));
+    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
     powerup.setSymbolTarget(AAPL);
 
     var effect = (PowerupEffect.InfluenceSentiment) powerup.onActivate().get(0);
@@ -56,14 +75,24 @@ class SentimentBoostPowerupTest {
 
   @Test
   void returnsEmptyWithoutTarget() {
-    var powerup = new SentimentBoostPowerup(new Random(42));
+    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
     assertTrue(powerup.onActivate().isEmpty());
   }
 
   @Test
-  void metadata() {
-    var powerup = new SentimentBoostPowerup(new Random(42));
+  void minorMetadata() {
+    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
     assertEquals("Sentiment Boost", powerup.name());
+    assertEquals("Boost a stock's sentiment for several regimes", powerup.description());
+    assertEquals(PowerupUsageType.TARGET_SYMBOL, powerup.usageType());
+    assertEquals(ConsumptionMode.SINGLE, powerup.consumptionMode());
+  }
+
+  @Test
+  void majorMetadata() {
+    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MAJOR, new Random(42));
+    assertEquals("Major Sentiment Boost", powerup.name());
+    assertEquals("Strongly boost a stock's sentiment", powerup.description());
     assertEquals(PowerupUsageType.TARGET_SYMBOL, powerup.usageType());
     assertEquals(ConsumptionMode.SINGLE, powerup.consumptionMode());
   }

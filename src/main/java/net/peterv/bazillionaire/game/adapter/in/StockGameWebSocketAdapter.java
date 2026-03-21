@@ -250,7 +250,8 @@ public class StockGameWebSocketAdapter {
       }
       case GameEvent.SentimentBoostActivated sba ->
           new ServerMessage(
-              "SENTIMENT_BOOST_ACTIVATED", new SentimentBoostActivatedData(sba.symbol().value()));
+              "SENTIMENT_BOOST_ACTIVATED",
+              new SentimentBoostActivatedData(sba.symbol().value(), sba.tierName()));
     };
   }
 
@@ -334,7 +335,7 @@ public class StockGameWebSocketAdapter {
 
   private record OrderActivityData(String symbol, int price, String side) {}
 
-  private record SentimentBoostActivatedData(String symbol) {}
+  private record SentimentBoostActivatedData(String symbol, String tierName) {}
 
   private record ErrorData(String code, String message) {}
 }

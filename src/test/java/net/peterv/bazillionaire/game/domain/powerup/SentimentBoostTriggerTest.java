@@ -26,7 +26,10 @@ class SentimentBoostTriggerTest {
     var trigger = new SentimentBoostTrigger(1.0, new Random(42));
     List<AwardedPowerup> awards = trigger.evaluate(onePlayerContext);
     assertEquals(1, awards.size());
-    assertEquals("Sentiment Boost", awards.get(0).powerup().name());
+    String name = awards.get(0).powerup().name();
+    assertTrue(
+        name.equals("Sentiment Boost") || name.equals("Major Sentiment Boost"),
+        "unexpected powerup name: " + name);
   }
 
   @Test

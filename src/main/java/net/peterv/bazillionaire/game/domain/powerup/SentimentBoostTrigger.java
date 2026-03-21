@@ -23,6 +23,8 @@ public class SentimentBoostTrigger implements PowerupTrigger {
     }
     List<PlayerId> playerIds = List.copyOf(context.players().keySet());
     PlayerId recipient = playerIds.get(random.nextInt(playerIds.size()));
-    return List.of(new AwardedPowerup(recipient, new SentimentBoostPowerup(random)));
+    SentimentBoostTier tier =
+        random.nextDouble() < 0.80 ? SentimentBoostTier.MINOR : SentimentBoostTier.MAJOR;
+    return List.of(new AwardedPowerup(recipient, new SentimentBoostPowerup(tier, random)));
   }
 }

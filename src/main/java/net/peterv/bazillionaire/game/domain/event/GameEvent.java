@@ -69,5 +69,5 @@ public sealed interface GameEvent
 
   record OrderActivity(Symbol symbol, Money price, String side) implements GameEvent {}
 
-  record SentimentBoostActivated(Symbol symbol) implements GameEvent {}
+  record SentimentBoostActivated(Symbol symbol, String tierName) implements GameEvent {}
 }

@@ -20,6 +20,7 @@ public class DefaultRegimeFactory implements RegimeFactory {
   public RegimeStrategy nextRegime(Money lastPrice, MarketSentiment forcedSentiment) {
     return switch (forcedSentiment) {
       case BULL -> createBullRegime(lastPrice);
+      case STRONG_BULL -> createStrongBullRegime(lastPrice);
       case FLAT -> createFlatRegime(lastPrice);
       case BEAR -> createBearRegime(lastPrice);
     };
@@ -48,6 +49,14 @@ public class DefaultRegimeFactory implements RegimeFactory {
       double steepness = 4.0 + random.nextDouble() * 8.0;
       return new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
     }
+  }
+
+  private RegimeStrategy createStrongBullRegime(Money startPrice) {
+    int duration = 10 + random.nextInt(16);
+    double gain = 0.60 + random.nextDouble() * 0.90;
+    Money endPrice = scalePrice(startPrice, 1.0 + gain);
+    double curvature = 2.0 + random.nextDouble() * 4.0;
+    return new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
   }
 
   private RegimeStrategy createFlatRegime(Money startPrice) {
