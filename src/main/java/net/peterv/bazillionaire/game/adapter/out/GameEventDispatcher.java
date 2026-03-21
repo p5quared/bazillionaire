@@ -8,7 +8,6 @@ import java.util.List;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.types.GameId;
 import net.peterv.bazillionaire.game.port.out.GameEventListener;
-import net.peterv.bazillionaire.game.port.out.GameFinishedSnapshot;
 
 @ApplicationScoped
 public class GameEventDispatcher {
@@ -22,20 +21,6 @@ public class GameEventDispatcher {
       } catch (Exception e) {
         Log.errorf(
             e, "Listener %s failed for game %s", listener.getClass().getSimpleName(), gameId);
-      }
-    }
-  }
-
-  public void dispatchFinished(GameId gameId, GameFinishedSnapshot snapshot) {
-    for (GameEventListener listener : listeners) {
-      try {
-        listener.onGameFinished(gameId, snapshot);
-      } catch (Exception e) {
-        Log.errorf(
-            e,
-            "Listener %s failed on game finished for game %s",
-            listener.getClass().getSimpleName(),
-            gameId);
       }
     }
   }

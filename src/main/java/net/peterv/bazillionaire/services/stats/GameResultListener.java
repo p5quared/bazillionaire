@@ -5,11 +5,11 @@ import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.types.GameId;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.port.out.GameEventListener;
-import net.peterv.bazillionaire.game.port.out.GameFinishedSnapshot;
 
 @ApplicationScoped
 public class GameResultListener implements GameEventListener {
@@ -22,15 +22,18 @@ public class GameResultListener implements GameEventListener {
   @Override
   public void onGameEvents(GameId gameId, List<GameMessage> messages) {
     for (var message : messages) {
-      // Future: switch on message.event() to accumulate mid-game stats
-      // e.g. case PowerupActivated(var p, _) -> accumulator(gameId, p).powerupsActivated++;
+      switch (message.event()) {
+        case GameEvent.GameFinished finished -> recordResults(gameId, finished);
+        // Future: accumulate mid-game stats here
+        // case GameEvent.PowerupActivated(var p, _) -> accumulator(gameId, p).powerupsActivated++;
+        default -> {}
+      }
     }
   }
 
-  @Override
-  public void onGameFinished(GameId gameId, GameFinishedSnapshot snapshot) {
-    PlayerId winner = determineWinner(snapshot);
-    for (var entry : snapshot.players().entrySet()) {
+  private void recordResults(GameId gameId, GameEvent.GameFinished finished) {
+    PlayerId winner = determineWinner(finished);
+    for (var entry : finished.players().entrySet()) {
       PlayerId playerId = entry.getKey();
       boolean won = playerId.equals(winner);
       int finalCashCents = entry.getValue().cashBalance().cents();
@@ -45,10 +48,10 @@ public class GameResultListener implements GameEventListener {
         .computeIfAbsent(playerId, k -> new GameStatAccumulator());
   }
 
-  private PlayerId determineWinner(GameFinishedSnapshot snapshot) {
+  private PlayerId determineWinner(GameEvent.GameFinished finished) {
     PlayerId winner = null;
     int highestCash = Integer.MIN_VALUE;
-    for (var entry : snapshot.players().entrySet()) {
+    for (var entry : finished.players().entrySet()) {
       int cash = entry.getValue().cashBalance().cents();
       if (cash > highestCash) {
         highestCash = cash;

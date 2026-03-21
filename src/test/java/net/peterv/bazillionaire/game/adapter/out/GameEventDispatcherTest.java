@@ -5,16 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import jakarta.enterprise.inject.Instance;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.types.GameId;
-import net.peterv.bazillionaire.game.domain.types.Money;
-import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.port.out.GameEventListener;
-import net.peterv.bazillionaire.game.port.out.GameFinishedSnapshot;
 import org.junit.jupiter.api.Test;
 
 class GameEventDispatcherTest {
@@ -65,28 +60,6 @@ class GameEventDispatcherTest {
     dispatcher.dispatch(new GameId("g1"), List.of());
 
     assertTrue(secondCalled.get());
-  }
-
-  @Test
-  void dispatchFinishedCallsAllListeners() {
-    var count = new AtomicInteger(0);
-    GameEventListener listener =
-        new GameEventListener() {
-          @Override
-          public void onGameFinished(GameId gameId, GameFinishedSnapshot snapshot) {
-            count.incrementAndGet();
-          }
-        };
-
-    var snapshot =
-        new GameFinishedSnapshot(
-            Map.of(new PlayerId("p1"), new GameEvent.PlayerPortfolio(new Money(100_00), Map.of())),
-            Map.of());
-
-    var dispatcher = dispatcherWith(listener);
-    dispatcher.dispatchFinished(new GameId("g1"), snapshot);
-
-    assertEquals(1, count.get());
   }
 
   private static GameEventDispatcher dispatcherWith(GameEventListener... listenerArray) {

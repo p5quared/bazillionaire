@@ -7,11 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
+import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.GameId;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
-import net.peterv.bazillionaire.game.port.out.GameFinishedSnapshot;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ class GameResultListenerTest {
     players.put(new PlayerId("bob"), portfolio(800_00));
     players.put(new PlayerId("charlie"), portfolio(300_00));
 
-    listener.onGameFinished(new GameId("game1"), snapshot(players));
+    fireGameFinished("game1", players);
 
     var bobCall = recordedCalls.stream().filter(c -> c.username().equals("bob")).findFirst().get();
     assertTrue(bobCall.won());
@@ -62,7 +63,7 @@ class GameResultListenerTest {
     players.put(new PlayerId("alice"), portfolio(100_00));
     players.put(new PlayerId("bob"), portfolio(200_00));
 
-    listener.onGameFinished(new GameId("game1"), snapshot(players));
+    fireGameFinished("game1", players);
 
     assertEquals(2, recordedCalls.size());
   }
@@ -75,7 +76,7 @@ class GameResultListenerTest {
         new GameEvent.PlayerPortfolio(new Money(100_00), Map.of(new Symbol("AAPL"), 100)));
     players.put(new PlayerId("bob"), portfolio(200_00));
 
-    listener.onGameFinished(new GameId("game1"), snapshot(players));
+    fireGameFinished("game1", players);
 
     var bobCall = recordedCalls.stream().filter(c -> c.username().equals("bob")).findFirst().get();
     assertTrue(bobCall.won());
@@ -87,7 +88,7 @@ class GameResultListenerTest {
     players.put(new PlayerId("alice"), portfolio(500_00));
     players.put(new PlayerId("bob"), portfolio(800_00));
 
-    listener.onGameFinished(new GameId("game1"), snapshot(players));
+    fireGameFinished("game1", players);
 
     var aliceCall =
         recordedCalls.stream().filter(c -> c.username().equals("alice")).findFirst().get();
@@ -102,16 +103,18 @@ class GameResultListenerTest {
     var players = new LinkedHashMap<PlayerId, GameEvent.PlayerPortfolio>();
     players.put(new PlayerId("alice"), portfolio(100_00));
 
-    listener.onGameFinished(new GameId("my-game"), snapshot(players));
+    fireGameFinished("my-game", players);
 
     assertEquals("my-game", recordedCalls.get(0).gameId());
   }
 
-  private static GameEvent.PlayerPortfolio portfolio(int cashCents) {
-    return new GameEvent.PlayerPortfolio(new Money(cashCents), Map.of());
+  private void fireGameFinished(String gameId, Map<PlayerId, GameEvent.PlayerPortfolio> players) {
+    var event = new GameEvent.GameFinished(players, Map.of());
+    var message = new GameMessage(event, new Audience.Everyone());
+    listener.onGameEvents(new GameId(gameId), List.of(message));
   }
 
-  private static GameFinishedSnapshot snapshot(Map<PlayerId, GameEvent.PlayerPortfolio> players) {
-    return new GameFinishedSnapshot(players, Map.of());
+  private static GameEvent.PlayerPortfolio portfolio(int cashCents) {
+    return new GameEvent.PlayerPortfolio(new Money(cashCents), Map.of());
   }
 }

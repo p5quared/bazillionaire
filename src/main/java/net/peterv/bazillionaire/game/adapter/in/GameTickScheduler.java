@@ -9,13 +9,11 @@ import java.util.List;
 import net.peterv.bazillionaire.game.adapter.out.GameEventDispatcher;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
-import net.peterv.bazillionaire.game.domain.powerup.GameContext;
 import net.peterv.bazillionaire.game.domain.types.GameId;
 import net.peterv.bazillionaire.game.port.in.TickCommand;
 import net.peterv.bazillionaire.game.port.in.TickProgress;
 import net.peterv.bazillionaire.game.port.in.TickUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
-import net.peterv.bazillionaire.game.port.out.GameFinishedSnapshot;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
 
 @ApplicationScoped
@@ -60,10 +58,6 @@ public class GameTickScheduler {
       boolean finished =
           messages.stream().anyMatch(m -> m.event() instanceof GameEvent.GameFinished);
       if (finished) {
-        GameContext finalState =
-            gameRepository.withGame(new GameId(gameId), game -> game.snapshot());
-        var snapshot = new GameFinishedSnapshot(finalState.players(), finalState.currentPrices());
-        eventDispatcher.dispatchFinished(new GameId(gameId), snapshot);
         registry.deregisterGame(gameId);
         gameRepository.removeGame(new GameId(gameId));
       }

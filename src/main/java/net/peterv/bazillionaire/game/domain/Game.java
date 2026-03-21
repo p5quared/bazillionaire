@@ -156,7 +156,8 @@ public class Game {
           GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
       if (tickCount >= totalDuration) {
         status = GameStatus.FINISHED;
-        emit(GameMessage.broadcast(new GameEvent.GameFinished()));
+        emit(
+            GameMessage.broadcast(new GameEvent.GameFinished(playerPortfolios(), currentPrices())));
       }
     }
   }

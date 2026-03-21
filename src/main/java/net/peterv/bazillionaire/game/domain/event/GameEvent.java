@@ -44,7 +44,8 @@ public sealed interface GameEvent
 
   record PlayersState(Map<PlayerId, PlayerPortfolio> players) implements GameEvent {}
 
-  record GameFinished() implements GameEvent {}
+  record GameFinished(Map<PlayerId, PlayerPortfolio> players, Map<Symbol, Money> finalPrices)
+      implements GameEvent {}
 
   record GameTickProgressed(int tick, int ticksRemaining) implements GameEvent {}
 
