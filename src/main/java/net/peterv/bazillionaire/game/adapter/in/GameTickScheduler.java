@@ -6,13 +6,16 @@ import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
+import net.peterv.bazillionaire.game.adapter.out.GameEventDispatcher;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
+import net.peterv.bazillionaire.game.domain.powerup.GameContext;
 import net.peterv.bazillionaire.game.domain.types.GameId;
 import net.peterv.bazillionaire.game.port.in.TickCommand;
 import net.peterv.bazillionaire.game.port.in.TickProgress;
 import net.peterv.bazillionaire.game.port.in.TickUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
+import net.peterv.bazillionaire.game.port.out.GameFinishedSnapshot;
 import net.peterv.bazillionaire.game.port.out.GameRepository;
 
 @ApplicationScoped
@@ -25,6 +28,8 @@ public class GameTickScheduler {
   @Inject StockGameWebSocketAdapter adapter;
 
   @Inject GameRepository gameRepository;
+
+  @Inject GameEventDispatcher eventDispatcher;
 
   private static final int TICKS_PER_SECOND = 4;
   private static final long TICK_INTERVAL_MS = 1000 / TICKS_PER_SECOND;
@@ -51,9 +56,14 @@ public class GameTickScheduler {
       UseCaseResult<TickProgress> result = tickUseCase.tick(new TickCommand(gameId));
       List<GameMessage> messages = result.messages();
       adapter.dispatchMessages(gameId, messages);
+      eventDispatcher.dispatch(new GameId(gameId), messages);
       boolean finished =
           messages.stream().anyMatch(m -> m.event() instanceof GameEvent.GameFinished);
       if (finished) {
+        GameContext finalState =
+            gameRepository.withGame(new GameId(gameId), game -> game.snapshot());
+        var snapshot = new GameFinishedSnapshot(finalState.players(), finalState.currentPrices());
+        eventDispatcher.dispatchFinished(new GameId(gameId), snapshot);
         registry.deregisterGame(gameId);
         gameRepository.removeGame(new GameId(gameId));
       }
