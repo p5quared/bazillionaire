@@ -207,6 +207,19 @@
             background: #fdd;
         }
 
+        .powerup-card--symbol {
+            border-color: #0a8f3f;
+            background: #eafff2;
+        }
+
+        .powerup-card--symbol:hover, .powerup-card--symbol:focus {
+            background: #d4f5e0;
+        }
+
+        .powerup-card--symbol .powerup-card__badge {
+            background: #0a8f3f;
+        }
+
         .powerup-card--dragging {
             opacity: 0.5;
         }
@@ -346,6 +359,12 @@
 
         .ticker-card:hover {
             background: #f5f5ff;
+        }
+
+        .ticker-card--drop-target {
+            outline: 3px dashed #0a8f3f;
+            outline-offset: -3px;
+            background: #eafff2;
         }
 
         .ticker-card__info {

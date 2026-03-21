@@ -130,6 +130,7 @@ public class StockGameWebSocketAdapter {
       WebSocketConnection connection, String gameId, Map<String, Object> payload) {
     String powerupName = (String) payload.get("powerupName");
     String targetPlayerId = (String) payload.get("targetPlayerId");
+    String targetSymbol = (String) payload.get("targetSymbol");
     int quantity =
         payload.containsKey("quantity") ? ((Number) payload.get("quantity")).intValue() : 1;
     String playerIdStr = registry.findPlayer(connection.id()).map(PlayerId::value).orElse(null);
@@ -139,7 +140,8 @@ public class StockGameWebSocketAdapter {
     }
     UseCaseResult<UsePowerupResult> result =
         usePowerupUseCase.usePowerup(
-            new UsePowerupCommand(gameId, playerIdStr, powerupName, targetPlayerId, quantity));
+            new UsePowerupCommand(
+                gameId, playerIdStr, powerupName, targetPlayerId, targetSymbol, quantity));
     switch (result.result()) {
       case UsePowerupResult.Activated ignored -> {}
       case UsePowerupResult.NotOwned ignored ->
@@ -246,6 +248,9 @@ public class StockGameWebSocketAdapter {
             "ORDER_BLOCKED",
             new OrderBlockedData(ob.playerId().value(), order.symbol().value(), side, ob.reason()));
       }
+      case GameEvent.SentimentBoostActivated sba ->
+          new ServerMessage(
+              "SENTIMENT_BOOST_ACTIVATED", new SentimentBoostActivatedData(sba.symbol().value()));
     };
   }
 
@@ -328,6 +333,8 @@ public class StockGameWebSocketAdapter {
   private record OrderBlockedData(String playerId, String symbol, String side, String reason) {}
 
   private record OrderActivityData(String symbol, int price, String side) {}
+
+  private record SentimentBoostActivatedData(String symbol) {}
 
   private record ErrorData(String code, String message) {}
 }

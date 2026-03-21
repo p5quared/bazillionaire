@@ -168,9 +168,13 @@
 
                 card.setAttribute("data-powerup-name", g.name);
 
-                var isTargeted = g.usageType === "target_player";
-                if (isTargeted) {
+                var isTargetPlayer = g.usageType === "target_player";
+                var isTargetSymbol = g.usageType === "target_symbol";
+                if (isTargetPlayer) {
                     card.classList.add("powerup-card--targeted");
+                    card.setAttribute("draggable", "true");
+                } else if (isTargetSymbol) {
+                    card.classList.add("powerup-card--symbol");
                     card.setAttribute("draggable", "true");
                 } else {
                     card.classList.add("powerup-card--instant");
@@ -190,13 +194,15 @@
 
                 var typeEl = document.createElement("span");
                 typeEl.className = "powerup-card__type";
-                typeEl.textContent = isTargeted ? "targeted" : "instant";
+                typeEl.textContent = isTargetPlayer ? "targeted" : (isTargetSymbol ? "symbol" : "instant");
                 card.appendChild(typeEl);
 
                 // click
                 card.addEventListener("click", function () {
-                    if (isTargeted) {
+                    if (isTargetPlayer) {
                         showTargetPicker(g.name);
+                    } else if (isTargetSymbol) {
+                        showSymbolPicker(g.name);
                     } else if (g.consumptionMode === "all") {
                         sendUsePowerup(g.name, null, g.count);
                     } else {
@@ -208,8 +214,10 @@
                 card.addEventListener("keydown", function (e) {
                     if (e.key === " " || e.key === "Enter") {
                         e.preventDefault();
-                        if (isTargeted) {
+                        if (isTargetPlayer) {
                             showTargetPicker(g.name);
+                        } else if (isTargetSymbol) {
+                            showSymbolPicker(g.name);
                         } else if (g.consumptionMode === "all") {
                             sendUsePowerup(g.name, null, g.count);
                         } else {
@@ -219,8 +227,8 @@
                 });
 
 
-                // drag for targeted powerups
-                if (isTargeted) {
+                // drag for player-targeted powerups
+                if (isTargetPlayer) {
                     card.addEventListener("dragstart", function (e) {
                         e.dataTransfer.setData("text/plain", g.name);
                         card.classList.add("powerup-card--dragging");
@@ -236,6 +244,21 @@
                         var pids = Object.keys(playerBoxEls);
                         for (var k = 0; k < pids.length; k++) {
                             playerBoxEls[pids[k]].root.classList.remove("player-box--drop-target");
+                        }
+                    });
+                }
+
+                // drag for symbol-targeted powerups
+                if (isTargetSymbol) {
+                    card.addEventListener("dragstart", function (e) {
+                        e.dataTransfer.setData("text/plain", g.name);
+                        card.classList.add("powerup-card--dragging");
+                    });
+                    card.addEventListener("dragend", function () {
+                        card.classList.remove("powerup-card--dragging");
+                        var syms = Object.keys(tickerCardEls);
+                        for (var k = 0; k < syms.length; k++) {
+                            tickerCardEls[syms[k]].root.classList.remove("ticker-card--drop-target");
                         }
                     });
                 }
@@ -321,6 +344,32 @@
         root.addEventListener("mouseenter", function () { state.hoveredSymbol = symbol; });
         root.addEventListener("mouseleave", function () {
             if (state.hoveredSymbol === symbol) state.hoveredSymbol = null;
+        });
+
+        // drag-and-drop target for symbol-targeted powerups
+        var dragEnterCount = 0;
+        root.addEventListener("dragover", function (e) {
+            e.preventDefault();
+        });
+        root.addEventListener("dragenter", function () {
+            dragEnterCount++;
+            root.classList.add("ticker-card--drop-target");
+        });
+        root.addEventListener("dragleave", function () {
+            dragEnterCount--;
+            if (dragEnterCount <= 0) {
+                dragEnterCount = 0;
+                root.classList.remove("ticker-card--drop-target");
+            }
+        });
+        root.addEventListener("drop", function (e) {
+            e.preventDefault();
+            dragEnterCount = 0;
+            var powerupName = e.dataTransfer.getData("text/plain");
+            if (powerupName) {
+                sendUsePowerup(powerupName, null, null, symbol);
+            }
+            root.classList.remove("ticker-card--drop-target");
         });
 
         document.getElementById("ticker-cards").appendChild(root);
@@ -535,6 +584,9 @@
             updateHints();
             addNotification("Freeze expired \u2014 trading resumed", "positive");
         },
+        SENTIMENT_BOOST_ACTIVATED: function (data) {
+            addNotification(data.symbol + " sentiment boosted!", "positive");
+        },
         DIVIDEND_PAID: function (data) {
             if (data.playerId === playerId) {
                 var tier = data.tierName ? " (" + data.tierName + ")" : "";
@@ -590,10 +642,11 @@
         }));
     }
 
-    function sendUsePowerup(powerupName, targetPlayerId, quantity) {
+    function sendUsePowerup(powerupName, targetPlayerId, quantity, targetSymbol) {
         var payload = { powerupName: powerupName };
         if (targetPlayerId) payload.targetPlayerId = targetPlayerId;
         if (quantity && quantity > 1) payload.quantity = quantity;
+        if (targetSymbol) payload.targetSymbol = targetSymbol;
         ws.send(JSON.stringify({ type: "USE_POWERUP", payload: payload }));
     }
 
@@ -636,6 +689,37 @@
         targetPickerEl = null;
     }
 
+    function showSymbolPicker(powerupName) {
+        if (targetPickerEl) removeTargetPicker();
+        var symbols = visibleSymbols();
+        if (symbols.length === 0) return;
+
+        targetPickerEl = document.createElement("div");
+        targetPickerEl.className = "target-picker";
+        targetPickerEl.innerHTML = "<div class='target-picker__title'>Choose symbol for " + powerupName + ":</div>";
+
+        for (var i = 0; i < symbols.length; i++) {
+            (function (sym) {
+                var btn = document.createElement("button");
+                btn.className = "target-picker__btn";
+                btn.textContent = sym;
+                btn.addEventListener("click", function () {
+                    sendUsePowerup(powerupName, null, null, sym);
+                    removeTargetPicker();
+                });
+                targetPickerEl.appendChild(btn);
+            })(symbols[i]);
+        }
+
+        var cancelBtn = document.createElement("button");
+        cancelBtn.className = "target-picker__btn target-picker__btn--cancel";
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.addEventListener("click", removeTargetPicker);
+        targetPickerEl.appendChild(cancelBtn);
+
+        document.body.appendChild(targetPickerEl);
+    }
+
     var ORDER_REPEAT_MS = 150;
     var activeOrderInterval = null;
     var activeOrderKey = null;
@@ -670,6 +754,8 @@
             var g = groups[0];
             if (g.usageType === "target_player") {
                 showTargetPicker(g.name);
+            } else if (g.usageType === "target_symbol") {
+                showSymbolPicker(g.name);
             } else if (g.consumptionMode === "all") {
                 sendUsePowerup(g.name, null, g.count);
             } else {
