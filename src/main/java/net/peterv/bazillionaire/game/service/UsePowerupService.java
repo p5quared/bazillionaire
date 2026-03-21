@@ -22,9 +22,14 @@ public class UsePowerupService implements UsePowerupUseCase {
     return gameRepository.withGame(
         cmd.toGameId(),
         game -> {
-          UsePowerupResult result =
-              game.usePowerup(
-                  cmd.toPlayerId(), cmd.powerupName(), cmd.quantity(), cmd.toTargetPlayerId());
+          UsePowerupResult result;
+          if (cmd.toTargetSymbol() != null) {
+            result = game.usePowerup(cmd.toPlayerId(), cmd.powerupName(), cmd.toTargetSymbol());
+          } else {
+            result =
+                game.usePowerup(
+                    cmd.toPlayerId(), cmd.powerupName(), cmd.quantity(), cmd.toTargetPlayerId());
+          }
           List<GameMessage> messages = game.drainMessages();
           return new UseCaseResult<>(result, messages);
         });

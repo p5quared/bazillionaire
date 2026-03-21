@@ -2,6 +2,7 @@ package net.peterv.bazillionaire.game.domain.powerup;
 
 import java.util.List;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
+import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public abstract class Powerup {
   public abstract String name();
@@ -19,6 +20,8 @@ public abstract class Powerup {
   }
 
   public void setTarget(PlayerId target) {}
+
+  public void setSymbolTarget(Symbol target) {}
 
   public List<PowerupEffect> onActivate() {
     return List.of();

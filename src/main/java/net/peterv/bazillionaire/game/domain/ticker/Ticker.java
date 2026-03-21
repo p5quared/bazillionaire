@@ -2,8 +2,10 @@ package net.peterv.bazillionaire.game.domain.ticker;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.peterv.bazillionaire.game.domain.ticker.regime.InfluencedRegimeFactory;
 import net.peterv.bazillionaire.game.domain.ticker.regime.RegimeFactory;
 import net.peterv.bazillionaire.game.domain.ticker.regime.RegimeStrategy;
+import net.peterv.bazillionaire.game.domain.ticker.regime.SentimentInfluence;
 import net.peterv.bazillionaire.game.domain.types.Money;
 
 public class Ticker {
@@ -26,6 +28,12 @@ public class Ticker {
       Money lastPrice = regimes.getLast().prices().getLast();
       this.regimes.add(this.regimeFactory.nextRegime(lastPrice));
       cursor = 0;
+    }
+  }
+
+  public void queueSentimentInfluence(SentimentInfluence influence) {
+    if (regimeFactory instanceof InfluencedRegimeFactory influenced) {
+      influenced.queueInfluence(influence);
     }
   }
 }

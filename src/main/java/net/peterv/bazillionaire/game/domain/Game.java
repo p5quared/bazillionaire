@@ -19,9 +19,11 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
+import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
+import net.peterv.bazillionaire.game.domain.ticker.regime.InfluencedRegimeFactory;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
@@ -55,13 +57,16 @@ public class Game {
       do {
         symbol = randomSymbol(random);
       } while (tickers.containsKey(symbol));
-      tickers.put(symbol, new Ticker(new DefaultRegimeFactory(random), initialPrice));
+      tickers.put(
+          symbol,
+          new Ticker(new InfluencedRegimeFactory(new DefaultRegimeFactory(random)), initialPrice));
     }
 
     Game game = new Game(players, tickers, totalDuration);
     game.registerTrigger(new RandomTickTrigger(0.01, new Money(500_00), random));
     game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
     game.registerTrigger(new DividendTrigger(20, initialPrice));
+    game.registerTrigger(new SentimentBoostTrigger(0.008, random));
     game.emit(GameMessage.broadcast(new GameEvent.GameCreated(List.copyOf(tickers.keySet()))));
     return game;
   }
@@ -252,6 +257,15 @@ public class Game {
     return result;
   }
 
+  public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, Symbol targetSymbol) {
+    UsePowerupResult result =
+        powerupManager.usePowerup(playerId, powerupName, 1, null, targetSymbol);
+    if (result instanceof UsePowerupResult.Activated activated) {
+      applyEffects(activated.effects());
+    }
+    return result;
+  }
+
   public List<Powerup> getInventory(PlayerId playerId) {
     return powerupManager.getInventory(playerId);
   }
@@ -270,6 +284,12 @@ public class Game {
       switch (effect) {
         case PowerupEffect.Emit e -> emit(e.message());
         case PowerupEffect.AddCash ac -> addCashToPlayer(ac.player(), ac.amount());
+        case PowerupEffect.InfluenceSentiment is -> {
+          Ticker ticker = tickers.get(is.symbol());
+          if (ticker != null) {
+            ticker.queueSentimentInfluence(is.influence());
+          }
+        }
       }
     }
   }

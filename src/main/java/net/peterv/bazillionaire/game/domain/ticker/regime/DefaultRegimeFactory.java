@@ -13,8 +13,12 @@ public class DefaultRegimeFactory implements RegimeFactory {
 
   @Override
   public RegimeStrategy nextRegime(Money lastPrice) {
-    MarketSentiment sentiment = pickSentiment();
-    return switch (sentiment) {
+    return nextRegime(lastPrice, pickSentiment());
+  }
+
+  @Override
+  public RegimeStrategy nextRegime(Money lastPrice, MarketSentiment forcedSentiment) {
+    return switch (forcedSentiment) {
       case BULL -> createBullRegime(lastPrice);
       case FLAT -> createFlatRegime(lastPrice);
       case BEAR -> createBearRegime(lastPrice);

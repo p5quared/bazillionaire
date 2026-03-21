@@ -2,5 +2,6 @@ package net.peterv.bazillionaire.game.domain.powerup;
 
 public enum PowerupUsageType {
   INSTANT,
-  TARGET_PLAYER
+  TARGET_PLAYER,
+  TARGET_SYMBOL
 }

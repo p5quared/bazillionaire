@@ -11,6 +11,7 @@ import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
+import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public class PowerupManager {
   private final List<Powerup> activePowerups = new ArrayList<>();
@@ -27,11 +28,20 @@ public class PowerupManager {
   }
 
   public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, PlayerId target) {
-    return usePowerup(playerId, powerupName, 1, target);
+    return usePowerup(playerId, powerupName, 1, target, null);
   }
 
   public UsePowerupResult usePowerup(
       PlayerId playerId, String powerupName, int quantity, PlayerId target) {
+    return usePowerup(playerId, powerupName, quantity, target, null);
+  }
+
+  public UsePowerupResult usePowerup(
+      PlayerId playerId,
+      String powerupName,
+      int quantity,
+      PlayerId targetPlayer,
+      Symbol targetSymbol) {
     List<Powerup> owned = inventory.getOrDefault(playerId, Collections.emptyList());
     List<Powerup> matches =
         owned.stream()
@@ -44,17 +54,25 @@ public class PowerupManager {
     // Validate target once (all same type)
     Powerup first = matches.get(0);
     if (first.usageType() == PowerupUsageType.TARGET_PLAYER) {
-      if (target == null) {
+      if (targetPlayer == null) {
         return new UsePowerupResult.InvalidTarget("Must select a target");
       }
-      if (target.equals(playerId)) {
+      if (targetPlayer.equals(playerId)) {
         return new UsePowerupResult.InvalidTarget("Cannot target yourself");
+      }
+    }
+    if (first.usageType() == PowerupUsageType.TARGET_SYMBOL) {
+      if (targetSymbol == null) {
+        return new UsePowerupResult.InvalidTarget("Must select a target symbol");
       }
     }
     List<PowerupEffect> allEffects = new ArrayList<>();
     for (Powerup match : matches) {
       if (match.usageType() == PowerupUsageType.TARGET_PLAYER) {
-        match.setTarget(target);
+        match.setTarget(targetPlayer);
+      }
+      if (match.usageType() == PowerupUsageType.TARGET_SYMBOL) {
+        match.setSymbolTarget(targetSymbol);
       }
       owned.remove(match);
       allEffects.addAll(activate(match));
