@@ -23,6 +23,7 @@
         players: {},
         prices: {},
         prevPrices: {},
+        marketCaps: {},
         symbols: [],
         chart: chart.createChartState(180),
         hoveredSymbol: null,
@@ -116,6 +117,9 @@
         ensureChartSeries(state.symbols);
         if (data.players) {
             state.players = data.players;
+        }
+        if (data.marketCaps) {
+            state.marketCaps = data.marketCaps;
         }
     }
 
@@ -325,6 +329,10 @@
         symbolEl.textContent = symbol;
         infoCol.appendChild(symbolEl);
 
+        var marketCapEl = document.createElement("div");
+        marketCapEl.className = "ticker-card__market-cap";
+        infoCol.appendChild(marketCapEl);
+
         var priceEl = document.createElement("div");
         priceEl.className = "ticker-card__price";
         var priceCurrency = document.createElement("span");
@@ -378,7 +386,7 @@
         });
 
         document.getElementById("ticker-cards").appendChild(root);
-        tickerCardEls[symbol] = { root: root, priceEl: priceEl, priceCurrency: priceCurrency, priceValue: priceValue, canvas: canvas, hintEl: hintEl };
+        tickerCardEls[symbol] = { root: root, priceEl: priceEl, priceCurrency: priceCurrency, priceValue: priceValue, canvas: canvas, hintEl: hintEl, marketCapEl: marketCapEl };
 
         // sync canvas pixel buffer to CSS size
         requestAnimationFrame(function () {
@@ -427,6 +435,20 @@
         } else if (prev !== undefined && price < prev) {
             els.priceCurrency.classList.add("price--down");
         }
+    }
+
+    var MARKET_CAP_LABELS = {
+        STARTUP: "Startup",
+        MID_CAP: "Mid Cap",
+        BLUE_CHIP: "Blue Chip",
+    };
+
+    function updateTickerMarketCap(symbol) {
+        var els = tickerCardEls[symbol];
+        if (!els) return;
+        var cap = state.marketCaps[symbol];
+        els.marketCapEl.textContent = cap ? (MARKET_CAP_LABELS[cap] || cap) : "";
+        els.marketCapEl.className = "ticker-card__market-cap" + (cap ? " ticker-card__market-cap--" + cap.toLowerCase().replace("_", "-") : "");
     }
 
     function updateHints() {
@@ -501,6 +523,7 @@
             for (var i = 0; i < symbols.length; i++) {
                 ensureTickerCard(symbols[i]);
                 updateTickerPrice(symbols[i]);
+                updateTickerMarketCap(symbols[i]);
             }
             var pids = Object.keys(state.players).sort();
             for (var j = 0; j < pids.length; j++) {
@@ -523,9 +546,13 @@
             ensureSymbolKnown(data.symbol);
             state.prevPrices[data.symbol] = state.prices[data.symbol];
             state.prices[data.symbol] = data.price;
+            if (data.marketCap) {
+                state.marketCaps[data.symbol] = data.marketCap;
+            }
             state.chart = chart.appendPrice(state.chart, data.symbol, data.price);
             ensureTickerCard(data.symbol);
             updateTickerPrice(data.symbol);
+            updateTickerMarketCap(data.symbol);
             redrawSparkline(data.symbol);
             updateHints();
         },
