@@ -98,20 +98,18 @@ public class PowerupManager {
     expired.forEach(p -> effects.addAll(p.onDeactivate()));
     activePowerups.removeAll(expired);
 
-    if (!triggers.isEmpty()) {
-      for (PowerupTrigger trigger : triggers) {
-        for (AwardedPowerup award : trigger.evaluate(context)) {
-          collect(award.recipient(), award.powerup());
-          effects.add(
-              new PowerupEffect.Emit(
-                  GameMessage.broadcast(
-                      new GameEvent.PowerupAwarded(
-                          award.recipient(),
-                          award.powerup().name(),
-                          award.powerup().description(),
-                          award.powerup().usageType().name().toLowerCase(),
-                          award.powerup().consumptionMode().name().toLowerCase()))));
-        }
+    for (PowerupTrigger trigger : triggers) {
+      for (AwardedPowerup award : trigger.evaluate(context)) {
+        collect(award.recipient(), award.powerup());
+        effects.add(
+            new PowerupEffect.Emit(
+                GameMessage.broadcast(
+                    new GameEvent.PowerupAwarded(
+                        award.recipient(),
+                        award.powerup().name(),
+                        award.powerup().description(),
+                        award.powerup().usageType().name().toLowerCase(),
+                        award.powerup().consumptionMode().name().toLowerCase()))));
       }
     }
     return effects;
