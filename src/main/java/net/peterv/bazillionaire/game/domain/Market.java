@@ -3,6 +3,7 @@ package net.peterv.bazillionaire.game.domain;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.regime.SentimentInfluence;
 import net.peterv.bazillionaire.game.domain.types.Money;
@@ -21,6 +22,12 @@ public class Market {
 
   public List<Symbol> symbols() {
     return List.copyOf(tickers.keySet());
+  }
+
+  public Map<Symbol, MarketCap> marketCaps() {
+    Map<Symbol, MarketCap> caps = new HashMap<>();
+    tickers.forEach((symbol, ticker) -> caps.put(symbol, ticker.marketCap()));
+    return caps;
   }
 
   public Map<Symbol, Money> currentPrices() {

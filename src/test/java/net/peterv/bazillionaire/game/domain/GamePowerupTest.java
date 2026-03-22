@@ -19,6 +19,7 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupUsageType;
 import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostPowerup;
 import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostTier;
+import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
 import net.peterv.bazillionaire.game.domain.types.Audience;
@@ -148,7 +149,12 @@ class GamePowerupTest {
             Map.of(
                 frozenPlayer, new Portfolio(INITIAL_BALANCE),
                 otherPlayer, new Portfolio(INITIAL_BALANCE)),
-            Map.of(symbol, new Ticker(new DefaultRegimeFactory(new Random(SEED)), INITIAL_PRICE)),
+            Map.of(
+                symbol,
+                new Ticker(
+                    new DefaultRegimeFactory(new Random(SEED), MarketCap.MID_CAP),
+                    INITIAL_PRICE,
+                    MarketCap.MID_CAP)),
             TOTAL_DURATION);
     game.start();
     game.drainMessages();
@@ -183,7 +189,12 @@ class GamePowerupTest {
             Map.of(
                 frozenPlayer, new Portfolio(INITIAL_BALANCE),
                 otherPlayer, new Portfolio(INITIAL_BALANCE)),
-            Map.of(symbol, new Ticker(new DefaultRegimeFactory(new Random(SEED)), INITIAL_PRICE)),
+            Map.of(
+                symbol,
+                new Ticker(
+                    new DefaultRegimeFactory(new Random(SEED), MarketCap.MID_CAP),
+                    INITIAL_PRICE,
+                    MarketCap.MID_CAP)),
             TOTAL_DURATION);
     game.start();
     game.drainMessages();

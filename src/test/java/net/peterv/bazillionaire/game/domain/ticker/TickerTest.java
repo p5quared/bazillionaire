@@ -14,7 +14,10 @@ class TickerTest {
   private static final long SEED = 42L;
 
   private Ticker createTicker() {
-    return new Ticker(new DefaultRegimeFactory(new Random(SEED)), INITIAL_PRICE);
+    return new Ticker(
+        new DefaultRegimeFactory(new Random(SEED), MarketCap.MID_CAP),
+        INITIAL_PRICE,
+        MarketCap.MID_CAP);
   }
 
   @Test

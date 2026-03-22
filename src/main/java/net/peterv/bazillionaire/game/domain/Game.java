@@ -21,6 +21,7 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
+import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
 import net.peterv.bazillionaire.game.domain.ticker.regime.InfluencedRegimeFactory;
@@ -57,9 +58,13 @@ public class Game {
       do {
         symbol = randomSymbol(random);
       } while (tickers.containsKey(symbol));
+      MarketCap cap = MarketCap.pick(random);
       tickers.put(
           symbol,
-          new Ticker(new InfluencedRegimeFactory(new DefaultRegimeFactory(random)), initialPrice));
+          new Ticker(
+              new InfluencedRegimeFactory(new DefaultRegimeFactory(random, cap)),
+              initialPrice,
+              cap));
     }
 
     Market market = new Market(tickers);
@@ -68,7 +73,8 @@ public class Game {
     game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
     game.registerTrigger(new DividendTrigger(20, initialPrice));
     game.registerTrigger(new SentimentBoostTrigger(0.08, random));
-    game.emit(GameMessage.broadcast(new GameEvent.GameCreated(market.symbols())));
+    game.emit(
+        GameMessage.broadcast(new GameEvent.GameCreated(market.symbols(), market.marketCaps())));
     return game;
   }
 
@@ -114,7 +120,6 @@ public class Game {
     if (ticker == null) {
       return new OrderResult.InvalidOrder("Unknown symbol: " + order.symbol().value());
     }
-
     OrderResult intercepted = powerupManager.checkInterceptors(order, playerId, ticker);
     if (intercepted != null) {
       String reason =
@@ -193,7 +198,8 @@ public class Game {
     if (status == GameStatus.READY) {
       emit(
           GameMessage.send(
-              new GameEvent.GameState(market.symbols(), currentPrices(), playerPortfolios()),
+              new GameEvent.GameState(
+                  market.symbols(), currentPrices(), market.marketCaps(), playerPortfolios()),
               playerId));
       return new JoinResult.GameInProgress();
     }
@@ -217,7 +223,8 @@ public class Game {
     status = GameStatus.READY;
     emit(
         GameMessage.broadcast(
-            new GameEvent.GameState(market.symbols(), currentPrices(), playerPortfolios())));
+            new GameEvent.GameState(
+                market.symbols(), currentPrices(), market.marketCaps(), playerPortfolios())));
     emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
   }
 

@@ -10,12 +10,18 @@ import net.peterv.bazillionaire.game.domain.types.Money;
 
 public class Ticker {
   private final RegimeFactory regimeFactory;
+  private final MarketCap marketCap;
   private List<RegimeStrategy> regimes = new ArrayList<>();
   private int cursor = 0;
 
-  public Ticker(RegimeFactory regimeFactory, Money initialPrice) {
+  public Ticker(RegimeFactory regimeFactory, Money initialPrice, MarketCap marketCap) {
     this.regimeFactory = regimeFactory;
+    this.marketCap = marketCap;
     this.regimes.add(regimeFactory.nextRegime(initialPrice));
+  }
+
+  public MarketCap marketCap() {
+    return marketCap;
   }
 
   public Money currentPrice() {

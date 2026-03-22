@@ -194,20 +194,26 @@ public class StockGameWebSocketAdapter {
           new ServerMessage("PLAYER_JOINED", new PlayerJoinedData(pj.playerId().value()));
       case GameEvent.AllPlayersReady ignored ->
           new ServerMessage("ALL_PLAYERS_READY", new AllPlayersReadyData());
-      case GameEvent.GameCreated gc ->
-          new ServerMessage(
-              "GAME_CREATED",
-              new GameCreatedData(gc.symbols().stream().map(s -> s.value()).toList()));
+      case GameEvent.GameCreated gc -> {
+        Map<String, String> caps = new LinkedHashMap<>();
+        gc.marketCaps().forEach((sym, cap) -> caps.put(sym.value(), cap.name()));
+        yield new ServerMessage(
+            "GAME_CREATED",
+            new GameCreatedData(gc.symbols().stream().map(s -> s.value()).toList(), caps));
+      }
       case GameEvent.PlayersState ps ->
           new ServerMessage("PLAYERS_STATE", new PlayersStateData(serializePlayers(ps.players())));
       case GameEvent.GameState gs -> {
         Map<String, Integer> prices = new LinkedHashMap<>();
         gs.prices().forEach((sym, money) -> prices.put(sym.value(), money.cents()));
+        Map<String, String> caps = new LinkedHashMap<>();
+        gs.marketCaps().forEach((sym, cap) -> caps.put(sym.value(), cap.name()));
         yield new ServerMessage(
             "GAME_STATE",
             new GameStateData(
                 gs.symbols().stream().map(s -> s.value()).toList(),
                 prices,
+                caps,
                 serializePlayers(gs.players())));
       }
       case GameEvent.GameTickProgressed progress ->
@@ -299,14 +305,17 @@ public class StockGameWebSocketAdapter {
 
   private record AllPlayersReadyData() {}
 
-  private record GameCreatedData(List<String> symbols) {}
+  private record GameCreatedData(List<String> symbols, Map<String, String> marketCaps) {}
 
   private record PlayerSnapshotData(int cashBalance, Map<String, Integer> holdings) {}
 
   private record PlayersStateData(Map<String, PlayerSnapshotData> players) {}
 
   private record GameStateData(
-      List<String> symbols, Map<String, Integer> prices, Map<String, PlayerSnapshotData> players) {}
+      List<String> symbols,
+      Map<String, Integer> prices,
+      Map<String, String> marketCaps,
+      Map<String, PlayerSnapshotData> players) {}
 
   private record JoinedData(String playerId) {}
 
