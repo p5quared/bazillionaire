@@ -8,16 +8,16 @@ public enum SentimentBoostTier {
       "Boost a stock's sentiment for several regimes",
       MarketSentiment.BULL,
       1,
-      3,
+      1,
       2,
-      4),
+      1),
   MAJOR(
-      "Major Sentiment Boost",
+      "Sentiment Boost (Major)",
       "Strongly boost a stock's sentiment",
       MarketSentiment.STRONG_BULL,
-      3,
-      3,
-      5,
+      2,
+      2,
+      4,
       3);
 
   private final String displayName;

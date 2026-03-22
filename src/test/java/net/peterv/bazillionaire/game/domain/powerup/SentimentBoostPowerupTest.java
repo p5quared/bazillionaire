@@ -6,17 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Random;
-import net.peterv.bazillionaire.game.domain.ticker.regime.MarketSentiment;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class SentimentBoostPowerupTest {
 
   private static final Symbol AAPL = new Symbol("AAPL");
 
-  @Test
-  void onActivateReturnsInfluenceSentimentAndEmit() {
-    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
+  @ParameterizedTest
+  @EnumSource(SentimentBoostTier.class)
+  void onActivateReturnsInfluenceSentimentAndEmit(SentimentBoostTier tier) {
+    var powerup = new SentimentBoostPowerup(tier, new Random(42));
     powerup.setSymbolTarget(AAPL);
 
     List<PowerupEffect> effects = powerup.onActivate();
@@ -26,73 +27,55 @@ class SentimentBoostPowerupTest {
     assertInstanceOf(PowerupEffect.Emit.class, effects.get(1));
   }
 
-  @Test
-  void minorInfluenceHasBullSentimentAndValidRanges() {
+  @ParameterizedTest
+  @EnumSource(SentimentBoostTier.class)
+  void influenceHasCorrectSentimentAndValidRanges(SentimentBoostTier tier) {
+    int minDelay = tier.minDelay();
+    int maxDelay = minDelay + tier.delayRange() - 1;
+    int minDuration = tier.minDuration();
+    int maxDuration = minDuration + tier.durationRange() - 1;
+
     for (int seed = 0; seed < 50; seed++) {
-      var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(seed));
+      var powerup = new SentimentBoostPowerup(tier, new Random(seed));
       powerup.setSymbolTarget(AAPL);
 
-      List<PowerupEffect> effects = powerup.onActivate();
-      var influence = ((PowerupEffect.InfluenceSentiment) effects.get(0)).influence();
+      var influence = ((PowerupEffect.InfluenceSentiment) powerup.onActivate().get(0)).influence();
 
-      assertEquals(MarketSentiment.BULL, influence.forcedSentiment());
+      assertEquals(tier.sentiment(), influence.forcedSentiment());
       assertTrue(
-          influence.delayRegimes() >= 1 && influence.delayRegimes() <= 3,
-          "delay should be 1-3 but was " + influence.delayRegimes());
+          influence.delayRegimes() >= minDelay && influence.delayRegimes() <= maxDelay,
+          "delay should be %d-%d but was %d"
+              .formatted(minDelay, maxDelay, influence.delayRegimes()));
       assertTrue(
-          influence.durationRegimes() >= 2 && influence.durationRegimes() <= 5,
-          "duration should be 2-5 but was " + influence.durationRegimes());
+          influence.durationRegimes() >= minDuration && influence.durationRegimes() <= maxDuration,
+          "duration should be %d-%d but was %d"
+              .formatted(minDuration, maxDuration, influence.durationRegimes()));
     }
   }
 
-  @Test
-  void majorInfluenceHasStrongBullSentimentAndValidRanges() {
-    for (int seed = 0; seed < 50; seed++) {
-      var powerup = new SentimentBoostPowerup(SentimentBoostTier.MAJOR, new Random(seed));
-      powerup.setSymbolTarget(AAPL);
-
-      List<PowerupEffect> effects = powerup.onActivate();
-      var influence = ((PowerupEffect.InfluenceSentiment) effects.get(0)).influence();
-
-      assertEquals(MarketSentiment.STRONG_BULL, influence.forcedSentiment());
-      assertTrue(
-          influence.delayRegimes() >= 3 && influence.delayRegimes() <= 5,
-          "delay should be 3-5 but was " + influence.delayRegimes());
-      assertTrue(
-          influence.durationRegimes() >= 5 && influence.durationRegimes() <= 7,
-          "duration should be 5-7 but was " + influence.durationRegimes());
-    }
-  }
-
-  @Test
-  void influenceTargetsCorrectSymbol() {
-    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
+  @ParameterizedTest
+  @EnumSource(SentimentBoostTier.class)
+  void influenceTargetsCorrectSymbol(SentimentBoostTier tier) {
+    var powerup = new SentimentBoostPowerup(tier, new Random(42));
     powerup.setSymbolTarget(AAPL);
 
     var effect = (PowerupEffect.InfluenceSentiment) powerup.onActivate().get(0);
     assertEquals(AAPL, effect.symbol());
   }
 
-  @Test
-  void returnsEmptyWithoutTarget() {
-    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
+  @ParameterizedTest
+  @EnumSource(SentimentBoostTier.class)
+  void returnsEmptyWithoutTarget(SentimentBoostTier tier) {
+    var powerup = new SentimentBoostPowerup(tier, new Random(42));
     assertTrue(powerup.onActivate().isEmpty());
   }
 
-  @Test
-  void minorMetadata() {
-    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(42));
-    assertEquals("Sentiment Boost", powerup.name());
-    assertEquals("Boost a stock's sentiment for several regimes", powerup.description());
-    assertEquals(PowerupUsageType.TARGET_SYMBOL, powerup.usageType());
-    assertEquals(ConsumptionMode.SINGLE, powerup.consumptionMode());
-  }
-
-  @Test
-  void majorMetadata() {
-    var powerup = new SentimentBoostPowerup(SentimentBoostTier.MAJOR, new Random(42));
-    assertEquals("Major Sentiment Boost", powerup.name());
-    assertEquals("Strongly boost a stock's sentiment", powerup.description());
+  @ParameterizedTest
+  @EnumSource(SentimentBoostTier.class)
+  void metadataMatchesTier(SentimentBoostTier tier) {
+    var powerup = new SentimentBoostPowerup(tier, new Random(42));
+    assertEquals(tier.displayName(), powerup.name());
+    assertEquals(tier.description(), powerup.description());
     assertEquals(PowerupUsageType.TARGET_SYMBOL, powerup.usageType());
     assertEquals(ConsumptionMode.SINGLE, powerup.consumptionMode());
   }
