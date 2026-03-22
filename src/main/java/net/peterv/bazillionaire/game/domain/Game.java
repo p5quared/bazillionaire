@@ -65,7 +65,9 @@ public class Game {
           new Ticker(
               new InfluencedRegimeFactory(new DefaultRegimeFactory(random, cap)),
               initialPrice,
-              cap));
+              cap,
+              cap.createBubbleTracker(),
+              random));
     }
 
     Market market = new Market(tickers);
@@ -124,6 +126,9 @@ public class Game {
     if (ticker == null) {
       return new OrderResult.InvalidOrder("Unknown symbol: " + order.symbol().value());
     }
+    if (ticker.isDelisted()) {
+      return new OrderResult.Rejected("Ticker has been delisted");
+    }
     OrderResult intercepted = powerupManager.checkInterceptors(order, playerId, ticker);
     if (intercepted != null) {
       String reason =
@@ -148,6 +153,7 @@ public class Game {
       case OrderResult.InvalidOrder i -> i;
       case OrderResult.Filled f -> {
         liquidityProvider.recordFill(playerId, order.symbol(), currentTick());
+        market.recordTrade(order.symbol(), currentTick(), 1);
         String side = order instanceof Order.Buy ? "BUY" : "SELL";
         emit(GameMessage.broadcast(new GameEvent.OrderActivity(order.symbol(), fillPrice, side)));
         emit(
@@ -170,6 +176,7 @@ public class Game {
                       GameMessage.broadcast(
                           new GameEvent.TickerTicked(
                               symbol, price, market.getTicker(symbol).marketCap()))));
+      market.evaluateBubbles(currentTick()).forEach(this::emit);
       applyEffects(powerupManager.tick(snapshot()));
       liquidityProvider.onTick(currentTick());
       tickCount++;

@@ -100,6 +100,12 @@ public class GameEventSerializer {
           new ServerMessage(
               "SENTIMENT_CRASH_ACTIVATED",
               new SentimentCrashActivatedData(sca.symbol().value(), sca.tierName()));
+      case GameEvent.BubbleWarning bw ->
+          new ServerMessage(
+              "BUBBLE_WARNING",
+              new BubbleWarningData(bw.symbol().value(), bw.bubbleFactor(), bw.threshold()));
+      case GameEvent.TickerDelisted td ->
+          new ServerMessage("TICKER_DELISTED", new TickerDelistedData(td.symbol().value()));
     };
   }
 
@@ -165,4 +171,8 @@ public class GameEventSerializer {
   record SentimentBoostActivatedData(String symbol, String tierName) {}
 
   record SentimentCrashActivatedData(String symbol, String tierName) {}
+
+  record BubbleWarningData(String symbol, int bubbleFactor, int threshold) {}
+
+  record TickerDelistedData(String symbol) {}
 }

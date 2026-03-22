@@ -13,4 +13,12 @@ public enum MarketCap {
     if (roll < 0.90) return MID_CAP;
     return BLUE_CHIP;
   }
+
+  public BubbleTracker createBubbleTracker() {
+    return switch (this) {
+      case STARTUP -> new BubbleTracker(20, 8);
+      case MID_CAP -> new BubbleTracker(30, 15);
+      case BLUE_CHIP -> new BubbleTracker(50, 30);
+    };
+  }
 }

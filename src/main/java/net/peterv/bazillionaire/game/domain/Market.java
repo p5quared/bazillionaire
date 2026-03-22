@@ -1,8 +1,11 @@
 package net.peterv.bazillionaire.game.domain;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.regime.SentimentInfluence;
@@ -40,8 +43,10 @@ public class Market {
     Map<Symbol, Money> prices = new HashMap<>();
     tickers.forEach(
         (symbol, ticker) -> {
-          ticker.tick();
-          prices.put(symbol, ticker.currentPrice());
+          if (!ticker.isDelisted()) {
+            ticker.tick();
+            prices.put(symbol, ticker.currentPrice());
+          }
         });
     return prices;
   }
@@ -51,5 +56,26 @@ public class Market {
     if (ticker != null) {
       ticker.queueSentimentInfluence(influence);
     }
+  }
+
+  public void recordTrade(Symbol symbol, int tick, int points) {
+    Ticker ticker = tickers.get(symbol);
+    if (ticker != null) {
+      ticker.recordTrade(tick, points);
+    }
+  }
+
+  public List<GameMessage> evaluateBubbles(int currentTick) {
+    List<GameMessage> messages = new ArrayList<>();
+    tickers.forEach(
+        (symbol, ticker) -> {
+          if (!ticker.isDelisted()) {
+            List<GameEvent> events = ticker.evaluateBubble(currentTick, symbol);
+            for (GameEvent event : events) {
+              messages.add(GameMessage.broadcast(event));
+            }
+          }
+        });
+    return messages;
   }
 }
