@@ -3,7 +3,6 @@ package net.peterv.bazillionaire.game.domain.powerup;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
-import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +15,7 @@ class PowerupBatchConsumptionTest {
   void batchConsume3CashBoosts_removes3AndProduces3AddCashEffects() {
     var manager = new PowerupManager();
     for (int i = 0; i < 3; i++) {
-      manager.collect(PLAYER, new CashBoostPowerup(PLAYER, new Money(500_00)));
+      manager.collect(PLAYER, new CashBoostPowerup(PLAYER, CashBoostTier.MINOR));
     }
 
     UsePowerupResult result = manager.usePowerup(PLAYER, "Cash Boost", 3, null);
@@ -42,8 +41,8 @@ class PowerupBatchConsumptionTest {
   @Test
   void batchConsume5WhenOnly2Owned_consumes2() {
     var manager = new PowerupManager();
-    manager.collect(PLAYER, new CashBoostPowerup(PLAYER, new Money(500_00)));
-    manager.collect(PLAYER, new CashBoostPowerup(PLAYER, new Money(500_00)));
+    manager.collect(PLAYER, new CashBoostPowerup(PLAYER, CashBoostTier.MINOR));
+    manager.collect(PLAYER, new CashBoostPowerup(PLAYER, CashBoostTier.MINOR));
 
     UsePowerupResult result = manager.usePowerup(PLAYER, "Cash Boost", 5, null);
 

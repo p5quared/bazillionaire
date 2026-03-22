@@ -22,22 +22,22 @@ class RandomTickTriggerTest {
 
   @Test
   void awardsBoostWhenProbabilityIs1() {
-    RandomTickTrigger trigger = new RandomTickTrigger(1.0, new Money(50000), new Random(42));
+    RandomTickTrigger trigger = new RandomTickTrigger(1.0, new Random(42));
     List<AwardedPowerup> awards = trigger.evaluate(onePlayerContext);
     assertEquals(1, awards.size());
-    assertEquals("Cash Boost", awards.get(0).powerup().name());
+    assertTrue(awards.get(0).powerup().name().startsWith("Cash Boost"));
   }
 
   @Test
   void awardsNothingWhenProbabilityIs0() {
-    RandomTickTrigger trigger = new RandomTickTrigger(0.0, new Money(50000), new Random(42));
+    RandomTickTrigger trigger = new RandomTickTrigger(0.0, new Random(42));
     assertTrue(trigger.evaluate(onePlayerContext).isEmpty());
   }
 
   @Test
   void recipientIsFromPlayerList() {
     PlayerId player = new PlayerId("p1");
-    RandomTickTrigger trigger = new RandomTickTrigger(1.0, new Money(50000), new Random(42));
+    RandomTickTrigger trigger = new RandomTickTrigger(1.0, new Random(42));
     List<AwardedPowerup> awards = trigger.evaluate(onePlayerContext);
     assertEquals(player, awards.get(0).recipient());
   }
@@ -45,7 +45,6 @@ class RandomTickTriggerTest {
   @Test
   void throwsForInvalidProbability() {
     org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalArgumentException.class,
-        () -> new RandomTickTrigger(1.5, new Money(50000), new Random()));
+        IllegalArgumentException.class, () -> new RandomTickTrigger(1.5, new Random()));
   }
 }

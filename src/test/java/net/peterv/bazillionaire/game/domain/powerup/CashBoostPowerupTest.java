@@ -19,7 +19,7 @@ class CashBoostPowerupTest {
   @Test
   void returnsAddCashEffectOnActivation() {
     PlayerId player = new PlayerId("p1");
-    CashBoostPowerup powerup = new CashBoostPowerup(player, new Money(50000));
+    CashBoostPowerup powerup = new CashBoostPowerup(player, CashBoostTier.MINOR);
 
     List<PowerupEffect> effects = powerup.onActivate();
 
@@ -34,7 +34,7 @@ class CashBoostPowerupTest {
     PlayerId player = new PlayerId("p1");
     Game game = new Game(Map.of(player, new Portfolio(new Money(100000))), Map.of(), 100);
 
-    game.activatePowerup(new CashBoostPowerup(player, new Money(50000)));
+    game.activatePowerup(new CashBoostPowerup(player, CashBoostTier.MINOR));
 
     GameEvent.PlayerPortfolio portfolio = game.snapshot().players().get(player);
     assertEquals(new Money(150000), portfolio.cashBalance());
@@ -44,7 +44,7 @@ class CashBoostPowerupTest {
   void cashBoostCollectedIntoInventoryDuringTick() {
     PlayerId player = new PlayerId("p1");
     Game game = new Game(Map.of(player, new Portfolio(new Money(100000))), Map.of(), 60);
-    game.registerTrigger(new RandomTickTrigger(1.0, new Money(50000), new java.util.Random(42)));
+    game.registerTrigger(new RandomTickTrigger(1.0, new java.util.Random(42)));
     game.start();
     game.drainMessages();
     game.tick();

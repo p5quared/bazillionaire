@@ -69,7 +69,7 @@ public class Game {
 
     Market market = new Market(tickers);
     Game game = new Game(players, market, totalDuration, new TokenBucketLiquidityLimiter());
-    game.registerTrigger(new RandomTickTrigger(0.01, new Money(500_00), random));
+    game.registerTrigger(new RandomTickTrigger(0.01, random));
     game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
     game.registerTrigger(new DividendTrigger(20, initialPrice));
     game.registerTrigger(new SentimentBoostTrigger(0.08, random));
