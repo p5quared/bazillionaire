@@ -29,6 +29,7 @@
         hoveredSymbol: null,
         tradingDisabledReason: "",
         inventory: [],
+        delistedSymbols: {},
     };
 
     // --------------- helpers ---------------
@@ -43,7 +44,14 @@
         var entries = [];
         for (var i = 0; i < symbols.length; i++) {
             var symbol = symbols[i];
-            if (holdings[symbol] > 0) entries.push(symbol + ":" + holdings[symbol]);
+            if (holdings[symbol] > 0) {
+                var text = symbol + ":" + holdings[symbol];
+                if (state.delistedSymbols[symbol]) {
+                    entries.push('<span class="holding--delisted">' + text + '</span>');
+                } else {
+                    entries.push(text);
+                }
+            }
         }
         return entries.length > 0 ? entries.join(" ") : "no shares";
     }
@@ -407,13 +415,14 @@
 
         els.nameEl.textContent = isLocal ? pid + " (you)" : pid;
         els.cashEl.textContent = formatPrice(p.cashBalance);
-        els.holdingsEl.textContent = isLocal ? holdingText(p.holdings) : "";
+        els.holdingsEl.innerHTML = isLocal ? holdingText(p.holdings) : "";
 
         els.root.classList.toggle("player-box--local", isLocal && !isFrozen);
         els.root.classList.toggle("player-box--frozen", isFrozen);
     }
 
     function updateTickerPrice(symbol) {
+        if (state.delistedSymbols[symbol]) return;
         ensureTickerCard(symbol);
         var els = tickerCardEls[symbol];
         var price = state.prices[symbol];
@@ -457,7 +466,9 @@
         for (var i = 0; i < symbols.length; i++) {
             var sym = symbols[i];
             var els = tickerCardEls[sym];
-            if (state.tradingDisabledReason) {
+            if (state.delistedSymbols[sym]) {
+                els.hintEl.textContent = "";
+            } else if (state.tradingDisabledReason) {
                 els.hintEl.textContent = state.tradingDisabledReason;
             } else if (state.prices[sym] === undefined) {
                 els.hintEl.textContent = "";
@@ -476,6 +487,31 @@
 
     function updateInventory() {
         renderPowerupTray();
+    }
+
+    function updateTickerDelisted(symbol) {
+        var els = tickerCardEls[symbol];
+        if (!els) return;
+        var delisted = !!state.delistedSymbols[symbol];
+        els.root.classList.toggle("ticker-card--delisted", delisted);
+        if (delisted) {
+            els.priceCurrency.textContent = "";
+            els.priceValue.textContent = "DELISTED";
+        }
+    }
+
+    function reorderTickerCards() {
+        var container = document.getElementById("ticker-cards");
+        var symbols = Object.keys(tickerCardEls);
+        symbols.sort(function (a, b) {
+            var da = state.delistedSymbols[a] ? 1 : 0;
+            var db = state.delistedSymbols[b] ? 1 : 0;
+            if (da !== db) return da - db;
+            return a.localeCompare(b);
+        });
+        for (var i = 0; i < symbols.length; i++) {
+            container.appendChild(tickerCardEls[symbols[i]].root);
+        }
     }
 
     function redrawSparkline(symbol) {
@@ -521,10 +557,15 @@
             }
             var symbols = visibleSymbols();
             for (var i = 0; i < symbols.length; i++) {
+                if (state.prices[symbols[i]] === 0) {
+                    state.delistedSymbols[symbols[i]] = true;
+                }
                 ensureTickerCard(symbols[i]);
                 updateTickerPrice(symbols[i]);
                 updateTickerMarketCap(symbols[i]);
+                updateTickerDelisted(symbols[i]);
             }
+            reorderTickerCards();
             var pids = Object.keys(state.players).sort();
             for (var j = 0; j < pids.length; j++) {
                 updatePlayerBox(pids[j]);
@@ -625,6 +666,13 @@
         },
         SENTIMENT_BOOST_ACTIVATED: function (data) {
             addNotification(data.symbol + " sentiment boosted!", "positive");
+        },
+        TICKER_DELISTED: function (data) {
+            state.delistedSymbols[data.symbol] = true;
+            updateTickerDelisted(data.symbol);
+            reorderTickerCards();
+            updateHints();
+            addNotification(data.symbol + " has been delisted!", "negative");
         },
         DIVIDEND_PAID: function (data) {
             if (data.playerId === playerId) {
