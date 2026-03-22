@@ -177,7 +177,8 @@ public class StockGameWebSocketAdapter {
     return switch (event) {
       case GameEvent.TickerTicked tt ->
           new ServerMessage(
-              "TICKER_TICKED", new TickerTickedData(tt.symbol().value(), tt.price().cents()));
+              "TICKER_TICKED",
+              new TickerTickedData(tt.symbol().value(), tt.price().cents(), tt.marketCap().name()));
       case GameEvent.OrderFilled of -> {
         Order order = of.order();
         String side = order instanceof Order.Buy ? "BUY" : "SELL";
@@ -296,7 +297,7 @@ public class StockGameWebSocketAdapter {
   // Outbound wire format
   private record ServerMessage(String type, Object data) {}
 
-  private record TickerTickedData(String symbol, int price) {}
+  private record TickerTickedData(String symbol, int price, String marketCap) {}
 
   private record OrderFilledData(
       String symbol, int price, String side, String playerId, int costBasis) {}

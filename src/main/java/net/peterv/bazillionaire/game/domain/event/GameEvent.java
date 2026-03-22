@@ -29,7 +29,7 @@ public sealed interface GameEvent
   record OrderFilled(Order order, PlayerId playerId, Money fillPrice, Money costBasis)
       implements GameEvent {}
 
-  record TickerTicked(Symbol symbol, Money price) implements GameEvent {}
+  record TickerTicked(Symbol symbol, Money price, MarketCap marketCap) implements GameEvent {}
 
   record GameCreated(List<Symbol> symbols, Map<Symbol, MarketCap> marketCaps)
       implements GameEvent {}

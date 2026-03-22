@@ -162,7 +162,10 @@ public class Game {
           .tickAll()
           .forEach(
               (symbol, price) ->
-                  emit(GameMessage.broadcast(new GameEvent.TickerTicked(symbol, price))));
+                  emit(
+                      GameMessage.broadcast(
+                          new GameEvent.TickerTicked(
+                              symbol, price, market.getTicker(symbol).marketCap()))));
       applyEffects(powerupManager.tick(snapshot()));
       liquidityProvider.onTick(currentTick());
       tickCount++;

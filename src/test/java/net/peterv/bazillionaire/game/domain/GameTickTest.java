@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class GameTickTest {
@@ -33,6 +34,13 @@ class GameTickTest {
 
     var messages = game.drainMessages();
     assertTrue(messages.stream().anyMatch(m -> m.event() instanceof GameEvent.TickerTicked));
+    messages.stream()
+        .map(GameMessage::event)
+        .filter(GameEvent.TickerTicked.class::isInstance)
+        .map(GameEvent.TickerTicked.class::cast)
+        .forEach(
+            tt ->
+                Assertions.assertNotNull(tt.marketCap(), "TickerTicked should include marketCap"));
     GameEvent.GameTickProgressed progress = findTickProgressed(messages);
     assertEquals(1, progress.tick());
     assertEquals(TOTAL_DURATION - 1, progress.ticksRemaining());
