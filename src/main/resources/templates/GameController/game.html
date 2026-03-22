@@ -387,12 +387,22 @@
             margin-top: 4px;
         }
 
+        @keyframes flash-up {
+            from { color: #0a8f3f; }
+            to { color: #111; }
+        }
+
+        @keyframes flash-down {
+            from { color: #d62828; }
+            to { color: #111; }
+        }
+
         .price--up {
-            color: #0a8f3f;
+            animation: flash-up 200ms ease-out forwards;
         }
 
         .price--down {
-            color: #d62828;
+            animation: flash-down 200ms ease-out forwards;
         }
 
         .ticker-card__sparkline {

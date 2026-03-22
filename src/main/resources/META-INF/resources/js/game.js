@@ -327,7 +327,12 @@
 
         var priceEl = document.createElement("div");
         priceEl.className = "ticker-card__price";
-        priceEl.textContent = "Waiting...";
+        var priceCurrency = document.createElement("span");
+        priceCurrency.className = "ticker-card__currency";
+        var priceValue = document.createElement("span");
+        priceEl.appendChild(priceCurrency);
+        priceEl.appendChild(priceValue);
+        priceValue.textContent = "Waiting...";
         infoCol.appendChild(priceEl);
 
         root.appendChild(infoCol);
@@ -373,7 +378,7 @@
         });
 
         document.getElementById("ticker-cards").appendChild(root);
-        tickerCardEls[symbol] = { root: root, priceEl: priceEl, canvas: canvas, hintEl: hintEl };
+        tickerCardEls[symbol] = { root: root, priceEl: priceEl, priceCurrency: priceCurrency, priceValue: priceValue, canvas: canvas, hintEl: hintEl };
 
         // sync canvas pixel buffer to CSS size
         requestAnimationFrame(function () {
@@ -406,15 +411,22 @@
         var price = state.prices[symbol];
 
         if (price === undefined) {
-            els.priceEl.textContent = "Waiting...";
-            els.priceEl.classList.remove("price--up", "price--down");
+            els.priceCurrency.textContent = "";
+            els.priceValue.textContent = "Waiting...";
+            els.priceCurrency.classList.remove("price--up", "price--down");
             return;
         }
 
-        els.priceEl.textContent = formatPrice(price);
+        els.priceCurrency.textContent = "$";
+        els.priceValue.textContent = (price / 100).toFixed(2);
         var prev = state.prevPrices[symbol];
-        els.priceEl.classList.toggle("price--up", prev !== undefined && price > prev);
-        els.priceEl.classList.toggle("price--down", prev !== undefined && price < prev);
+        els.priceCurrency.classList.remove("price--up", "price--down");
+        void els.priceCurrency.offsetWidth; // force reflow to retrigger animation
+        if (prev !== undefined && price > prev) {
+            els.priceCurrency.classList.add("price--up");
+        } else if (prev !== undefined && price < prev) {
+            els.priceCurrency.classList.add("price--down");
+        }
     }
 
     function updateHints() {
