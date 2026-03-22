@@ -30,7 +30,7 @@ import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public class Game {
   private final Map<PlayerId, Portfolio> players;
-  private final Map<Symbol, Ticker> tickers;
+  private final Market market;
   private final List<GameMessage> pendingMessages = new ArrayList<>();
   private final PowerupManager powerupManager = new PowerupManager();
   private final LiquidityProvider liquidityProvider;
@@ -62,12 +62,13 @@ public class Game {
           new Ticker(new InfluencedRegimeFactory(new DefaultRegimeFactory(random)), initialPrice));
     }
 
-    Game game = new Game(players, tickers, totalDuration);
+    Market market = new Market(tickers);
+    Game game = new Game(players, market, totalDuration, new TokenBucketLiquidityLimiter());
     game.registerTrigger(new RandomTickTrigger(0.01, new Money(500_00), random));
     game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
     game.registerTrigger(new DividendTrigger(20, initialPrice));
-    game.registerTrigger(new SentimentBoostTrigger(0.008, random));
-    game.emit(GameMessage.broadcast(new GameEvent.GameCreated(List.copyOf(tickers.keySet()))));
+    game.registerTrigger(new SentimentBoostTrigger(0.08, random));
+    game.emit(GameMessage.broadcast(new GameEvent.GameCreated(market.symbols())));
     return game;
   }
 
@@ -81,7 +82,7 @@ public class Game {
   }
 
   public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers, int totalDuration) {
-    this(players, tickers, totalDuration, new TokenBucketLiquidityLimiter());
+    this(players, new Market(tickers), totalDuration, new TokenBucketLiquidityLimiter());
   }
 
   public Game(
@@ -89,8 +90,16 @@ public class Game {
       Map<Symbol, Ticker> tickers,
       int totalDuration,
       LiquidityProvider liquidityProvider) {
+    this(players, new Market(tickers), totalDuration, liquidityProvider);
+  }
+
+  private Game(
+      Map<PlayerId, Portfolio> players,
+      Market market,
+      int totalDuration,
+      LiquidityProvider liquidityProvider) {
     this.players = new HashMap<>(players);
-    this.tickers = new HashMap<>(tickers);
+    this.market = market;
     this.totalDuration = totalDuration;
     this.liquidityProvider = liquidityProvider;
   }
@@ -101,7 +110,7 @@ public class Game {
       return new OrderResult.InvalidOrder("Unknown player: " + playerId.value());
     }
 
-    Ticker ticker = tickers.get(order.symbol());
+    Ticker ticker = market.getTicker(order.symbol());
     if (ticker == null) {
       return new OrderResult.InvalidOrder("Unknown symbol: " + order.symbol().value());
     }
@@ -144,11 +153,11 @@ public class Game {
 
   public void tick() {
     if (this.status == GameStatus.READY) {
-      tickers.forEach(
-          (symbol, ticker) -> {
-            ticker.tick();
-            emit(GameMessage.broadcast(new GameEvent.TickerTicked(symbol, ticker.currentPrice())));
-          });
+      market
+          .tickAll()
+          .forEach(
+              (symbol, price) ->
+                  emit(GameMessage.broadcast(new GameEvent.TickerTicked(symbol, price))));
       applyEffects(powerupManager.tick(snapshot()));
       liquidityProvider.onTick(currentTick());
       tickCount++;
@@ -184,8 +193,7 @@ public class Game {
     if (status == GameStatus.READY) {
       emit(
           GameMessage.send(
-              new GameEvent.GameState(
-                  List.copyOf(tickers.keySet()), currentPrices(), playerPortfolios()),
+              new GameEvent.GameState(market.symbols(), currentPrices(), playerPortfolios()),
               playerId));
       return new JoinResult.GameInProgress();
     }
@@ -209,8 +217,7 @@ public class Game {
     status = GameStatus.READY;
     emit(
         GameMessage.broadcast(
-            new GameEvent.GameState(
-                List.copyOf(tickers.keySet()), currentPrices(), playerPortfolios())));
+            new GameEvent.GameState(market.symbols(), currentPrices(), playerPortfolios())));
     emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
   }
 
@@ -224,9 +231,7 @@ public class Game {
   }
 
   public Map<Symbol, Money> currentPrices() {
-    Map<Symbol, Money> prices = new HashMap<>();
-    tickers.forEach((symbol, ticker) -> prices.put(symbol, ticker.currentPrice()));
-    return prices;
+    return market.currentPrices();
   }
 
   public void addCashToPlayer(PlayerId playerId, Money amount) {
@@ -285,12 +290,8 @@ public class Game {
       switch (effect) {
         case PowerupEffect.Emit e -> emit(e.message());
         case PowerupEffect.AddCash ac -> addCashToPlayer(ac.player(), ac.amount());
-        case PowerupEffect.InfluenceSentiment is -> {
-          Ticker ticker = tickers.get(is.symbol());
-          if (ticker != null) {
-            ticker.queueSentimentInfluence(is.influence());
-          }
-        }
+        case PowerupEffect.InfluenceSentiment is ->
+            market.influenceSentiment(is.symbol(), is.influence());
       }
     }
   }
