@@ -8,13 +8,10 @@ import io.quarkus.websockets.next.WebSocket;
 import io.quarkus.websockets.next.WebSocketConnection;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.peterv.bazillionaire.game.domain.JoinResult;
-import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
-import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.types.Audience;
@@ -43,6 +40,8 @@ public class StockGameWebSocketAdapter {
   @Inject GameSessionRegistry registry;
 
   @Inject ObjectMapper objectMapper;
+
+  private final GameEventSerializer serializer = new GameEventSerializer();
 
   @OnOpen
   @Blocking
@@ -87,7 +86,9 @@ public class StockGameWebSocketAdapter {
       case JoinResult.InvalidJoin inv -> sendError(connection, "INVALID_JOIN", inv.reason());
       default -> {
         registry.associatePlayer(connection.id(), new PlayerId(playerIdStr));
-        sendMessage(connection, new ServerMessage("JOINED", new JoinedData(playerIdStr)));
+        sendJson(
+            connection,
+            new GameEventSerializer.ServerMessage("JOINED", new JoinedData(playerIdStr)));
       }
     }
     dispatchMessages(gameId, result.messages());
@@ -113,9 +114,9 @@ public class StockGameWebSocketAdapter {
     switch (result.result()) {
       case OrderResult.Filled filled -> {
         String sideStr = side == PlaceOrderCommand.OrderSide.BUY ? "BUY" : "SELL";
-        sendMessage(
+        sendJson(
             connection,
-            new ServerMessage(
+            new GameEventSerializer.ServerMessage(
                 "ORDER_FILLED",
                 new OrderFilledResponseData(
                     ticker, filled.fillPrice().cents(), sideStr, filled.costBasis().cents())));
@@ -154,7 +155,7 @@ public class StockGameWebSocketAdapter {
 
   public void dispatchMessages(String gameId, List<GameMessage> messages) {
     for (GameMessage message : messages) {
-      ServerMessage serverMessage = toServerMessage(message.event());
+      GameEventSerializer.ServerMessage serverMessage = serializer.serialize(message.event());
       String json;
       try {
         json = objectMapper.writeValueAsString(serverMessage);
@@ -173,116 +174,7 @@ public class StockGameWebSocketAdapter {
     }
   }
 
-  private ServerMessage toServerMessage(GameEvent event) {
-    return switch (event) {
-      case GameEvent.TickerTicked tt ->
-          new ServerMessage(
-              "TICKER_TICKED",
-              new TickerTickedData(tt.symbol().value(), tt.price().cents(), tt.marketCap().name()));
-      case GameEvent.OrderFilled of -> {
-        Order order = of.order();
-        String side = order instanceof Order.Buy ? "BUY" : "SELL";
-        yield new ServerMessage(
-            "ORDER_FILLED",
-            new OrderFilledData(
-                order.symbol().value(),
-                of.fillPrice().cents(),
-                side,
-                of.playerId().value(),
-                of.costBasis().cents()));
-      }
-      case GameEvent.PlayerJoined pj ->
-          new ServerMessage("PLAYER_JOINED", new PlayerJoinedData(pj.playerId().value()));
-      case GameEvent.AllPlayersReady ignored ->
-          new ServerMessage("ALL_PLAYERS_READY", new AllPlayersReadyData());
-      case GameEvent.GameCreated gc -> {
-        Map<String, String> caps = new LinkedHashMap<>();
-        gc.marketCaps().forEach((sym, cap) -> caps.put(sym.value(), cap.name()));
-        yield new ServerMessage(
-            "GAME_CREATED",
-            new GameCreatedData(gc.symbols().stream().map(s -> s.value()).toList(), caps));
-      }
-      case GameEvent.PlayersState ps ->
-          new ServerMessage("PLAYERS_STATE", new PlayersStateData(serializePlayers(ps.players())));
-      case GameEvent.GameState gs -> {
-        Map<String, Integer> prices = new LinkedHashMap<>();
-        gs.prices().forEach((sym, money) -> prices.put(sym.value(), money.cents()));
-        Map<String, String> caps = new LinkedHashMap<>();
-        gs.marketCaps().forEach((sym, cap) -> caps.put(sym.value(), cap.name()));
-        yield new ServerMessage(
-            "GAME_STATE",
-            new GameStateData(
-                gs.symbols().stream().map(s -> s.value()).toList(),
-                prices,
-                caps,
-                serializePlayers(gs.players())));
-      }
-      case GameEvent.GameTickProgressed progress ->
-          new ServerMessage(
-              "GAME_TICK", new GameTickData(progress.tick(), progress.ticksRemaining()));
-      case GameEvent.GameFinished ignored ->
-          new ServerMessage("GAME_FINISHED", new GameFinishedData());
-      case GameEvent.PowerupAwarded pa ->
-          new ServerMessage(
-              "POWERUP_AWARDED",
-              new PowerupAwardedData(
-                  pa.recipient().value(),
-                  pa.powerupName(),
-                  pa.description(),
-                  pa.usageType(),
-                  pa.consumptionMode()));
-      case GameEvent.FreezeStarted fs ->
-          new ServerMessage(
-              "FREEZE_STARTED", new FreezeStartedData(fs.frozenPlayer().value(), fs.duration()));
-      case GameEvent.FreezeExpired fe ->
-          new ServerMessage("FREEZE_EXPIRED", new FreezeExpiredData(fe.frozenPlayer().value()));
-      case GameEvent.PowerupActivated pa ->
-          new ServerMessage(
-              "POWERUP_ACTIVATED", new PowerupActivatedData(pa.user().value(), pa.powerupName()));
-      case GameEvent.DividendPaid dp ->
-          new ServerMessage(
-              "DIVIDEND_PAID",
-              new DividendPaidData(
-                  dp.playerId().value(), dp.symbol().value(), dp.amount().cents(), dp.tierName()));
-      case GameEvent.OrderActivity oa ->
-          new ServerMessage(
-              "ORDER_ACTIVITY",
-              new OrderActivityData(oa.symbol().value(), oa.price().cents(), oa.side()));
-      case GameEvent.OrderBlocked ob -> {
-        Order order = ob.order();
-        String side = order instanceof Order.Buy ? "BUY" : "SELL";
-        yield new ServerMessage(
-            "ORDER_BLOCKED",
-            new OrderBlockedData(ob.playerId().value(), order.symbol().value(), side, ob.reason()));
-      }
-      case GameEvent.SentimentBoostActivated sba ->
-          new ServerMessage(
-              "SENTIMENT_BOOST_ACTIVATED",
-              new SentimentBoostActivatedData(sba.symbol().value(), sba.tierName()));
-      case GameEvent.SentimentCrashActivated sca ->
-          new ServerMessage(
-              "SENTIMENT_CRASH_ACTIVATED",
-              new SentimentCrashActivatedData(sca.symbol().value(), sca.tierName()));
-    };
-  }
-
-  private Map<String, PlayerSnapshotData> serializePlayers(
-      Map<
-              net.peterv.bazillionaire.game.domain.types.PlayerId,
-              net.peterv.bazillionaire.game.domain.event.GameEvent.PlayerPortfolio>
-          players) {
-    Map<String, PlayerSnapshotData> result = new LinkedHashMap<>();
-    players.forEach(
-        (pid, portfolio) -> {
-          Map<String, Integer> holdings = new LinkedHashMap<>();
-          portfolio.holdings().forEach((sym, qty) -> holdings.put(sym.value(), qty));
-          result.put(
-              pid.value(), new PlayerSnapshotData(portfolio.cashBalance().cents(), holdings));
-        });
-    return result;
-  }
-
-  private void sendMessage(WebSocketConnection connection, ServerMessage message) {
+  private void sendJson(WebSocketConnection connection, GameEventSerializer.ServerMessage message) {
     try {
       String json = objectMapper.writeValueAsString(message);
       connection.sendTextAndAwait(json);
@@ -292,66 +184,17 @@ public class StockGameWebSocketAdapter {
   }
 
   private void sendError(WebSocketConnection connection, String code, String message) {
-    sendMessage(connection, new ServerMessage("ERROR", new ErrorData(code, message)));
+    sendJson(
+        connection, new GameEventSerializer.ServerMessage("ERROR", new ErrorData(code, message)));
   }
 
   // Inbound message types
   record ClientMessage(String type, Map<String, Object> payload) {}
 
-  // Outbound wire format
-  private record ServerMessage(String type, Object data) {}
-
-  private record TickerTickedData(String symbol, int price, String marketCap) {}
-
-  private record OrderFilledData(
-      String symbol, int price, String side, String playerId, int costBasis) {}
-
-  private record PlayerJoinedData(String playerId) {}
-
-  private record AllPlayersReadyData() {}
-
-  private record GameCreatedData(List<String> symbols, Map<String, String> marketCaps) {}
-
-  private record PlayerSnapshotData(int cashBalance, Map<String, Integer> holdings) {}
-
-  private record PlayersStateData(Map<String, PlayerSnapshotData> players) {}
-
-  private record GameStateData(
-      List<String> symbols,
-      Map<String, Integer> prices,
-      Map<String, String> marketCaps,
-      Map<String, PlayerSnapshotData> players) {}
-
+  // Adapter-specific response records (not from domain events)
   private record JoinedData(String playerId) {}
 
   private record OrderFilledResponseData(String symbol, int price, String side, int costBasis) {}
-
-  private record GameFinishedData() {}
-
-  private record GameTickData(int tick, int ticksRemaining) {}
-
-  private record PowerupAwardedData(
-      String recipient,
-      String powerupName,
-      String description,
-      String usageType,
-      String consumptionMode) {}
-
-  private record FreezeStartedData(String frozenPlayer, int duration) {}
-
-  private record FreezeExpiredData(String frozenPlayer) {}
-
-  private record PowerupActivatedData(String user, String powerupName) {}
-
-  private record DividendPaidData(String playerId, String symbol, int amount, String tierName) {}
-
-  private record OrderBlockedData(String playerId, String symbol, String side, String reason) {}
-
-  private record OrderActivityData(String symbol, int price, String side) {}
-
-  private record SentimentBoostActivatedData(String symbol, String tierName) {}
-
-  private record SentimentCrashActivatedData(String symbol, String tierName) {}
 
   private record ErrorData(String code, String message) {}
 }
