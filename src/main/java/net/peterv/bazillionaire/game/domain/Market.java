@@ -2,8 +2,10 @@ package net.peterv.bazillionaire.game.domain;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
@@ -37,6 +39,17 @@ public class Market {
     Map<Symbol, Money> prices = new HashMap<>();
     tickers.forEach((symbol, ticker) -> prices.put(symbol, ticker.currentPrice()));
     return prices;
+  }
+
+  public Set<Symbol> delistedSymbols() {
+    Set<Symbol> delisted = new HashSet<>();
+    tickers.forEach(
+        (symbol, ticker) -> {
+          if (ticker.isDelisted()) {
+            delisted.add(symbol);
+          }
+        });
+    return delisted;
   }
 
   public Map<Symbol, Money> tickAll() {

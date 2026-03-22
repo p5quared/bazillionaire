@@ -36,6 +36,7 @@ public class DividendTrigger implements PowerupTrigger {
       }
       for (var symbolEntry : playerEntry.getValue().entrySet()) {
         Symbol symbol = symbolEntry.getKey();
+        if (context.delistedSymbols().contains(symbol)) continue;
         int since = symbolEntry.getValue();
         int shares = portfolio.holdings().getOrDefault(symbol, 0);
         int holdDuration = context.currentTick() - since;

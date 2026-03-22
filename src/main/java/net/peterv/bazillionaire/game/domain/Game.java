@@ -303,7 +303,8 @@ public class Game {
 
   public GameContext snapshot() {
     List<GameEvent> recentEvents = pendingMessages.stream().map(GameMessage::event).toList();
-    return new GameContext(currentTick(), playerPortfolios(), currentPrices(), recentEvents);
+    return new GameContext(
+        currentTick(), playerPortfolios(), currentPrices(), recentEvents, market.delistedSymbols());
   }
 
   private void applyEffects(List<PowerupEffect> effects) {

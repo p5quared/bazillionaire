@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
@@ -59,6 +60,6 @@ class CatchUpFreezeTriggerTest {
     balances.forEach(
         (playerId, cents) ->
             players.put(playerId, new GameEvent.PlayerPortfolio(new Money(cents), Map.of())));
-    return new GameContext(0, players, Map.of(), List.of());
+    return new GameContext(0, players, Map.of(), List.of(), Set.of());
   }
 }

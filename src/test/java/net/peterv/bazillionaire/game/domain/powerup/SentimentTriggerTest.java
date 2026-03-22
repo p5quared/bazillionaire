@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
@@ -19,7 +20,8 @@ class SentimentTriggerTest {
           0,
           Map.of(new PlayerId("p1"), new GameEvent.PlayerPortfolio(new Money(100000), Map.of())),
           Map.of(),
-          List.of());
+          List.of(),
+          Set.of());
 
   @Test
   void awardsBoostWhenProbabilityIs1() {

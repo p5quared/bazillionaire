@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.types.Money;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class PowerupManagerTest {
 
   private static final GameContext EMPTY_CONTEXT =
-      new GameContext(0, Map.of(), Map.of(), List.of());
+      new GameContext(0, Map.of(), Map.of(), List.of(), Set.of());
 
   @Test
   void activate_callsOnActivate() {
@@ -71,7 +72,8 @@ class PowerupManagerTest {
             0,
             Map.of(player, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of())),
             Map.of(),
-            List.of());
+            List.of(),
+            Set.of());
 
     var manager = new PowerupManager();
     var awarded = new TrackingPowerup(5);

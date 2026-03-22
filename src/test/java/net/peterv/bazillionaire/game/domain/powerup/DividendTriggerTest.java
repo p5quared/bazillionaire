@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.types.Money;
@@ -27,7 +28,7 @@ class DividendTriggerTest {
     Map<PlayerId, GameEvent.PlayerPortfolio> players = new HashMap<>();
     players.put(playerId, new GameEvent.PlayerPortfolio(new Money(100_000_00), holdings));
     return new GameContext(
-        tick, players, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE), List.of());
+        tick, players, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE), List.of(), Set.of());
   }
 
   private GameContext contextWithTwoPlayers(
@@ -36,7 +37,7 @@ class DividendTriggerTest {
     players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), p1Holdings));
     players.put(PLAYER_2, new GameEvent.PlayerPortfolio(new Money(100_000_00), p2Holdings));
     return new GameContext(
-        tick, players, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE), List.of());
+        tick, players, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE), List.of(), Set.of());
   }
 
   @Test
@@ -197,11 +198,13 @@ class DividendTriggerTest {
     players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of(AAPL, 5)));
     for (int tick = 0; tick < 300; tick++) {
       blendTrigger.evaluate(
-          new GameContext(tick, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of()));
+          new GameContext(
+              tick, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of(), Set.of()));
     }
     List<AwardedPowerup> awards =
         blendTrigger.evaluate(
-            new GameContext(300, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of()));
+            new GameContext(
+                300, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of(), Set.of()));
     assertEquals(1, awards.size());
     DividendPowerup powerup = (DividendPowerup) awards.get(0).powerup();
     assertEquals(new Money(3750), powerup.payoutAmount());
@@ -224,5 +227,22 @@ class DividendTriggerTest {
     assertEquals(AAPL, event.symbol());
     assertEquals(new Money(250), event.amount());
     assertEquals("Tier 1", event.tierName());
+  }
+
+  @Test
+  void noAwardForDelistedSymbol() {
+    // Hold 15 shares of AAPL (would normally qualify for Tier 3 immediately)
+    trigger.evaluate(contextWithHoldings(0, PLAYER_1, Map.of(AAPL, 15)));
+    for (int tick = 1; tick < 20; tick++) {
+      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 15)));
+    }
+    // At payout tick, AAPL is delisted
+    Map<PlayerId, GameEvent.PlayerPortfolio> players = new HashMap<>();
+    players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of(AAPL, 15)));
+    GameContext delistedContext =
+        new GameContext(
+            20, players, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE), List.of(), Set.of(AAPL));
+    List<AwardedPowerup> awards = trigger.evaluate(delistedContext);
+    assertTrue(awards.isEmpty());
   }
 }
