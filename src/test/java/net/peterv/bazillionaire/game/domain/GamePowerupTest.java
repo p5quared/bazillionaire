@@ -17,8 +17,8 @@ import net.peterv.bazillionaire.game.domain.powerup.OrderInterceptor;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupUsageType;
-import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostPowerup;
-import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostTier;
+import net.peterv.bazillionaire.game.domain.powerup.SentimentPowerup;
+import net.peterv.bazillionaire.game.domain.powerup.SentimentTier;
 import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
 import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
@@ -233,7 +233,7 @@ class GamePowerupTest {
     Game game = startedGame(PLAYER_1);
     Symbol symbol = anySymbol(game);
 
-    var boost = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(SEED));
+    var boost = new SentimentPowerup(SentimentTier.BOOST_MINOR, new Random(SEED));
     boost.setSymbolTarget(symbol);
     game.activatePowerup(boost);
 
@@ -253,7 +253,7 @@ class GamePowerupTest {
     Game game = startedGame(PLAYER_1);
     Symbol symbol = anySymbol(game);
 
-    var boost = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(SEED));
+    var boost = new SentimentPowerup(SentimentTier.BOOST_MINOR, new Random(SEED));
     boost.setSymbolTarget(symbol);
     game.activatePowerup(boost);
     game.drainMessages();
@@ -272,7 +272,7 @@ class GamePowerupTest {
     Symbol symbol = anySymbol(game);
 
     // Manually collect a SentimentBoostPowerup
-    var boost = new SentimentBoostPowerup(SentimentBoostTier.MINOR, new Random(SEED));
+    var boost = new SentimentPowerup(SentimentTier.BOOST_MINOR, new Random(SEED));
     // Use the powerup manager's collect path via registerTrigger is complex;
     // instead test through game.usePowerup(playerId, name, symbol) after direct inventory add
     // PowerupManager is internal, so we test the effect chain instead

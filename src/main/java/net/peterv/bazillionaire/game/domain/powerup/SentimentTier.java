@@ -2,9 +2,25 @@ package net.peterv.bazillionaire.game.domain.powerup;
 
 import net.peterv.bazillionaire.game.domain.ticker.regime.MarketSentiment;
 
-public enum SentimentCrashTier {
-  MINOR("Sentiment Crash", "Crash a stock's sentiment", MarketSentiment.BEAR, 0, 1, 1, 1),
-  MAJOR(
+public enum SentimentTier {
+  BOOST_MINOR(
+      "Sentiment Boost",
+      "Boost a stock's sentiment for several regimes",
+      MarketSentiment.BULL,
+      1,
+      1,
+      2,
+      1),
+  BOOST_MAJOR(
+      "Sentiment Boost (Major)",
+      "Strongly boost a stock's sentiment",
+      MarketSentiment.STRONG_BULL,
+      2,
+      2,
+      4,
+      3),
+  CRASH_MINOR("Sentiment Crash", "Crash a stock's sentiment", MarketSentiment.BEAR, 0, 1, 1, 1),
+  CRASH_MAJOR(
       "Sentiment Crash (Major)",
       "Crash a stock's sentiment for several regimes",
       MarketSentiment.BEAR,
@@ -21,7 +37,7 @@ public enum SentimentCrashTier {
   private final int minDuration;
   private final int durationRange;
 
-  SentimentCrashTier(
+  SentimentTier(
       String displayName,
       String description,
       MarketSentiment sentiment,
@@ -36,6 +52,10 @@ public enum SentimentCrashTier {
     this.delayRange = delayRange;
     this.minDuration = minDuration;
     this.durationRange = durationRange;
+  }
+
+  public boolean isBoost() {
+    return this == BOOST_MINOR || this == BOOST_MAJOR;
   }
 
   public String displayName() {

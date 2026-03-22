@@ -4,16 +4,21 @@ import java.util.List;
 import java.util.Random;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 
-public class SentimentBoostTrigger implements PowerupTrigger {
+public class SentimentTrigger implements PowerupTrigger {
   private final double probability;
   private final Random random;
+  private final SentimentTier minorTier;
+  private final SentimentTier majorTier;
 
-  public SentimentBoostTrigger(double probability, Random random) {
+  public SentimentTrigger(
+      double probability, Random random, SentimentTier minorTier, SentimentTier majorTier) {
     if (probability < 0.0 || probability > 1.0) {
       throw new IllegalArgumentException("Probability must be between 0.0 and 1.0");
     }
     this.probability = probability;
     this.random = random;
+    this.minorTier = minorTier;
+    this.majorTier = majorTier;
   }
 
   @Override
@@ -23,8 +28,7 @@ public class SentimentBoostTrigger implements PowerupTrigger {
     }
     List<PlayerId> playerIds = List.copyOf(context.players().keySet());
     PlayerId recipient = playerIds.get(random.nextInt(playerIds.size()));
-    SentimentBoostTier tier =
-        random.nextDouble() < 0.80 ? SentimentBoostTier.MINOR : SentimentBoostTier.MAJOR;
-    return List.of(new AwardedPowerup(recipient, new SentimentBoostPowerup(tier, random)));
+    SentimentTier tier = random.nextDouble() < 0.80 ? minorTier : majorTier;
+    return List.of(new AwardedPowerup(recipient, new SentimentPowerup(tier, random)));
   }
 }

@@ -7,12 +7,12 @@ import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.ticker.regime.SentimentInfluence;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 
-public class SentimentBoostPowerup extends Powerup {
-  private final SentimentBoostTier tier;
+public class SentimentPowerup extends Powerup {
+  private final SentimentTier tier;
   private final Random random;
   private Symbol targetSymbol;
 
-  public SentimentBoostPowerup(SentimentBoostTier tier, Random random) {
+  public SentimentPowerup(SentimentTier tier, Random random) {
     super(0);
     this.tier = tier;
     this.random = random;
@@ -31,11 +31,13 @@ public class SentimentBoostPowerup extends Powerup {
     int delay = tier.minDelay() + random.nextInt(tier.delayRange());
     int duration = tier.minDuration() + random.nextInt(tier.durationRange());
     var influence = new SentimentInfluence(tier.sentiment(), delay, duration);
+    GameEvent activatedEvent =
+        tier.isBoost()
+            ? new GameEvent.SentimentBoostActivated(targetSymbol, tier.displayName())
+            : new GameEvent.SentimentCrashActivated(targetSymbol, tier.displayName());
     return List.of(
         new PowerupEffect.InfluenceSentiment(targetSymbol, influence),
-        new PowerupEffect.Emit(
-            GameMessage.broadcast(
-                new GameEvent.SentimentBoostActivated(targetSymbol, tier.displayName()))));
+        new PowerupEffect.Emit(GameMessage.broadcast(activatedEvent)));
   }
 
   @Override
