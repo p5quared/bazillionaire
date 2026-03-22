@@ -25,7 +25,8 @@ public sealed interface GameEvent
         GameEvent.DividendPaid,
         GameEvent.OrderBlocked,
         GameEvent.OrderActivity,
-        GameEvent.SentimentBoostActivated {
+        GameEvent.SentimentBoostActivated,
+        GameEvent.SentimentCrashActivated {
   record OrderFilled(Order order, PlayerId playerId, Money fillPrice, Money costBasis)
       implements GameEvent {}
 
@@ -76,4 +77,6 @@ public sealed interface GameEvent
   record OrderActivity(Symbol symbol, Money price, String side) implements GameEvent {}
 
   record SentimentBoostActivated(Symbol symbol, String tierName) implements GameEvent {}
+
+  record SentimentCrashActivated(Symbol symbol, String tierName) implements GameEvent {}
 }

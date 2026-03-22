@@ -20,6 +20,7 @@ import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.SentimentBoostTrigger;
+import net.peterv.bazillionaire.game.domain.powerup.SentimentCrashTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
 import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
@@ -73,6 +74,7 @@ public class Game {
     game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
     game.registerTrigger(new DividendTrigger(20, initialPrice));
     game.registerTrigger(new SentimentBoostTrigger(0.08, random));
+    game.registerTrigger(new SentimentCrashTrigger(0.08, random));
     game.emit(
         GameMessage.broadcast(new GameEvent.GameCreated(market.symbols(), market.marketCaps())));
     return game;

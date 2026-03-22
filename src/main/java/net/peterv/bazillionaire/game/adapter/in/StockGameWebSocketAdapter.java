@@ -259,6 +259,10 @@ public class StockGameWebSocketAdapter {
           new ServerMessage(
               "SENTIMENT_BOOST_ACTIVATED",
               new SentimentBoostActivatedData(sba.symbol().value(), sba.tierName()));
+      case GameEvent.SentimentCrashActivated sca ->
+          new ServerMessage(
+              "SENTIMENT_CRASH_ACTIVATED",
+              new SentimentCrashActivatedData(sca.symbol().value(), sca.tierName()));
     };
   }
 
@@ -346,6 +350,8 @@ public class StockGameWebSocketAdapter {
   private record OrderActivityData(String symbol, int price, String side) {}
 
   private record SentimentBoostActivatedData(String symbol, String tierName) {}
+
+  private record SentimentCrashActivatedData(String symbol, String tierName) {}
 
   private record ErrorData(String code, String message) {}
 }
