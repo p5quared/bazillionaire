@@ -449,6 +449,19 @@
             background: #e0e0e0;
         }
 
+        @keyframes delist-flash {
+            0%   { background: #ffcccc; border-color: #d62828; box-shadow: 0 0 20px rgba(214,40,40,0.6); opacity: 1; }
+            40%  { background: #ffcccc; border-color: #d62828; box-shadow: 0 0 10px rgba(214,40,40,0.3); opacity: 0.9; }
+            100% { background: #e8e8e8; border-color: #999; box-shadow: none; opacity: 0.7; }
+        }
+
+        .ticker-card.ticker-card--delisting,
+        .ticker-card.ticker-card--delisting:hover {
+            animation: delist-flash 5s ease-out forwards;
+            z-index: 10;
+            position: relative;
+        }
+
         .ticker-card--delisted .ticker-card__symbol {
             color: #999;
         }

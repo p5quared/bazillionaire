@@ -670,6 +670,17 @@
         TICKER_DELISTED: function (data) {
             state.delistedSymbols[data.symbol] = true;
             updateTickerDelisted(data.symbol);
+            var card = tickerCardEls[data.symbol];
+            if (card) {
+                card.root.classList.remove('ticker-card--bubble-warning');
+                void card.root.offsetWidth;
+                card.root.classList.add('ticker-card--delisting');
+                card.root.addEventListener('animationend', function (e) {
+                    if (e.animationName === 'delist-flash') {
+                        card.root.classList.remove('ticker-card--delisting');
+                    }
+                }, { once: true });
+            }
             reorderTickerCards();
             updateHints();
             addNotification(data.symbol + " has been delisted!", "negative");
