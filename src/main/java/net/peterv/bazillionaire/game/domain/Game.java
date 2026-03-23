@@ -10,6 +10,7 @@ import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.order.Order;
+import net.peterv.bazillionaire.game.domain.order.OrderProcessingResult;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
 import net.peterv.bazillionaire.game.domain.powerup.CatchUpFreezeTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.DividendTrigger;
@@ -36,6 +37,7 @@ public class Game {
   private final List<GameMessage> pendingMessages = new ArrayList<>();
   private final PowerupManager powerupManager = new PowerupManager();
   private final LiquidityProvider liquidityProvider;
+  private final OrderProcessor orderProcessor;
   private final Set<PlayerId> readyPlayers = new HashSet<>();
   private final int totalDuration;
   private int tickCount = 0;
@@ -114,6 +116,7 @@ public class Game {
     this.market = market;
     this.totalDuration = totalDuration;
     this.liquidityProvider = liquidityProvider;
+    this.orderProcessor = new OrderProcessor(powerupManager, liquidityProvider);
   }
 
   public OrderResult placeOrder(Order order, PlayerId playerId) {
@@ -122,48 +125,13 @@ public class Game {
       return new OrderResult.InvalidOrder("Unknown player: " + playerId.value());
     }
 
-    Ticker ticker = market.getTicker(order.symbol());
-    if (ticker == null) {
-      return new OrderResult.InvalidOrder("Unknown symbol: " + order.symbol().value());
+    OrderProcessingResult result =
+        orderProcessor.process(order, playerId, player, market, currentTick());
+    result.messages().forEach(this::emit);
+    if (result.orderResult() instanceof OrderResult.Filled) {
+      emit(GameMessage.send(new GameEvent.PlayersState(playerPortfolios()), playerId));
     }
-    if (ticker.isDelisted()) {
-      return new OrderResult.Rejected("Ticker has been delisted");
-    }
-    OrderResult intercepted = powerupManager.checkInterceptors(order, playerId, ticker);
-    if (intercepted != null) {
-      String reason =
-          switch (intercepted) {
-            case OrderResult.Rejected r -> r.reason();
-            case OrderResult.InvalidOrder i -> i.reason();
-            case OrderResult.Filled f -> "Order intercepted";
-          };
-      emit(GameMessage.send(new GameEvent.OrderBlocked(playerId, order, reason), playerId));
-      return intercepted;
-    }
-
-    if (!liquidityProvider.canFill(playerId, order.symbol(), currentTick())) {
-      return new OrderResult.Rejected("Volume limit exceeded");
-    }
-
-    Money fillPrice = ticker.currentPrice();
-    OrderResult result = player.fill(order, fillPrice);
-
-    return switch (result) {
-      case OrderResult.Rejected r -> r;
-      case OrderResult.InvalidOrder i -> i;
-      case OrderResult.Filled f -> {
-        liquidityProvider.recordFill(playerId, order.symbol(), currentTick());
-        market.recordTrade(order.symbol(), currentTick(), 1);
-        String side = order instanceof Order.Buy ? "BUY" : "SELL";
-        emit(GameMessage.broadcast(new GameEvent.OrderActivity(order.symbol(), fillPrice, side)));
-        emit(
-            GameMessage.send(
-                new GameEvent.OrderFilled(order, playerId, f.fillPrice(), f.costBasis()),
-                playerId));
-        emit(GameMessage.send(new GameEvent.PlayersState(playerPortfolios()), playerId));
-        yield f;
-      }
-    };
+    return result.orderResult();
   }
 
   public void tick() {
@@ -255,7 +223,7 @@ public class Game {
     return market.currentPrices();
   }
 
-  public void addCashToPlayer(PlayerId playerId, Money amount) {
+  void addCashToPlayer(PlayerId playerId, Money amount) {
     Portfolio portfolio = players.get(playerId);
     if (portfolio != null) {
       portfolio.addCash(amount);
@@ -297,7 +265,7 @@ public class Game {
     return powerupManager.getInventory(playerId);
   }
 
-  public void emit(GameMessage message) {
+  void emit(GameMessage message) {
     pendingMessages.add(message);
   }
 
