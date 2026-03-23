@@ -682,6 +682,21 @@
                 addNotification(data.playerId + " received dividend from " + data.symbol, "neutral");
             }
         },
+        BUBBLE_WARNING: function (data) {
+            var card = tickerCardEls[data.symbol];
+            if (card) {
+                card.root.classList.remove('ticker-card--bubble-warning');
+                void card.root.offsetWidth;
+                card.root.classList.add('ticker-card--bubble-warning');
+                card.root.addEventListener('animationend', function (e) {
+                    if (e.animationName === 'bubble-flash') {
+                        card.root.classList.remove('ticker-card--bubble-warning');
+                    }
+                }, { once: true });
+            }
+            addNotification(data.symbol + ' is overheating!', 'negative');
+        },
+
         ERROR: function (data) {
             if (data.code === "ORDER_REJECTED") {
                 if (/frozen/i.test(data.message || "")) {

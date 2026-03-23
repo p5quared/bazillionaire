@@ -357,7 +357,7 @@
             box-sizing: border-box;
         }
 
-        .ticker-card:hover {
+        .ticker-card:hover:not(.ticker-card--bubble-warning) {
             background: #f5f5ff;
         }
 
@@ -461,6 +461,19 @@
         .holding--delisted {
             text-decoration: line-through;
             color: #999;
+        }
+
+        /* ---- bubble warning flash ---- */
+        .ticker-card.ticker-card--bubble-warning,
+        .ticker-card.ticker-card--bubble-warning:hover {
+            animation: bubble-flash 1.2s ease-in-out 3;
+            z-index: 10;
+            position: relative;
+        }
+
+        @keyframes bubble-flash {
+            0%, 100% { background: #ffffff; border-color: #111111; box-shadow: none; }
+            50% { background: #ffcccc; border-color: #d62828; box-shadow: 0 0 20px rgba(214,40,40,0.6); }
         }
     </style>
 </head>
