@@ -56,9 +56,9 @@ public class GameFactory {
     game.registerTrigger(new CatchUpFreezeTrigger(0.01, 15, random));
     game.registerTrigger(new DividendTrigger(20, initialPrice));
     game.registerTrigger(
-        new SentimentTrigger(0.03, random, SentimentTier.BOOST_MINOR, SentimentTier.BOOST_MAJOR));
+        new SentimentTrigger(0.0075, random, SentimentTier.BOOST_MINOR, SentimentTier.BOOST_MAJOR));
     game.registerTrigger(
-        new SentimentTrigger(0.03, random, SentimentTier.CRASH_MINOR, SentimentTier.CRASH_MAJOR));
+        new SentimentTrigger(0.0075, random, SentimentTier.CRASH_MINOR, SentimentTier.CRASH_MAJOR));
     game.emit(
         GameMessage.broadcast(new GameEvent.GameCreated(market.symbols(), market.marketCaps())));
     return game;
