@@ -708,6 +708,12 @@
             addNotification(data.symbol + ' is overheating!', 'negative');
         },
 
+        ORDER_BLOCKED: function (data) {
+            if (data.playerId === playerId) {
+                addNotification("Order blocked: " + data.reason, "negative");
+            }
+        },
+
         ERROR: function (data) {
             if (data.code === "ORDER_REJECTED") {
                 if (/frozen/i.test(data.message || "")) {
