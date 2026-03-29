@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{#insert title}Bazillionaire{/insert}</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="/css/style.css">
+    {#insert head}{/insert}
+</head>
+<body>
+    {#moneyBg /}
+    <div class="page {#insert pageClass}{/insert}">
+        <header class="masthead">
+            <div class="masthead-bulletin">The Journal of Speculative Finance</div>
+            <hr class="masthead-rule-top">
+            <div class="masthead-title">Bazillionaire</div>
+            <div class="masthead-subtitle">Est. 2025 &mdash; Where Fortunes Rise &amp; Fall</div>
+            <div class="masthead-meta">
+                <span class="edition">Vol. I, No. 1</span>
+                <span class="date" id="masthead-date"></span>
+                <span class="edition">Final Edition</span>
+            </div>
+            <hr class="masthead-rule-bottom">
+        </header>
+        <div class="page-inner">
+            {#insert navigation}{/insert}
+            {#insert content}{/insert}
+        </div>
+        <div class="page-footer">&mdash;&#9670;&mdash; &copy; Bazillionaire MMXXV &mdash;&#9670;&mdash;</div>
+    </div>
+    <script>
+    document.getElementById('masthead-date').textContent =
+        new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
+    {#insert scripts}{/insert}
+</body>
+</html>

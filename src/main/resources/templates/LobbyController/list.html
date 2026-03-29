@@ -1,73 +1,41 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Lobbies - Bazillionaire</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    {#moneyBg /}
-    <div class="page">
-        <header class="masthead">
-            <hr class="masthead-rule-top">
-            <div class="masthead-title">Bazillionaire</div>
-            <div class="masthead-meta">
-                <span class="edition">Vol. I, No. 1</span>
-                <span class="date" id="masthead-date"></span>
-                <span class="edition">Final Edition</span>
-            </div>
-            <hr class="masthead-rule-bottom">
-        </header>
-        <div class="page-inner">
-            <div class="nav">
-                <a href="/">Home</a>
-                <a href="/lobby" class="active">Lobbies</a>
-                <a href="/users">Players</a>
-            </div>
-            <h1>Trading Floor</h1>
-            <p class="byline">Where fortunes are made &amp; lost</p>
-            {#if flash:error}
-            <p class="error">{flash:error}</p>
-            {/if}
+{#include tags/page}
+{#title}Lobbies - Bazillionaire{/title}
+{#navigation}{#nav active="lobbies" /}{/navigation}
+{#content}
+    <h1>Trading Floor</h1>
+    <p class="byline">Where fortunes are made &amp; lost</p>
+    {#if flash:error}
+    <p class="error">{flash:error}</p>
+    {/if}
 
-            <h2>Create a Lobby</h2>
-            <form action="/lobby" method="post">
+    <h2>Create a Lobby</h2>
+    <form action="/lobby" method="post">
+        {#authenticityToken/}
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name">
+        <label for="maxPlayers">Max Players (1-16)</label>
+        <input type="number" id="maxPlayers" name="maxPlayers" min="1" max="16" value="8">
+        <button type="submit" class="btn">Create</button>
+    </form>
+
+    <h2>Open Lobbies</h2>
+    {#if lobbies.empty}
+    <p class="lead">No open lobbies at present. Be the first to start one.</p>
+    {#else}
+    <div class="listings">
+    {#for lobby in lobbies}
+        <div class="listing">
+            <div class="listing__name"><a href="/lobby/{lobby.id}">{lobby.name}</a></div>
+            <span class="status">{lobby.members.size}/{lobby.maxPlayers} players</span>
+            {#if !lobby.full}
+            <form action="/lobby/{lobby.id}/join" method="post" class="inline-form">
                 {#authenticityToken/}
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name">
-                <label for="maxPlayers">Max Players (1-16)</label>
-                <input type="number" id="maxPlayers" name="maxPlayers" min="1" max="16" value="8">
-                <button type="submit" class="btn">Create</button>
+                <button type="submit" class="btn btn-inline">Join</button>
             </form>
-
-            <h2>Open Lobbies</h2>
-            {#if lobbies.empty}
-            <p class="lead">No open lobbies at present. Be the first to start one.</p>
-            {#else}
-            <ul>
-            {#for lobby in lobbies}
-            <li>
-                <a href="/lobby/{lobby.id}">{lobby.name}</a>
-                <span class="status">{lobby.members.size}/{lobby.maxPlayers} players</span>
-                {#if !lobby.full}
-                <form action="/lobby/{lobby.id}/join" method="post" class="inline-form">
-                    {#authenticityToken/}
-                    <button type="submit" class="btn btn-inline">Join</button>
-                </form>
-                {/if}
-            </li>
-            {/for}
-            </ul>
             {/if}
         </div>
-        <div class="page-footer">&copy; Bazillionaire</div>
+    {/for}
     </div>
-    <script>
-    document.getElementById('masthead-date').textContent =
-        new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    </script>
-</body>
-</html>
+    {/if}
+{/content}
+{/include}

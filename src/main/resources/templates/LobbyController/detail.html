@@ -1,110 +1,81 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{lobby.name} - Bazillionaire</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    {#moneyBg /}
-    <div class="page">
-        <header class="masthead">
-            <hr class="masthead-rule-top">
-            <div class="masthead-title">Bazillionaire</div>
-            <div class="masthead-meta">
-                <span class="edition">Vol. I, No. 1</span>
-                <span class="date" id="masthead-date"></span>
-                <span class="edition">Final Edition</span>
-            </div>
-            <hr class="masthead-rule-bottom">
-        </header>
-        <div class="page-inner">
-            <div class="nav">
-                <a href="/">Home</a>
-                <a href="/lobby" class="active">Lobbies</a>
-                <a href="/users">Players</a>
-            </div>
-            <h1>{lobby.name}</h1>
-            <p class="byline">Status: {lobby.status}</p>
-            {#if flash:error}
-            <p class="error">{flash:error}</p>
-            {/if}
+{#include tags/page}
+{#title}{lobby.name} - Bazillionaire{/title}
+{#navigation}{#nav active="lobbies" /}{/navigation}
+{#content}
+    <h1>{lobby.name}</h1>
+    <p class="byline">Status: {lobby.status}</p>
+    {#if flash:error}
+    <p class="error">{flash:error}</p>
+    {/if}
 
-            <h2>Players ({lobby.members.size} / {lobby.maxPlayers})</h2>
-            <ul>
-            {#for member in lobby.members}
-            <li>{member.displayName}</li>
-            {/for}
-            </ul>
-
-            <div class="callout">Awaiting traders &mdash; {minPlayers} minimum to open the floor.</div>
-
-            <h2>Game Settings</h2>
-            {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
-            <form action="/lobby/{lobby.id}/settings" method="post">
-                {#authenticityToken/}
-                <label>Ticker Count</label>
-                <input type="number" name="tickerCount" value="{lobby.tickerCount}" min="1" required>
-                <label>Initial Balance ($)</label>
-                <input type="number" name="initialBalance" value="{lobby.initialBalanceDollars}" min="1" required>
-                <label>Initial Price ($)</label>
-                <input type="number" name="initialPrice" value="{lobby.initialPriceDollars}" min="1" required>
-                <label>Game Duration (seconds)</label>
-                <input type="number" name="gameDuration" value="{lobby.gameDurationSeconds}" min="1" required>
-                <button type="submit" class="btn btn-secondary">Save Settings</button>
-            </form>
-            <hr class="section-rule">
-            <form action="/lobby/{lobby.id}/start" method="post">
-                {#authenticityToken/}
-                <button type="submit" class="btn">Start Game</button>
-            </form>
-            <hr class="section-rule">
-            <form action="/lobby/{lobby.id}/leave" method="post">
-                {#authenticityToken/}
-                <button type="submit" class="btn btn-secondary">Leave</button>
-            </form>
-            <form action="/lobby/{lobby.id}/delete" method="post">
-                {#authenticityToken/}
-                <button type="submit" class="btn btn-danger">Delete Lobby</button>
-            </form>
-            {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember}
-            <ul>
-                <li>Ticker Count: {lobby.tickerCount}</li>
-                <li>Initial Balance: ${lobby.initialBalanceDollars}</li>
-                <li>Initial Price: ${lobby.initialPriceDollars}</li>
-                <li>Game Duration: {lobby.gameDurationSeconds}s</li>
-            </ul>
-            {#if !lobby.full}
-            <form action="/lobby/{lobby.id}/join" method="post">
-                {#authenticityToken/}
-                <button type="submit" class="btn">Join Lobby</button>
-            </form>
-            {/if}
-            {/if}
-        </div>
-        <div class="page-footer">&copy; Bazillionaire</div>
-
-        <div id="lobby-data" data-lobby-id="{lobby.id}"></div>
-        <script>
-        document.getElementById('masthead-date').textContent =
-            new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        (function() {
-            var el = document.getElementById('lobby-data');
-            var lobbyId = el.dataset.lobbyId;
-            setInterval(function() {
-                fetch('/lobby/' + lobbyId + '/status')
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        if (data.redirectUrl) {
-                            window.location.href = data.redirectUrl;
-                        }
-                    });
-            }, 2000);
-        })();
-        </script>
+    <h2>Players ({lobby.members.size} / {lobby.maxPlayers})</h2>
+    <div class="listings">
+    {#for member in lobby.members}
+        <div class="listing">{member.displayName}</div>
+    {/for}
     </div>
-</body>
-</html>
+
+    <div class="callout">Awaiting traders &mdash; {minPlayers} minimum to open the floor.</div>
+
+    <h2>Game Settings</h2>
+    {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
+    <form action="/lobby/{lobby.id}/settings" method="post">
+        {#authenticityToken/}
+        <label>Ticker Count</label>
+        <input type="number" name="tickerCount" value="{lobby.tickerCount}" min="1" required>
+        <label>Initial Balance ($)</label>
+        <input type="number" name="initialBalance" value="{lobby.initialBalanceDollars}" min="1" required>
+        <label>Initial Price ($)</label>
+        <input type="number" name="initialPrice" value="{lobby.initialPriceDollars}" min="1" required>
+        <label>Game Duration (seconds)</label>
+        <input type="number" name="gameDuration" value="{lobby.gameDurationSeconds}" min="1" required>
+        <button type="submit" class="btn btn-secondary">Save Settings</button>
+    </form>
+    <hr class="section-rule">
+    <form action="/lobby/{lobby.id}/start" method="post">
+        {#authenticityToken/}
+        <button type="submit" class="btn">Start Game</button>
+    </form>
+    <hr class="section-rule">
+    <form action="/lobby/{lobby.id}/leave" method="post">
+        {#authenticityToken/}
+        <button type="submit" class="btn btn-secondary">Leave</button>
+    </form>
+    <form action="/lobby/{lobby.id}/delete" method="post">
+        {#authenticityToken/}
+        <button type="submit" class="btn btn-danger">Delete Lobby</button>
+    </form>
+    {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember}
+    <div class="listings">
+        <div class="listing">Ticker Count: {lobby.tickerCount}</div>
+        <div class="listing">Initial Balance: ${lobby.initialBalanceDollars}</div>
+        <div class="listing">Initial Price: ${lobby.initialPriceDollars}</div>
+        <div class="listing">Game Duration: {lobby.gameDurationSeconds}s</div>
+    </div>
+    {#if !lobby.full}
+    <form action="/lobby/{lobby.id}/join" method="post">
+        {#authenticityToken/}
+        <button type="submit" class="btn">Join Lobby</button>
+    </form>
+    {/if}
+    {/if}
+{/content}
+{#scripts}
+    <div id="lobby-data" data-lobby-id="{lobby.id}"></div>
+    <script>
+    (function() {
+        var el = document.getElementById('lobby-data');
+        var lobbyId = el.dataset.lobbyId;
+        setInterval(function() {
+            fetch('/lobby/' + lobbyId + '/status')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    }
+                });
+        }, 2000);
+    })();
+    </script>
+{/scripts}
+{/include}

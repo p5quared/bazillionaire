@@ -1,0 +1,524 @@
+/* Bazillionaire — Trading Terminal */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+
+:root {
+    --game-bg: #f3f0eb;
+    --game-bg-warm: rgba(246, 226, 191, 0.45);
+    --game-fg: #111111;
+    --game-card-bg: #ffffff;
+    --game-border: #111111;
+    --game-gold: #b97814;
+    --game-green: #0a8f3f;
+    --game-red: #d62828;
+    --game-muted: #999;
+    --game-font: 'IBM Plex Mono', 'SFMono-Regular', 'SF Mono', Monaco, Consolas, monospace;
+    --game-font-headline: 'DM Serif Display', Georgia, serif;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, var(--game-bg-warm), transparent 32%),
+        linear-gradient(180deg, var(--game-bg) 0%, #ece8e0 100%);
+    color: var(--game-fg);
+    font-family: var(--game-font);
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+#game-data {
+    display: none;
+}
+
+/* ---- player bar ---- */
+#player-bar {
+    display: flex;
+    gap: 4px;
+    padding: 12px;
+}
+
+.player-box {
+    max-width: 180px;
+    flex: 1;
+    background: var(--game-card-bg);
+    border: 3px solid var(--game-border);
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.player-box--local {
+    border-color: var(--game-gold);
+    background: #fff8e6;
+}
+
+.player-box--frozen {
+    border-color: var(--game-red);
+    background: #ffeeee;
+}
+
+.player-box__name {
+    font-size: 12px;
+    color: var(--game-fg);
+}
+
+.player-box__cash {
+    font-size: 16px;
+    color: var(--game-fg);
+    margin-top: 2px;
+}
+
+.player-box__holdings {
+    font-size: 10px;
+    color: #555;
+    margin-top: 2px;
+}
+
+.player-box__inventory {
+    font-size: 9px;
+    color: var(--game-gold);
+    margin-top: 2px;
+}
+
+.player-box--drop-target {
+    outline: 3px dashed var(--game-gold);
+    outline-offset: -3px;
+    background: #fff8e6;
+}
+
+/* ---- game timer ---- */
+#game-timer {
+    font-size: 16px;
+    font-family: var(--game-font);
+    font-weight: 600;
+    color: var(--game-fg);
+    text-align: left;
+    padding: 4px 12px 6px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--game-border);
+    background: var(--game-card-bg);
+}
+
+#game-timer:empty {
+    display: none;
+}
+
+/* ---- powerup footer ---- */
+#powerup-footer {
+    border-top: 3px solid var(--game-border);
+    padding: 8px 12px;
+    background: #eae6dd;
+    flex-shrink: 0;
+    max-height: 30px;
+    clip-path: inset(0 0 -10px 0);
+    overflow: visible;
+    transition: max-height 0.25s ease;
+}
+
+#powerup-footer:hover,
+#powerup-footer.powerup-footer--expanded {
+    max-height: 160px;
+    clip-path: inset(-10px 0 -10px 0);
+}
+
+#powerup-footer__label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--game-font-headline);
+    font-size: 11px;
+    color: var(--game-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    cursor: default;
+}
+
+#powerup-footer__count {
+    display: none;
+    font-family: var(--game-font);
+    font-size: 9px;
+    font-weight: bold;
+    background: var(--game-gold);
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 8px;
+    animation: powerup-pulse 2s ease-in-out infinite;
+}
+
+#powerup-footer__count.visible {
+    display: inline-block;
+}
+
+@keyframes powerup-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+#powerup-tray {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 6px;
+}
+
+#powerup-desc {
+    font-size: 10px;
+    color: #777;
+    text-align: center;
+    min-height: 14px;
+    margin-bottom: 4px;
+}
+
+#powerup-desc:empty {
+    min-height: 0;
+    margin-bottom: 0;
+}
+
+.powerup-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 96px;
+    border: 2px solid var(--game-gold);
+    border-radius: 6px;
+    background: #fff8e6;
+    color: var(--game-fg);
+    font-family: inherit;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+    padding: 6px 4px;
+    box-sizing: border-box;
+}
+
+.powerup-card:hover, .powerup-card:focus {
+    background: #f5e6b8;
+    outline: none;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.powerup-card--targeted {
+    border-color: var(--game-red);
+    background: #ffeeee;
+}
+
+.powerup-card--targeted:hover, .powerup-card--targeted:focus {
+    background: #fdd;
+}
+
+.powerup-card--symbol {
+    border-color: var(--game-green);
+    background: #eafff2;
+}
+
+.powerup-card--symbol:hover, .powerup-card--symbol:focus {
+    background: #d4f5e0;
+}
+
+.powerup-card--symbol .powerup-card__badge {
+    background: var(--game-green);
+}
+
+.powerup-card--dragging {
+    opacity: 0.5;
+}
+
+.powerup-card__name {
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.powerup-card__badge {
+    font-size: 9px;
+    font-weight: bold;
+    background: var(--game-gold);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-top: 4px;
+}
+
+.powerup-card--targeted .powerup-card__badge {
+    background: var(--game-red);
+}
+
+.powerup-card__type {
+    font-size: 8px;
+    color: var(--game-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    position: absolute;
+    bottom: 4px;
+}
+
+/* ---- target picker ---- */
+.target-picker {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--game-card-bg);
+    border: 3px solid var(--game-border);
+    padding: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.target-picker__title {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.target-picker__btn {
+    padding: 6px 12px;
+    border: 2px solid var(--game-border);
+    background: var(--game-card-bg);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.target-picker__btn:hover {
+    background: #f5f5ff;
+}
+
+.target-picker__btn--cancel {
+    border-color: var(--game-muted);
+    color: var(--game-muted);
+}
+
+/* ---- notifications ---- */
+#notifications {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 50;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.notif {
+    border: 2px solid var(--game-border);
+    background: var(--game-card-bg);
+    padding: 4px 8px;
+    font-size: 11px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+.notif--positive {
+    border-color: var(--game-green);
+    background: #eafff2;
+}
+
+.notif--negative {
+    border-color: var(--game-red);
+    background: #ffeeee;
+}
+
+.notif--neutral {
+    border-color: var(--game-gold);
+    background: #fff8e6;
+}
+
+.notif--fading {
+    opacity: 0;
+}
+
+/* ---- ticker cards ---- */
+#ticker-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0 12px 12px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.ticker-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-height: 120px;
+    max-height: 180px;
+    background: var(--game-card-bg);
+    border: 3px solid var(--game-border);
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.ticker-card:hover:not(.ticker-card--bubble-warning) {
+    background: #f5f5ff;
+}
+
+.ticker-card--drop-target {
+    outline: 3px dashed var(--game-green);
+    outline-offset: -3px;
+    background: #eafff2;
+}
+
+.ticker-card__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+}
+
+.ticker-card__symbol {
+    font-family: var(--game-font-headline);
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--game-fg);
+}
+
+.ticker-card__market-cap {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--game-muted);
+    margin-top: 2px;
+    font-variant: small-caps;
+}
+
+.ticker-card__market-cap--startup {
+    color: var(--game-gold);
+}
+
+.ticker-card__market-cap--mid-cap {
+    color: #555;
+}
+
+.ticker-card__market-cap--blue-chip {
+    color: var(--game-green);
+}
+
+.ticker-card__price {
+    font-size: 40px;
+    font-family: var(--game-font);
+    color: var(--game-fg);
+    margin-top: 4px;
+}
+
+@keyframes flash-up {
+    from { color: var(--game-green); }
+    to { color: var(--game-fg); }
+}
+
+@keyframes flash-down {
+    from { color: var(--game-red); }
+    to { color: var(--game-fg); }
+}
+
+.price--up {
+    animation: flash-up 200ms ease-out forwards;
+}
+
+.price--down {
+    animation: flash-down 200ms ease-out forwards;
+}
+
+.ticker-card__sparkline {
+    flex: 1;
+    height: 100%;
+    min-height: 20px;
+}
+
+.ticker-card__hint {
+    font-size: 10px;
+    color: var(--game-muted);
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* ---- delisted ticker ---- */
+.ticker-card--delisted {
+    background: #e8e8e8;
+    border-color: var(--game-muted);
+    opacity: 0.7;
+}
+
+.ticker-card--delisted:hover {
+    background: #e0e0e0;
+}
+
+@keyframes delist-flash {
+    0%   { background: #ffcccc; border-color: var(--game-red); box-shadow: 0 0 20px rgba(214,40,40,0.6); opacity: 1; }
+    40%  { background: #ffcccc; border-color: var(--game-red); box-shadow: 0 0 10px rgba(214,40,40,0.3); opacity: 0.9; }
+    100% { background: #e8e8e8; border-color: var(--game-muted); box-shadow: none; opacity: 0.7; }
+}
+
+.ticker-card.ticker-card--delisting,
+.ticker-card.ticker-card--delisting:hover {
+    animation: delist-flash 5s ease-out forwards;
+    z-index: 10;
+    position: relative;
+}
+
+.ticker-card--delisted .ticker-card__symbol {
+    color: var(--game-muted);
+}
+
+.ticker-card--delisted .ticker-card__price {
+    color: var(--game-muted);
+    font-size: 24px;
+}
+
+.holding--delisted {
+    text-decoration: line-through;
+    color: var(--game-muted);
+}
+
+/* ---- bubble warning flash ---- */
+.ticker-card.ticker-card--bubble-warning,
+.ticker-card.ticker-card--bubble-warning:hover {
+    animation: bubble-flash 1.2s ease-in-out 3;
+    z-index: 10;
+    position: relative;
+}
+
+@keyframes bubble-flash {
+    0%, 100% { background: var(--game-card-bg); border-color: var(--game-border); box-shadow: none; }
+    50% { background: #ffcccc; border-color: var(--game-red); box-shadow: 0 0 20px rgba(214,40,40,0.6); }
+}
+
+/* ---- responsive ---- */
+@media (max-width: 600px) {
+    .player-box {
+        max-width: none;
+        flex: 1 1 calc(50% - 4px);
+    }
+    #player-bar {
+        flex-wrap: wrap;
+    }
+    .ticker-card__price {
+        font-size: 28px;
+    }
+    .ticker-card__info {
+        min-width: 80px;
+    }
+}

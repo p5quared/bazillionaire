@@ -1,56 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit User - Bazillionaire</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    {#moneyBg /}
-    <div class="page">
-        <header class="masthead">
-            <hr class="masthead-rule-top">
-            <div class="masthead-title">Bazillionaire</div>
-            <div class="masthead-meta">
-                <span class="edition">Vol. I, No. 1</span>
-                <span class="date" id="masthead-date"></span>
-                <span class="edition">Final Edition</span>
-            </div>
-            <hr class="masthead-rule-bottom">
-        </header>
-        <div class="page-inner">
-            <div class="nav">
-                <a href="/">Home</a>
-                <a href="/lobby">Lobbies</a>
-                <a href="/users" class="active">Players</a>
-            </div>
-            <h1>Edit Profile</h1>
-            {#if flash:error}
-            <p class="error">{flash:error}</p>
-            {/if}
+{#include tags/page}
+{#title}Edit User - Bazillionaire{/title}
+{#navigation}{#nav active="players" /}{/navigation}
+{#content}
+    <h1>Edit Profile</h1>
+    {#if flash:error}
+    <p class="error">{flash:error}</p>
+    {/if}
 
-            <form action="/users/{user.id}" method="post">
-                {#authenticityToken/}
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" value="{user.username}">
-                <button type="submit" class="btn">Save Changes</button>
-            </form>
+    <form action="/users/{user.id}" method="post">
+        {#authenticityToken/}
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{user.username}">
+        <button type="submit" class="btn">Save Changes</button>
+    </form>
 
-            <hr class="section-rule">
+    <hr class="section-rule">
 
-            <form action="/users/{user.id}/delete" method="post">
-                {#authenticityToken/}
-                <button type="submit" class="btn btn-danger">Delete Account</button>
-            </form>
-        </div>
-        <div class="page-footer">&copy; Bazillionaire</div>
-    </div>
-    <script>
-    document.getElementById('masthead-date').textContent =
-        new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    </script>
-</body>
-</html>
+    <form action="/users/{user.id}/delete" method="post">
+        {#authenticityToken/}
+        <button type="submit" class="btn btn-danger">Delete Account</button>
+    </form>
+{/content}
+{/include}
