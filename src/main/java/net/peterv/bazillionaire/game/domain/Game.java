@@ -5,28 +5,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderProcessingResult;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
-import net.peterv.bazillionaire.game.domain.powerup.CatchUpFreezeTrigger;
-import net.peterv.bazillionaire.game.domain.powerup.DividendTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.GameContext;
 import net.peterv.bazillionaire.game.domain.powerup.Powerup;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupEffect;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupManager;
 import net.peterv.bazillionaire.game.domain.powerup.PowerupTrigger;
-import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
-import net.peterv.bazillionaire.game.domain.powerup.SentimentTier;
-import net.peterv.bazillionaire.game.domain.powerup.SentimentTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.UsePowerupResult;
-import net.peterv.bazillionaire.game.domain.ticker.MarketCap;
 import net.peterv.bazillionaire.game.domain.ticker.Ticker;
-import net.peterv.bazillionaire.game.domain.ticker.regime.DefaultRegimeFactory;
-import net.peterv.bazillionaire.game.domain.ticker.regime.InfluencedRegimeFactory;
 import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
@@ -43,58 +34,6 @@ public class Game {
   private int tickCount = 0;
   private GameStatus status = GameStatus.PENDING;
 
-  public static Game create(
-      List<PlayerId> playerIds,
-      int tickerCount,
-      Money initialBalance,
-      Money initialPrice,
-      int totalDuration,
-      Random random) {
-    Map<PlayerId, Portfolio> players = new HashMap<>();
-    for (PlayerId id : playerIds) {
-      players.put(id, new Portfolio(initialBalance));
-    }
-
-    Map<Symbol, Ticker> tickers = new HashMap<>();
-    for (int i = 0; i < tickerCount; i++) {
-      Symbol symbol;
-      do {
-        symbol = randomSymbol(random);
-      } while (tickers.containsKey(symbol));
-      MarketCap cap = MarketCap.pick(random);
-      tickers.put(
-          symbol,
-          new Ticker(
-              new InfluencedRegimeFactory(new DefaultRegimeFactory(random, cap)),
-              initialPrice,
-              cap,
-              cap.createBubbleTracker(),
-              random));
-    }
-
-    Market market = new Market(tickers);
-    Game game = new Game(players, market, totalDuration, new TokenBucketLiquidityLimiter());
-    game.registerTrigger(new RandomTickTrigger(0.01, random));
-    game.registerTrigger(new CatchUpFreezeTrigger(0.02, 45, random));
-    game.registerTrigger(new DividendTrigger(20, initialPrice));
-    game.registerTrigger(
-        new SentimentTrigger(0.08, random, SentimentTier.BOOST_MINOR, SentimentTier.BOOST_MAJOR));
-    game.registerTrigger(
-        new SentimentTrigger(0.08, random, SentimentTier.CRASH_MINOR, SentimentTier.CRASH_MAJOR));
-    game.emit(
-        GameMessage.broadcast(new GameEvent.GameCreated(market.symbols(), market.marketCaps())));
-    return game;
-  }
-
-  private static Symbol randomSymbol(Random random) {
-    int length = 3 + random.nextInt(2);
-    StringBuilder sb = new StringBuilder(length);
-    for (int i = 0; i < length; i++) {
-      sb.append((char) ('A' + random.nextInt(26)));
-    }
-    return new Symbol(sb.toString());
-  }
-
   public Game(Map<PlayerId, Portfolio> players, Map<Symbol, Ticker> tickers, int totalDuration) {
     this(players, new Market(tickers), totalDuration, new TokenBucketLiquidityLimiter());
   }
@@ -107,7 +46,7 @@ public class Game {
     this(players, new Market(tickers), totalDuration, liquidityProvider);
   }
 
-  private Game(
+  Game(
       Map<PlayerId, Portfolio> players,
       Market market,
       int totalDuration,
@@ -223,14 +162,6 @@ public class Game {
     return market.currentPrices();
   }
 
-  void addCashToPlayer(PlayerId playerId, Money amount) {
-    Portfolio portfolio = players.get(playerId);
-    if (portfolio != null) {
-      portfolio.addCash(amount);
-      emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
-    }
-  }
-
   public void registerTrigger(PowerupTrigger trigger) {
     powerupManager.registerTrigger(trigger);
   }
@@ -239,22 +170,14 @@ public class Game {
     applyEffects(powerupManager.activate(powerup));
   }
 
-  public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, PlayerId target) {
-    return usePowerup(playerId, powerupName, 1, target);
-  }
-
   public UsePowerupResult usePowerup(
-      PlayerId playerId, String powerupName, int quantity, PlayerId target) {
-    UsePowerupResult result = powerupManager.usePowerup(playerId, powerupName, quantity, target);
-    if (result instanceof UsePowerupResult.Activated activated) {
-      applyEffects(activated.effects());
-    }
-    return result;
-  }
-
-  public UsePowerupResult usePowerup(PlayerId playerId, String powerupName, Symbol targetSymbol) {
+      PlayerId playerId,
+      String powerupName,
+      int quantity,
+      PlayerId targetPlayer,
+      Symbol targetSymbol) {
     UsePowerupResult result =
-        powerupManager.usePowerup(playerId, powerupName, 1, null, targetSymbol);
+        powerupManager.usePowerup(playerId, powerupName, quantity, targetPlayer, targetSymbol);
     if (result instanceof UsePowerupResult.Activated activated) {
       applyEffects(activated.effects());
     }
@@ -279,7 +202,13 @@ public class Game {
     for (PowerupEffect effect : effects) {
       switch (effect) {
         case PowerupEffect.Emit e -> emit(e.message());
-        case PowerupEffect.AddCash ac -> addCashToPlayer(ac.player(), ac.amount());
+        case PowerupEffect.AddCash ac -> {
+          Portfolio portfolio = players.get(ac.player());
+          if (portfolio != null) {
+            portfolio.addCash(ac.amount());
+            emit(GameMessage.broadcast(new GameEvent.PlayersState(playerPortfolios())));
+          }
+        }
         case PowerupEffect.InfluenceSentiment is ->
             market.influenceSentiment(is.symbol(), is.influence());
       }

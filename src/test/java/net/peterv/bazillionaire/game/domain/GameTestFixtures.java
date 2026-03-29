@@ -11,7 +11,7 @@ public final class GameTestFixtures {
 
   public static Game pendingGame(PlayerId... players) {
     Game game =
-        Game.create(
+        GameFactory.create(
             List.of(players),
             TICKER_COUNT,
             INITIAL_BALANCE,
@@ -28,7 +28,7 @@ public final class GameTestFixtures {
 
   public static Game startedGame(int duration, PlayerId... players) {
     Game game =
-        Game.create(
+        GameFactory.create(
             List.of(players),
             TICKER_COUNT,
             INITIAL_BALANCE,

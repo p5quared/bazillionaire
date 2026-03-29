@@ -2,6 +2,7 @@ package net.peterv.bazillionaire.game.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import net.peterv.bazillionaire.game.domain.Game;
+import net.peterv.bazillionaire.game.domain.GameFactory;
 import net.peterv.bazillionaire.game.port.in.CreateGameCommand;
 import net.peterv.bazillionaire.game.port.in.CreateGameUseCase;
 import net.peterv.bazillionaire.game.port.in.UseCaseResult;
@@ -18,7 +19,7 @@ public class CreateGameService implements CreateGameUseCase {
   @Override
   public UseCaseResult<Void> createGame(CreateGameCommand cmd) {
     Game game =
-        Game.create(
+        GameFactory.create(
             cmd.toPlayerIds(),
             cmd.tickerCount(),
             cmd.initialBalance(),
