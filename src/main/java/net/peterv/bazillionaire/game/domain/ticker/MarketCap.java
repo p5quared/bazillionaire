@@ -1,11 +1,20 @@
 package net.peterv.bazillionaire.game.domain.ticker;
 
 import java.util.Random;
+import net.peterv.bazillionaire.game.domain.types.Money;
 
 public enum MarketCap {
   STARTUP,
   MID_CAP,
   BLUE_CHIP;
+
+  public Money initialPrice() {
+    return switch (this) {
+      case STARTUP -> new Money(5_00);
+      case MID_CAP -> new Money(25_00);
+      case BLUE_CHIP -> new Money(250_00);
+    };
+  }
 
   public static MarketCap pick(Random random) {
     double roll = random.nextDouble();

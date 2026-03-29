@@ -32,7 +32,7 @@ class GameBubbleTest {
     Ticker ticker =
         new Ticker(
             new InfluencedRegimeFactory(new DefaultRegimeFactory(random, MarketCap.MID_CAP)),
-            INITIAL_PRICE,
+            MarketCap.MID_CAP.initialPrice(),
             MarketCap.MID_CAP,
             tracker,
             random);
@@ -81,7 +81,7 @@ class GameBubbleTest {
     Ticker ticker =
         new Ticker(
             new InfluencedRegimeFactory(new DefaultRegimeFactory(random, MarketCap.STARTUP)),
-            INITIAL_PRICE,
+            MarketCap.STARTUP.initialPrice(),
             MarketCap.STARTUP,
             tracker,
             random);
@@ -122,7 +122,7 @@ class GameBubbleTest {
     Ticker ticker =
         new Ticker(
             new InfluencedRegimeFactory(new DefaultRegimeFactory(random, MarketCap.STARTUP)),
-            INITIAL_PRICE,
+            MarketCap.STARTUP.initialPrice(),
             MarketCap.STARTUP,
             tracker,
             random);

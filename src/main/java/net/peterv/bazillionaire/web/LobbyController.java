@@ -111,16 +111,10 @@ public class LobbyController extends Controller {
       @PathParam("id") String id,
       @RestForm int tickerCount,
       @RestForm int initialBalance,
-      @RestForm int initialPrice,
       @RestForm int gameDuration) {
     try {
       lobbyService.updateSettings(
-          id,
-          currentSession.getUsername(),
-          tickerCount,
-          initialBalance * 100,
-          initialPrice * 100,
-          gameDuration);
+          id, currentSession.getUsername(), tickerCount, initialBalance * 100, gameDuration);
     } catch (LobbyNotFoundException e) {
       flash("error", "Lobby not found");
       throw redirect("/lobby");

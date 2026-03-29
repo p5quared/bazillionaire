@@ -25,8 +25,6 @@
         <input type="number" name="tickerCount" value="{lobby.tickerCount}" min="1" required>
         <label>Initial Balance ($)</label>
         <input type="number" name="initialBalance" value="{lobby.initialBalanceDollars}" min="1" required>
-        <label>Initial Price ($)</label>
-        <input type="number" name="initialPrice" value="{lobby.initialPriceDollars}" min="1" required>
         <label>Game Duration (seconds)</label>
         <input type="number" name="gameDuration" value="{lobby.gameDurationSeconds}" min="1" required>
         <button type="submit" class="btn btn-secondary">Save Settings</button>
@@ -49,7 +47,6 @@
     <div class="listings">
         <div class="listing">Ticker Count: {lobby.tickerCount}</div>
         <div class="listing">Initial Balance: ${lobby.initialBalanceDollars}</div>
-        <div class="listing">Initial Price: ${lobby.initialPriceDollars}</div>
         <div class="listing">Game Duration: {lobby.gameDurationSeconds}s</div>
     </div>
     {#if !lobby.full}

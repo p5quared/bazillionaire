@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class TickerTest {
 
-  private static final Money INITIAL_PRICE = new Money(100_00);
+  private static final Money INITIAL_PRICE = MarketCap.MID_CAP.initialPrice();
   private static final int TOTAL_DURATION = 200;
   private static final long SEED = 42L;
 

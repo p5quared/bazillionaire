@@ -56,13 +56,13 @@ public class DefaultRegimeFactory implements RegimeFactory {
         if (random.nextDouble() < 0.60) {
           // Explosive — startups boom hard
           int duration = 5 + random.nextInt(11);
-          double gain = 0.50 + random.nextDouble() * 1.00;
+          double gain = 0.30 + random.nextDouble() * 0.50;
           Money endPrice = scalePrice(startPrice, 1.0 + gain);
           double curvature = 2.0 + random.nextDouble() * 4.0;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
         } else {
           int duration = 15 + random.nextInt(16);
-          double gain = 0.15 + random.nextDouble() * 0.25;
+          double gain = 0.10 + random.nextDouble() * 0.15;
           Money endPrice = scalePrice(startPrice, 1.0 + gain);
           double steepness = 4.0 + random.nextDouble() * 6.0;
           yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
@@ -71,13 +71,13 @@ public class DefaultRegimeFactory implements RegimeFactory {
       case MID_CAP -> {
         if (random.nextDouble() < 0.30) {
           int duration = 8 + random.nextInt(13);
-          double gain = 0.35 + random.nextDouble() * 0.65;
+          double gain = 0.15 + random.nextDouble() * 0.25;
           Money endPrice = scalePrice(startPrice, 1.0 + gain);
           double curvature = 1.0 + random.nextDouble() * 4.0;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
         } else {
           int duration = 20 + random.nextInt(21);
-          double gain = 0.10 + random.nextDouble() * 0.20;
+          double gain = 0.08 + random.nextDouble() * 0.12;
           Money endPrice = scalePrice(startPrice, 1.0 + gain);
           double steepness = 4.0 + random.nextDouble() * 8.0;
           yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
@@ -87,14 +87,14 @@ public class DefaultRegimeFactory implements RegimeFactory {
         if (random.nextDouble() < 0.10) {
           // Rare explosive — blue chips rarely spike
           int duration = 12 + random.nextInt(14);
-          double gain = 0.15 + random.nextDouble() * 0.25;
+          double gain = 0.03 + random.nextDouble() * 0.07;
           Money endPrice = scalePrice(startPrice, 1.0 + gain);
           double curvature = 0.5 + random.nextDouble() * 2.0;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
         } else {
           // Slow, steady growth
           int duration = 30 + random.nextInt(31);
-          double gain = 0.05 + random.nextDouble() * 0.10;
+          double gain = 0.02 + random.nextDouble() * 0.04;
           Money endPrice = scalePrice(startPrice, 1.0 + gain);
           double steepness = 3.0 + random.nextDouble() * 5.0;
           yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
@@ -107,21 +107,21 @@ public class DefaultRegimeFactory implements RegimeFactory {
     return switch (marketCap) {
       case STARTUP -> {
         int duration = 8 + random.nextInt(13);
-        double gain = 0.80 + random.nextDouble() * 1.20;
+        double gain = 0.50 + random.nextDouble() * 0.50;
         Money endPrice = scalePrice(startPrice, 1.0 + gain);
         double curvature = 3.0 + random.nextDouble() * 4.0;
         yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
       }
       case MID_CAP -> {
         int duration = 10 + random.nextInt(16);
-        double gain = 0.60 + random.nextDouble() * 0.90;
+        double gain = 0.30 + random.nextDouble() * 0.30;
         Money endPrice = scalePrice(startPrice, 1.0 + gain);
         double curvature = 2.0 + random.nextDouble() * 4.0;
         yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
       }
       case BLUE_CHIP -> {
         int duration = 15 + random.nextInt(16);
-        double gain = 0.30 + random.nextDouble() * 0.50;
+        double gain = 0.08 + random.nextDouble() * 0.07;
         Money endPrice = scalePrice(startPrice, 1.0 + gain);
         double curvature = 1.0 + random.nextDouble() * 3.0;
         yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
@@ -149,7 +149,7 @@ public class DefaultRegimeFactory implements RegimeFactory {
       }
       case MID_CAP -> {
         int duration = 25 + random.nextInt(36);
-        double change = -0.08 + random.nextDouble() * 0.23;
+        double change = -0.06 + random.nextDouble() * 0.18;
         Money endPrice = scalePrice(startPrice, 1.0 + change);
         if (Math.abs(change) < 0.03) {
           int amplitudeCents =
@@ -165,7 +165,7 @@ public class DefaultRegimeFactory implements RegimeFactory {
       }
       case BLUE_CHIP -> {
         int duration = 40 + random.nextInt(41);
-        double change = -0.03 + random.nextDouble() * 0.11;
+        double change = -0.02 + random.nextDouble() * 0.06;
         Money endPrice = scalePrice(startPrice, 1.0 + change);
         if (Math.abs(change) < 0.02) {
           int amplitudeCents =
@@ -188,14 +188,14 @@ public class DefaultRegimeFactory implements RegimeFactory {
         if (random.nextDouble() < 0.50) {
           // Gradual decline
           int duration = 30 + random.nextInt(31);
-          double loss = 0.10 + random.nextDouble() * 0.20;
+          double loss = 0.10 + random.nextDouble() * 0.10;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double steepness = 4.0 + random.nextDouble() * 8.0;
           yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
         } else {
           // Steep crash — startups fall fast
           int duration = 5 + random.nextInt(8);
-          double loss = 0.25 + random.nextDouble() * 0.20;
+          double loss = 0.20 + random.nextDouble() * 0.15;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double curvature = 2.0 + random.nextDouble() * 4.0;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
@@ -204,13 +204,13 @@ public class DefaultRegimeFactory implements RegimeFactory {
       case MID_CAP -> {
         if (random.nextDouble() < 0.30) {
           int duration = 50 + random.nextInt(51);
-          double loss = 0.05 + random.nextDouble() * 0.15;
+          double loss = 0.05 + random.nextDouble() * 0.10;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double steepness = 4.0 + random.nextDouble() * 8.0;
           yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
         } else {
           int duration = 8 + random.nextInt(13);
-          double loss = 0.25 + random.nextDouble() * 0.25;
+          double loss = 0.15 + random.nextDouble() * 0.15;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double curvature = 1.0 + random.nextDouble() * 4.0;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);
@@ -220,13 +220,13 @@ public class DefaultRegimeFactory implements RegimeFactory {
         if (random.nextDouble() < 0.70) {
           // Mostly gradual — blue chips decline slowly
           int duration = 60 + random.nextInt(61);
-          double loss = 0.03 + random.nextDouble() * 0.07;
+          double loss = 0.02 + random.nextDouble() * 0.04;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double steepness = 4.0 + random.nextDouble() * 8.0;
           yield new LogisticRegimeStrategy(startPrice, endPrice, duration, steepness);
         } else {
           int duration = 15 + random.nextInt(16);
-          double loss = 0.10 + random.nextDouble() * 0.15;
+          double loss = 0.05 + random.nextDouble() * 0.07;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double curvature = 0.5 + random.nextDouble() * 2.5;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);

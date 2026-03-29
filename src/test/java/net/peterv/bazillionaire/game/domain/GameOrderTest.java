@@ -74,8 +74,9 @@ class GameOrderTest {
         GameEvent.PlayersState.class);
 
     var result = (OrderResult.Filled) game.placeOrder(new Order.Buy(symbol), PLAYER_1);
-    assertEquals(INITIAL_PRICE, result.fillPrice());
-    assertEquals(INITIAL_PRICE, result.costBasis());
+    Money expectedPrice = game.currentPrices().get(symbol);
+    assertEquals(expectedPrice, result.fillPrice());
+    assertEquals(expectedPrice, result.costBasis());
     game.drainMessages();
   }
 
@@ -84,7 +85,7 @@ class GameOrderTest {
     var game = startedGame(PLAYER_1);
     var symbol = anySymbol(game);
     // Buy until we run out of money
-    int maxBuys = INITIAL_BALANCE.cents() / INITIAL_PRICE.cents();
+    int maxBuys = INITIAL_BALANCE.cents() / game.currentPrices().get(symbol).cents();
     for (int i = 0; i < maxBuys; i++) {
       game.placeOrder(new Order.Buy(symbol), PLAYER_1);
       game.drainMessages();

@@ -11,12 +11,12 @@ import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public class DividendTrigger implements PowerupTrigger {
   private final int payoutInterval;
-  private final Money initialPrice;
+  private final Map<Symbol, Money> initialPrices;
   private final Map<PlayerId, Map<Symbol, Integer>> holdingSince = new HashMap<>();
 
-  public DividendTrigger(int payoutInterval, Money initialPrice) {
+  public DividendTrigger(int payoutInterval, Map<Symbol, Money> initialPrices) {
     this.payoutInterval = payoutInterval;
-    this.initialPrice = initialPrice;
+    this.initialPrices = Map.copyOf(initialPrices);
   }
 
   @Override
@@ -42,8 +42,10 @@ public class DividendTrigger implements PowerupTrigger {
         int holdDuration = context.currentTick() - since;
         DividendTier tier = DividendTier.highestQualifying(shares, holdDuration);
         if (tier != null) {
-          Money currentPrice = context.currentPrices().getOrDefault(symbol, initialPrice);
-          long blendedPriceCents = (initialPrice.cents() + currentPrice.cents()) / 2;
+          Money symbolInitialPrice = initialPrices.get(symbol);
+          if (symbolInitialPrice == null) continue;
+          Money currentPrice = context.currentPrices().getOrDefault(symbol, symbolInitialPrice);
+          long blendedPriceCents = (symbolInitialPrice.cents() + currentPrice.cents()) / 2;
           long payout = (long) tier.yieldBasisPoints() * blendedPriceCents * shares / 10000;
           Money payoutMoney = new Money((int) payout);
           awards.add(

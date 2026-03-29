@@ -76,17 +76,11 @@ class LobbyControllerTest {
   }
 
   private void updateSettings(
-      String token,
-      String lobbyId,
-      int tickerCount,
-      int initialBalance,
-      int initialPrice,
-      int gameDuration) {
+      String token, String lobbyId, int tickerCount, int initialBalance, int gameDuration) {
     given()
         .cookie("SESSION_TOKEN", token)
         .formParam("tickerCount", String.valueOf(tickerCount))
         .formParam("initialBalance", String.valueOf(initialBalance))
-        .formParam("initialPrice", String.valueOf(initialPrice))
         .formParam("gameDuration", String.valueOf(gameDuration))
         .redirects()
         .follow(false)
@@ -389,13 +383,12 @@ class LobbyControllerTest {
     String token = sessionCookie();
     String lobbyId = createLobby(token, "Settings Lobby");
 
-    updateSettings(token, lobbyId, 5, 2000, 200, 300);
+    updateSettings(token, lobbyId, 5, 2000, 300);
 
     checkGetLobby(token, lobbyId)
         .statusCode(200)
         .body(containsString("value=\"5\""))
         .body(containsString("value=\"2000\""))
-        .body(containsString("value=\"200\""))
         .body(containsString("value=\"300\""));
   }
 
@@ -405,7 +398,7 @@ class LobbyControllerTest {
     String bobToken = sessionCookie();
     String lobbyId = createLobby(aliceToken, "Settings Auth Lobby");
 
-    updateSettings(bobToken, lobbyId, 5, 2000, 200, 300);
+    updateSettings(bobToken, lobbyId, 5, 2000, 300);
   }
 
   @Test
@@ -417,7 +410,6 @@ class LobbyControllerTest {
         .statusCode(200)
         .body(containsString("value=\"3\""))
         .body(containsString("value=\"1000\""))
-        .body(containsString("value=\"100\""))
         .body(containsString("value=\"600\""));
   }
 
@@ -431,7 +423,6 @@ class LobbyControllerTest {
         .statusCode(200)
         .body(containsString("Ticker Count: 3"))
         .body(containsString("$1000"))
-        .body(containsString("$100"))
         .body(containsString("600s"));
   }
 
@@ -440,7 +431,7 @@ class LobbyControllerTest {
     String token = sessionCookie();
     String lobbyId = createLobby(token, "Persisted Start Lobby");
 
-    updateSettings(token, lobbyId, 3, 500, 50, 120);
+    updateSettings(token, lobbyId, 3, 500, 120);
 
     // Start without any settings params
     checkPost(token, lobbyId, "start", "/game/" + lobbyId);

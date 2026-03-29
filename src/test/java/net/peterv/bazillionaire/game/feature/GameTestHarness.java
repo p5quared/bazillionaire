@@ -40,8 +40,7 @@ public class GameTestHarness {
 
   private static final String DEFAULT_GAME_ID = "test-game";
   private static final int DEFAULT_TICKER_COUNT = 3;
-  private static final Money DEFAULT_INITIAL_BALANCE = new Money(100_000_00);
-  private static final Money DEFAULT_INITIAL_PRICE = new Money(100_00);
+  private static final Money DEFAULT_INITIAL_BALANCE = new Money(1_000_00);
   private static final int DEFAULT_DURATION = 1200;
   private static final long DEFAULT_SEED = 42L;
 
@@ -62,7 +61,6 @@ public class GameTestHarness {
       List<String> playerIds,
       int tickerCount,
       Money initialBalance,
-      Money initialPrice,
       int duration,
       long seed) {
     InMemoryGameRepository repository = new InMemoryGameRepository();
@@ -79,13 +77,7 @@ public class GameTestHarness {
     UseCaseResult<Void> createResult =
         createGame.createGame(
             new CreateGameCommand(
-                gameId,
-                playerIds,
-                tickerCount,
-                initialBalance,
-                initialPrice,
-                duration,
-                new Random(seed)));
+                gameId, playerIds, tickerCount, initialBalance, duration, new Random(seed)));
     allMessages.addAll(createResult.messages());
 
     this.symbols =
@@ -283,7 +275,6 @@ public class GameTestHarness {
     private List<String> playerIds = List.of("player1", "player2");
     private int tickerCount = DEFAULT_TICKER_COUNT;
     private Money initialBalance = DEFAULT_INITIAL_BALANCE;
-    private Money initialPrice = DEFAULT_INITIAL_PRICE;
     private int duration = DEFAULT_DURATION;
     private long seed = DEFAULT_SEED;
 
@@ -307,11 +298,6 @@ public class GameTestHarness {
       return this;
     }
 
-    public Builder initialPrice(Money initialPrice) {
-      this.initialPrice = initialPrice;
-      return this;
-    }
-
     public Builder duration(int duration) {
       this.duration = duration;
       return this;
@@ -323,8 +309,7 @@ public class GameTestHarness {
     }
 
     public GameTestHarness build() {
-      return new GameTestHarness(
-          gameId, playerIds, tickerCount, initialBalance, initialPrice, duration, seed);
+      return new GameTestHarness(gameId, playerIds, tickerCount, initialBalance, duration, seed);
     }
   }
 }

@@ -51,11 +51,10 @@ public class LobbyService {
       String actorId,
       int tickerCount,
       int initialBalanceCents,
-      int initialPriceCents,
       int gameDurationSeconds) {
     Lobby lobby = findLobbyOrThrow(lobbyId);
     requireMember(lobby, actorId);
-    lobby.updateSettings(tickerCount, initialBalanceCents, initialPriceCents, gameDurationSeconds);
+    lobby.updateSettings(tickerCount, initialBalanceCents, gameDurationSeconds);
   }
 
   @Transactional
@@ -70,7 +69,6 @@ public class LobbyService {
               lobby.members.stream().map(m -> m.playerId).toList(),
               lobby.tickerCount,
               new Money(lobby.initialBalanceCents),
-              new Money(lobby.initialPriceCents),
               lobby.gameDurationSeconds,
               new Random()));
     } catch (RuntimeException e) {

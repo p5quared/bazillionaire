@@ -127,17 +127,15 @@ class LobbyTest {
     var lobby = new Lobby();
     assertEquals(3, lobby.tickerCount);
     assertEquals(100_000, lobby.initialBalanceCents);
-    assertEquals(10_000, lobby.initialPriceCents);
     assertEquals(600, lobby.gameDurationSeconds);
   }
 
   @Test
   void updateSettings_changesValues() {
     var lobby = lobby(4);
-    lobby.updateSettings(5, 200_000, 20_000, 300);
+    lobby.updateSettings(5, 200_000, 300);
     assertEquals(5, lobby.tickerCount);
     assertEquals(200_000, lobby.initialBalanceCents);
-    assertEquals(20_000, lobby.initialPriceCents);
     assertEquals(300, lobby.gameDurationSeconds);
   }
 
@@ -146,7 +144,6 @@ class LobbyTest {
     var lobby = lobby(4);
     lobby.addMember("alice", "Alice");
     lobby.start();
-    assertThrows(
-        Lobby.LobbyNotOpenException.class, () -> lobby.updateSettings(5, 200_000, 20_000, 300));
+    assertThrows(Lobby.LobbyNotOpenException.class, () -> lobby.updateSettings(5, 200_000, 300));
   }
 }

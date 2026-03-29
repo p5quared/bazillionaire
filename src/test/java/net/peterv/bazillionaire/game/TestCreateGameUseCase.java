@@ -32,7 +32,6 @@ public class TestCreateGameUseCase implements CreateGameUseCase {
             cmd.toPlayerIds(),
             cmd.tickerCount(),
             cmd.initialBalance(),
-            cmd.initialPrice(),
             cmd.gameDuration(),
             cmd.random());
     gameRepository.saveGame(cmd.toGameId(), game);

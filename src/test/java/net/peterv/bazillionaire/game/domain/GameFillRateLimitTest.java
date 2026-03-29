@@ -1,18 +1,42 @@
 package net.peterv.bazillionaire.game.domain;
 
 import static net.peterv.bazillionaire.game.domain.GameTestDefaults.*;
-import static net.peterv.bazillionaire.game.domain.GameTestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+import java.util.Random;
 import net.peterv.bazillionaire.game.domain.order.Order;
 import net.peterv.bazillionaire.game.domain.order.OrderResult;
+import net.peterv.bazillionaire.game.domain.types.Money;
+import net.peterv.bazillionaire.game.domain.types.PlayerId;
+import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.Test;
 
 class GameFillRateLimitTest {
 
+  /** High balance so rate-limit tests aren't constrained by funds. */
+  private static final Money RATE_LIMIT_BALANCE = new Money(100_000_00);
+
+  private Game startedGameWithHighBalance(PlayerId... players) {
+    Game game =
+        GameFactory.create(
+            List.of(players), TICKER_COUNT, RATE_LIMIT_BALANCE, TOTAL_DURATION, new Random(SEED));
+    game.drainMessages();
+    for (PlayerId player : players) {
+      game.join(player);
+    }
+    game.start();
+    game.drainMessages();
+    return game;
+  }
+
+  private Symbol anySymbol(Game game) {
+    return game.currentPrices().keySet().iterator().next();
+  }
+
   @Test
   void fillsWithinCapAreFilled() {
-    var game = startedGame(PLAYER_1);
+    var game = startedGameWithHighBalance(PLAYER_1);
     var symbol = anySymbol(game);
     for (int i = 0; i < 25; i++) {
       var result = game.placeOrder(new Order.Buy(symbol), PLAYER_1);
@@ -23,7 +47,7 @@ class GameFillRateLimitTest {
 
   @Test
   void exceedingCapOnOneTickerRejectsButOtherTickersStillFillable() {
-    var game = startedGame(PLAYER_1);
+    var game = startedGameWithHighBalance(PLAYER_1);
     var symbols = game.currentPrices().keySet().stream().toList();
     var symbol1 = symbols.get(0);
     var symbol2 = symbols.get(1);
@@ -44,7 +68,7 @@ class GameFillRateLimitTest {
 
   @Test
   void buysAndSellsBothCountTowardCap() {
-    var game = startedGame(PLAYER_1);
+    var game = startedGameWithHighBalance(PLAYER_1);
     var symbol = anySymbol(game);
 
     for (int i = 0; i < 13; i++) {
@@ -63,7 +87,7 @@ class GameFillRateLimitTest {
 
   @Test
   void fillsAllowedAgainAfterTokensRefill() {
-    var game = startedGame(PLAYER_1);
+    var game = startedGameWithHighBalance(PLAYER_1);
     var symbol = anySymbol(game);
 
     for (int i = 0; i < 25; i++) {

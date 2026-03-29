@@ -12,12 +12,7 @@ public final class GameTestFixtures {
   public static Game pendingGame(PlayerId... players) {
     Game game =
         GameFactory.create(
-            List.of(players),
-            TICKER_COUNT,
-            INITIAL_BALANCE,
-            INITIAL_PRICE,
-            TOTAL_DURATION,
-            new Random(SEED));
+            List.of(players), TICKER_COUNT, INITIAL_BALANCE, TOTAL_DURATION, new Random(SEED));
     game.drainMessages();
     return game;
   }
@@ -29,12 +24,7 @@ public final class GameTestFixtures {
   public static Game startedGame(int duration, PlayerId... players) {
     Game game =
         GameFactory.create(
-            List.of(players),
-            TICKER_COUNT,
-            INITIAL_BALANCE,
-            INITIAL_PRICE,
-            duration,
-            new Random(SEED));
+            List.of(players), TICKER_COUNT, INITIAL_BALANCE, duration, new Random(SEED));
     game.drainMessages();
     for (PlayerId player : players) {
       game.join(player);

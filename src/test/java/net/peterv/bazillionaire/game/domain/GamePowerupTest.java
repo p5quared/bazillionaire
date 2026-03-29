@@ -153,7 +153,7 @@ class GamePowerupTest {
                 symbol,
                 new Ticker(
                     new DefaultRegimeFactory(new Random(SEED), MarketCap.MID_CAP),
-                    INITIAL_PRICE,
+                    MarketCap.MID_CAP.initialPrice(),
                     MarketCap.MID_CAP)),
             TOTAL_DURATION);
     game.start();
@@ -193,7 +193,7 @@ class GamePowerupTest {
                 symbol,
                 new Ticker(
                     new DefaultRegimeFactory(new Random(SEED), MarketCap.MID_CAP),
-                    INITIAL_PRICE,
+                    MarketCap.MID_CAP.initialPrice(),
                     MarketCap.MID_CAP)),
             TOTAL_DURATION);
     game.start();

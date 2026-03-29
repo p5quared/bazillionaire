@@ -11,7 +11,6 @@ public record CreateGameCommand(
     List<String> playerIds,
     int tickerCount,
     Money initialBalance,
-    Money initialPrice,
     int gameDuration,
     Random random) {
 

@@ -21,7 +21,8 @@ class DividendTriggerTest {
   private static final Symbol GOOG = new Symbol("GOOG");
   private static final Money INITIAL_PRICE = new Money(100_00);
 
-  private DividendTrigger trigger = new DividendTrigger(20, INITIAL_PRICE);
+  private DividendTrigger trigger =
+      new DividendTrigger(20, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE));
 
   private GameContext contextWithHoldings(
       int tick, PlayerId playerId, Map<Symbol, Integer> holdings) {
@@ -166,7 +167,8 @@ class DividendTriggerTest {
   void correctPayoutAmount() {
     // Tier 1: 500 basis points, $100.00 (10000 cents), 3 shares
     // payout = 500 * 10000 * 3 / 10000 = 1500 cents = $15.00
-    DividendTrigger mainTrigger = new DividendTrigger(20, INITIAL_PRICE);
+    DividendTrigger mainTrigger =
+        new DividendTrigger(20, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE));
     for (int tick = 0; tick < 160; tick++) {
       mainTrigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 3)));
     }
@@ -183,7 +185,8 @@ class DividendTriggerTest {
     // blended = (10000 + 20000) / 2 = 15000
     // payout = 500 * 15000 * 3 / 10000 = 2250 cents = $22.50
     Money highPrice = new Money(200_00);
-    DividendTrigger blendTrigger = new DividendTrigger(20, INITIAL_PRICE);
+    DividendTrigger blendTrigger =
+        new DividendTrigger(20, Map.of(AAPL, INITIAL_PRICE, GOOG, INITIAL_PRICE));
     Map<PlayerId, GameEvent.PlayerPortfolio> players = new HashMap<>();
     players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of(AAPL, 3)));
     for (int tick = 0; tick < 160; tick++) {

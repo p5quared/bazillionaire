@@ -25,7 +25,6 @@ public class GameFactory {
       List<PlayerId> playerIds,
       int tickerCount,
       Money initialBalance,
-      Money initialPrice,
       int totalDuration,
       Random random) {
     Map<PlayerId, Portfolio> players = new HashMap<>();
@@ -34,17 +33,20 @@ public class GameFactory {
     }
 
     Map<Symbol, Ticker> tickers = new HashMap<>();
+    Map<Symbol, Money> initialPrices = new HashMap<>();
     for (int i = 0; i < tickerCount; i++) {
       Symbol symbol;
       do {
         symbol = randomSymbol(random);
       } while (tickers.containsKey(symbol));
       MarketCap cap = MarketCap.pick(random);
+      Money price = cap.initialPrice();
+      initialPrices.put(symbol, price);
       tickers.put(
           symbol,
           new Ticker(
               new InfluencedRegimeFactory(new DefaultRegimeFactory(random, cap)),
-              initialPrice,
+              price,
               cap,
               cap.createBubbleTracker(),
               random));
@@ -54,7 +56,7 @@ public class GameFactory {
     Game game = new Game(players, market, totalDuration, new TokenBucketLiquidityLimiter());
     game.registerTrigger(new RandomTickTrigger(0.01, random));
     game.registerTrigger(new CatchUpFreezeTrigger(0.01, 15, random));
-    game.registerTrigger(new DividendTrigger(20, initialPrice));
+    game.registerTrigger(new DividendTrigger(20, initialPrices));
     game.registerTrigger(
         new SentimentTrigger(0.0075, random, SentimentTier.BOOST_MINOR, SentimentTier.BOOST_MAJOR));
     game.registerTrigger(
