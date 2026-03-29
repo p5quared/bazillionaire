@@ -14,7 +14,7 @@ public class Lobby extends PanacheEntityBase {
   public static final int DEFAULT_MAX = 8;
   public static final int MAX_HARD_CAP = 16;
 
-  public static final int DEFAULT_TICKER_COUNT = 2;
+  public static final int DEFAULT_TICKER_COUNT = 3;
   public static final int DEFAULT_INITIAL_BALANCE_CENTS = 100_000;
   public static final int DEFAULT_INITIAL_PRICE_CENTS = 10_000;
   public static final int DEFAULT_GAME_DURATION_SECONDS = 600;

@@ -1,12 +1,16 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
 import java.util.Comparator;
+import java.util.Map;
+import net.peterv.bazillionaire.game.domain.event.GameEvent;
+import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
+import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public final class PlayerRankingStrategy implements TargetingStrategy {
-  private final Comparator<Integer> comparator;
+  private final Comparator<Long> comparator;
 
-  private PlayerRankingStrategy(Comparator<Integer> comparator) {
+  private PlayerRankingStrategy(Comparator<Long> comparator) {
     this.comparator = comparator;
   }
 
@@ -21,16 +25,28 @@ public final class PlayerRankingStrategy implements TargetingStrategy {
   @Override
   public PlayerId selectTarget(GameContext context) {
     PlayerId selected = null;
-    int selectedBalance = 0;
+    long selectedNetWorth = 0;
 
     for (var entry : context.players().entrySet()) {
-      int balance = entry.getValue().cashBalance().cents();
-      if (selected == null || comparator.compare(balance, selectedBalance) < 0) {
-        selectedBalance = balance;
+      long netWorth = netWorth(entry.getValue(), context.currentPrices());
+      if (selected == null || comparator.compare(netWorth, selectedNetWorth) < 0) {
+        selectedNetWorth = netWorth;
         selected = entry.getKey();
       }
     }
 
     return selected;
+  }
+
+  private static long netWorth(
+      GameEvent.PlayerPortfolio portfolio, Map<Symbol, Money> currentPrices) {
+    long holdingsValue = 0;
+    for (var holding : portfolio.holdings().entrySet()) {
+      Money price = currentPrices.get(holding.getKey());
+      if (price != null) {
+        holdingsValue += (long) price.cents() * holding.getValue();
+      }
+    }
+    return portfolio.cashBalance().cents() + holdingsValue;
   }
 }

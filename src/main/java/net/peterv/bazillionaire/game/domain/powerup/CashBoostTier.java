@@ -3,8 +3,8 @@ package net.peterv.bazillionaire.game.domain.powerup;
 import net.peterv.bazillionaire.game.domain.types.Money;
 
 public enum CashBoostTier {
-  MINOR("Cash Boost", "Instant cash injection", new Money(500_00)),
-  MAJOR("Cash Boost (Major)", "Large cash injection", new Money(2000_00));
+  MINOR("Cash Boost", "Instant cash injection", new Money(100_00)),
+  MAJOR("Cash Boost (Major)", "Large cash injection", new Money(300_00));
 
   private final String displayName;
   private final String description;

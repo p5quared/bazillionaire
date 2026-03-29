@@ -66,7 +66,7 @@ public class DividendTrigger implements PowerupTrigger {
       for (var holdingEntry : portfolio.holdings().entrySet()) {
         Symbol symbol = holdingEntry.getKey();
         int shares = holdingEntry.getValue();
-        if (shares >= 5) {
+        if (shares >= 3) {
           playerHoldings.putIfAbsent(symbol, context.currentTick());
         } else {
           playerHoldings.remove(symbol);

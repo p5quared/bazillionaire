@@ -26,7 +26,7 @@ class CashBoostPowerupTest {
     assertEquals(1, effects.size());
     PowerupEffect.AddCash addCash = assertInstanceOf(PowerupEffect.AddCash.class, effects.get(0));
     assertEquals(player, addCash.player());
-    assertEquals(new Money(50000), addCash.amount());
+    assertEquals(new Money(10000), addCash.amount());
   }
 
   @Test
@@ -37,7 +37,7 @@ class CashBoostPowerupTest {
     game.activatePowerup(new CashBoostPowerup(player, CashBoostTier.MINOR));
 
     GameEvent.PlayerPortfolio portfolio = game.snapshot().players().get(player);
-    assertEquals(new Money(150000), portfolio.cashBalance());
+    assertEquals(new Money(110000), portfolio.cashBalance());
   }
 
   @Test

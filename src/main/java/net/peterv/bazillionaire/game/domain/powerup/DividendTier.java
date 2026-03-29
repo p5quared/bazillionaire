@@ -1,9 +1,9 @@
 package net.peterv.bazillionaire.game.domain.powerup;
 
 public enum DividendTier {
-  TIER_1("Tier 1", 5, 300, 500),
-  TIER_2("Tier 2", 10, 100, 750),
-  TIER_3("Tier 3", 15, 0, 1000);
+  TIER_1("Tier 1", 3, 150, 500),
+  TIER_2("Tier 2", 5, 60, 750),
+  TIER_3("Tier 3", 8, 0, 1000);
 
   private final String displayName;
   private final int requiredShares;

@@ -125,7 +125,7 @@ class LobbyTest {
   @Test
   void defaults_areSetCorrectly() {
     var lobby = new Lobby();
-    assertEquals(2, lobby.tickerCount);
+    assertEquals(3, lobby.tickerCount);
     assertEquals(100_000, lobby.initialBalanceCents);
     assertEquals(10_000, lobby.initialPriceCents);
     assertEquals(600, lobby.gameDurationSeconds);

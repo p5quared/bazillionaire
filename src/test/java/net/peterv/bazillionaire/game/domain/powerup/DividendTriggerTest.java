@@ -56,26 +56,26 @@ class DividendTriggerTest {
   }
 
   @Test
-  void noAwardWithLessThanFiveShares() {
+  void noAwardWithLessThanThreeShares() {
     for (int tick = 0; tick <= 400; tick++) {
-      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 4)));
+      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 2)));
     }
     List<AwardedPowerup> awards =
-        trigger.evaluate(contextWithHoldings(400, PLAYER_1, Map.of(AAPL, 4)));
+        trigger.evaluate(contextWithHoldings(400, PLAYER_1, Map.of(AAPL, 2)));
     assertTrue(awards.isEmpty());
   }
 
   @Test
-  void tier1AwardAfter300TickHoldWithFiveShares() {
+  void tier1AwardAfter150TickHoldWithThreeShares() {
     // Start holding at tick 0
-    trigger.evaluate(contextWithHoldings(0, PLAYER_1, Map.of(AAPL, 5)));
-    // Advance to tick 300 (hold duration = 300, which meets tier 1's 300 requirement)
-    for (int tick = 1; tick < 300; tick++) {
-      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 5)));
+    trigger.evaluate(contextWithHoldings(0, PLAYER_1, Map.of(AAPL, 3)));
+    // Advance to tick 160 (hold duration = 160, which meets tier 1's 150 requirement)
+    for (int tick = 1; tick < 160; tick++) {
+      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 3)));
     }
     List<AwardedPowerup> awards =
-        trigger.evaluate(contextWithHoldings(300, PLAYER_1, Map.of(AAPL, 5)));
-    // tick 300 is not a payout interval (300 % 20 == 0), so should get an award
+        trigger.evaluate(contextWithHoldings(160, PLAYER_1, Map.of(AAPL, 3)));
+    // tick 160 is a payout interval (160 % 20 == 0), so should get an award
     assertEquals(1, awards.size());
     DividendPowerup powerup = (DividendPowerup) awards.get(0).powerup();
     assertEquals(PLAYER_1, powerup.recipient());
@@ -85,14 +85,15 @@ class DividendTriggerTest {
 
   @Test
   void tier2InstantWhenHoldTimeCarriesOver() {
-    // Hold 5 shares starting at tick 0
-    trigger.evaluate(contextWithHoldings(0, PLAYER_1, Map.of(AAPL, 5)));
-    for (int tick = 1; tick < 100; tick++) {
-      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 5)));
+    // Hold 3 shares starting at tick 0
+    trigger.evaluate(contextWithHoldings(0, PLAYER_1, Map.of(AAPL, 3)));
+    for (int tick = 1; tick < 60; tick++) {
+      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 3)));
     }
-    // At tick 100, buy up to 10 shares — hold duration is 100 (meets tier 2's 100 requirement)
+    // At tick 60, buy up to 7 shares — hold duration is 60 (meets tier 2's 60 requirement)
+    // 7 shares < 8 (tier 3 min), so qualifies for tier 2
     List<AwardedPowerup> awards =
-        trigger.evaluate(contextWithHoldings(100, PLAYER_1, Map.of(AAPL, 10)));
+        trigger.evaluate(contextWithHoldings(60, PLAYER_1, Map.of(AAPL, 7)));
     assertEquals(1, awards.size());
     DividendPowerup powerup = (DividendPowerup) awards.get(0).powerup();
     assertEquals("Tier 2", powerup.tierName());
@@ -113,22 +114,22 @@ class DividendTriggerTest {
   }
 
   @Test
-  void holdTimerResetsWhenDroppingBelowFiveShares() {
-    // Hold 5 shares from tick 0 to tick 200
-    for (int tick = 0; tick <= 200; tick++) {
-      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 5)));
+  void holdTimerResetsWhenDroppingBelowThreeShares() {
+    // Hold 3 shares from tick 0 to tick 100
+    for (int tick = 0; tick <= 100; tick++) {
+      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 3)));
     }
-    // Drop below 5 at tick 201
-    trigger.evaluate(contextWithHoldings(201, PLAYER_1, Map.of(AAPL, 3)));
-    // Back to 5 at tick 202
-    trigger.evaluate(contextWithHoldings(202, PLAYER_1, Map.of(AAPL, 5)));
-    // At tick 300 (payout tick), hold duration from 202 is only 98 — not enough for tier 1 (needs
-    // 300)
-    for (int tick = 203; tick < 300; tick++) {
-      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 5)));
+    // Drop below 3 at tick 101
+    trigger.evaluate(contextWithHoldings(101, PLAYER_1, Map.of(AAPL, 2)));
+    // Back to 3 at tick 102
+    trigger.evaluate(contextWithHoldings(102, PLAYER_1, Map.of(AAPL, 3)));
+    // At tick 200 (payout tick), hold duration from 102 is only 98 — not enough for tier 1 (needs
+    // 150)
+    for (int tick = 103; tick < 200; tick++) {
+      trigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 3)));
     }
     List<AwardedPowerup> awards =
-        trigger.evaluate(contextWithHoldings(300, PLAYER_1, Map.of(AAPL, 5)));
+        trigger.evaluate(contextWithHoldings(200, PLAYER_1, Map.of(AAPL, 3)));
     assertTrue(awards.isEmpty());
   }
 
@@ -163,40 +164,29 @@ class DividendTriggerTest {
 
   @Test
   void correctPayoutAmount() {
-    // Tier 1: 500 basis points, initial price $1.00 (100 cents), 5 shares
-    // payout = 500 * 100 * 5 / 10000 = 25 cents = $0.25
-    Money cheapPrice = new Money(100);
-    DividendTrigger cheapTrigger = new DividendTrigger(20, cheapPrice);
-    GameContext ctx;
-    for (int tick = 0; tick <= 300; tick++) {
-      ctx = contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 5));
-      // Override initial price for this trigger
-      cheapTrigger.evaluate(ctx);
-    }
-    // Use the main trigger with $100 initial price instead
-    // Tier 1: 500 basis points, $100.00 (10000 cents), 5 shares
-    // payout = 500 * 10000 * 5 / 10000 = 2500 cents = $25.00
+    // Tier 1: 500 basis points, $100.00 (10000 cents), 3 shares
+    // payout = 500 * 10000 * 3 / 10000 = 1500 cents = $15.00
     DividendTrigger mainTrigger = new DividendTrigger(20, INITIAL_PRICE);
-    for (int tick = 0; tick < 300; tick++) {
-      mainTrigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 5)));
+    for (int tick = 0; tick < 160; tick++) {
+      mainTrigger.evaluate(contextWithHoldings(tick, PLAYER_1, Map.of(AAPL, 3)));
     }
     List<AwardedPowerup> awards =
-        mainTrigger.evaluate(contextWithHoldings(300, PLAYER_1, Map.of(AAPL, 5)));
+        mainTrigger.evaluate(contextWithHoldings(160, PLAYER_1, Map.of(AAPL, 3)));
     assertEquals(1, awards.size());
     DividendPowerup powerup = (DividendPowerup) awards.get(0).powerup();
-    assertEquals(new Money(2500), powerup.payoutAmount());
+    assertEquals(new Money(1500), powerup.payoutAmount());
   }
 
   @Test
   void payoutBlendsInitialAndCurrentPrice() {
-    // Tier 1: 500 basis points, initial=$100 (10000c), current=$200 (20000c), 5 shares
+    // Tier 1: 500 basis points, initial=$100 (10000c), current=$200 (20000c), 3 shares
     // blended = (10000 + 20000) / 2 = 15000
-    // payout = 500 * 15000 * 5 / 10000 = 3750 cents = $37.50
+    // payout = 500 * 15000 * 3 / 10000 = 2250 cents = $22.50
     Money highPrice = new Money(200_00);
     DividendTrigger blendTrigger = new DividendTrigger(20, INITIAL_PRICE);
     Map<PlayerId, GameEvent.PlayerPortfolio> players = new HashMap<>();
-    players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of(AAPL, 5)));
-    for (int tick = 0; tick < 300; tick++) {
+    players.put(PLAYER_1, new GameEvent.PlayerPortfolio(new Money(100_000_00), Map.of(AAPL, 3)));
+    for (int tick = 0; tick < 160; tick++) {
       blendTrigger.evaluate(
           new GameContext(
               tick, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of(), Set.of()));
@@ -204,10 +194,10 @@ class DividendTriggerTest {
     List<AwardedPowerup> awards =
         blendTrigger.evaluate(
             new GameContext(
-                300, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of(), Set.of()));
+                160, players, Map.of(AAPL, highPrice, GOOG, INITIAL_PRICE), List.of(), Set.of()));
     assertEquals(1, awards.size());
     DividendPowerup powerup = (DividendPowerup) awards.get(0).powerup();
-    assertEquals(new Money(3750), powerup.payoutAmount());
+    assertEquals(new Money(2250), powerup.payoutAmount());
   }
 
   @Test

@@ -415,7 +415,7 @@ class LobbyControllerTest {
 
     checkGetLobby(token, lobbyId)
         .statusCode(200)
-        .body(containsString("value=\"2\""))
+        .body(containsString("value=\"3\""))
         .body(containsString("value=\"1000\""))
         .body(containsString("value=\"100\""))
         .body(containsString("value=\"600\""));
@@ -429,7 +429,7 @@ class LobbyControllerTest {
 
     checkGetLobby(bobToken, lobbyId)
         .statusCode(200)
-        .body(containsString("Ticker Count: 2"))
+        .body(containsString("Ticker Count: 3"))
         .body(containsString("$1000"))
         .body(containsString("$100"))
         .body(containsString("600s"));

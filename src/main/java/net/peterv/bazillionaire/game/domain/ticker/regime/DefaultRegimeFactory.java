@@ -185,8 +185,8 @@ public class DefaultRegimeFactory implements RegimeFactory {
   private RegimeStrategy createBearRegime(Money startPrice) {
     return switch (marketCap) {
       case STARTUP -> {
-        if (random.nextDouble() < 0.15) {
-          // Rare gradual decline
+        if (random.nextDouble() < 0.50) {
+          // Gradual decline
           int duration = 30 + random.nextInt(31);
           double loss = 0.10 + random.nextDouble() * 0.20;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
@@ -195,7 +195,7 @@ public class DefaultRegimeFactory implements RegimeFactory {
         } else {
           // Steep crash — startups fall fast
           int duration = 5 + random.nextInt(8);
-          double loss = 0.35 + random.nextDouble() * 0.25;
+          double loss = 0.25 + random.nextDouble() * 0.20;
           Money endPrice = scalePrice(startPrice, 1.0 - loss);
           double curvature = 2.0 + random.nextDouble() * 4.0;
           yield new ExponentialRegimeStrategy(startPrice, endPrice, duration, curvature);

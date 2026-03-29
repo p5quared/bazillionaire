@@ -9,8 +9,8 @@ public enum MarketCap {
 
   public static MarketCap pick(Random random) {
     double roll = random.nextDouble();
-    if (roll < 0.60) return STARTUP;
-    if (roll < 0.90) return MID_CAP;
+    if (roll < 0.40) return STARTUP;
+    if (roll < 0.80) return MID_CAP;
     return BLUE_CHIP;
   }
 
