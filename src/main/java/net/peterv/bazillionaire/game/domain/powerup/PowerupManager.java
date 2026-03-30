@@ -76,9 +76,11 @@ public class PowerupManager {
       }
       owned.remove(match);
       allEffects.addAll(activate(match));
-      allEffects.add(
-          new PowerupEffect.Emit(
-              GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName))));
+      if (match.broadcastsActivation()) {
+        allEffects.add(
+            new PowerupEffect.Emit(
+                GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName))));
+      }
     }
     return new UsePowerupResult.Activated(allEffects);
   }
@@ -113,6 +115,19 @@ public class PowerupManager {
       }
     }
     return effects;
+  }
+
+  public DarkPoolPowerup getActiveDarkPool(PlayerId playerId, Symbol symbol) {
+    return activePowerups.stream()
+        .filter(
+            p ->
+                p instanceof DarkPoolPowerup dp
+                    && dp.owner().equals(playerId)
+                    && dp.appliesTo(symbol)
+                    && dp.hasTokens())
+        .map(p -> (DarkPoolPowerup) p)
+        .findFirst()
+        .orElse(null);
   }
 
   /**

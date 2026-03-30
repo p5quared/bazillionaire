@@ -7,6 +7,7 @@ import java.util.Random;
 import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.powerup.CatchUpFreezeTrigger;
+import net.peterv.bazillionaire.game.domain.powerup.DarkPoolTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.DividendTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.RandomTickTrigger;
 import net.peterv.bazillionaire.game.domain.powerup.SentimentTier;
@@ -61,6 +62,7 @@ public class GameFactory {
         new SentimentTrigger(0.0075, random, SentimentTier.BOOST_MINOR, SentimentTier.BOOST_MAJOR));
     game.registerTrigger(
         new SentimentTrigger(0.0075, random, SentimentTier.CRASH_MINOR, SentimentTier.CRASH_MAJOR));
+    game.registerTrigger(new DarkPoolTrigger(0.01, random));
     game.emit(
         GameMessage.broadcast(new GameEvent.GameCreated(market.symbols(), market.marketCaps())));
     return game;

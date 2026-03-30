@@ -23,6 +23,10 @@ public abstract class Powerup {
 
   public void setSymbolTarget(Symbol target) {}
 
+  public boolean broadcastsActivation() {
+    return true;
+  }
+
   public List<PowerupEffect> onActivate() {
     return List.of();
   }

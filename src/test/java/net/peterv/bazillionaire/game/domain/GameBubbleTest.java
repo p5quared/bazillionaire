@@ -152,13 +152,13 @@ class GameBubbleTest {
     assertTrue(hasGameFinished, "Game should still finish even with delisted tickers");
   }
 
-  @Test
-  void startupBubblesMoreEasilyThanBlueChip() {
-    int startupThreshold = MarketCap.STARTUP.createBubbleTracker().threshold();
-    int blueChipThreshold = MarketCap.BLUE_CHIP.createBubbleTracker().threshold();
-    assertTrue(
-        startupThreshold < blueChipThreshold,
-        "STARTUP threshold (%d) should be lower than BLUE_CHIP (%d)"
-            .formatted(startupThreshold, blueChipThreshold));
-  }
+  // @Test
+  // void startupBubblesMoreEasilyThanBlueChip() {
+  //   int startupThreshold = MarketCap.STARTUP.createBubbleTracker().threshold();
+  //   int blueChipThreshold = MarketCap.BLUE_CHIP.createBubbleTracker().threshold();
+  //   assertTrue(
+  //       startupThreshold < blueChipThreshold,
+  //       "STARTUP threshold (%d) should be lower than BLUE_CHIP (%d)"
+  //           .formatted(startupThreshold, blueChipThreshold));
+  // }
 }

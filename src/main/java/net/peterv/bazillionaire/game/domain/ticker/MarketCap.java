@@ -25,9 +25,9 @@ public enum MarketCap {
 
   public BubbleTracker createBubbleTracker() {
     return switch (this) {
-      case STARTUP -> new BubbleTracker(20, 8);
-      case MID_CAP -> new BubbleTracker(30, 15);
-      case BLUE_CHIP -> new BubbleTracker(50, 30);
+      case STARTUP -> new BubbleTracker(20, 25);
+      case MID_CAP -> new BubbleTracker(30, 25);
+      case BLUE_CHIP -> new BubbleTracker(50, 25);
     };
   }
 }

@@ -28,7 +28,9 @@ public sealed interface GameEvent
         GameEvent.SentimentBoostActivated,
         GameEvent.SentimentCrashActivated,
         GameEvent.BubbleWarning,
-        GameEvent.TickerDelisted {
+        GameEvent.TickerDelisted,
+        GameEvent.DarkPoolActivated,
+        GameEvent.DarkPoolExpired {
   record OrderFilled(Order order, PlayerId playerId, Money fillPrice, Money costBasis)
       implements GameEvent {}
 
@@ -76,7 +78,8 @@ public sealed interface GameEvent
 
   record OrderBlocked(PlayerId playerId, Order order, String reason) implements GameEvent {}
 
-  record OrderActivity(Symbol symbol, Money price, String side) implements GameEvent {}
+  record OrderActivity(Symbol symbol, Money price, String side, boolean darkPool)
+      implements GameEvent {}
 
   record SentimentBoostActivated(Symbol symbol, String tierName) implements GameEvent {}
 
@@ -85,4 +88,10 @@ public sealed interface GameEvent
   record BubbleWarning(Symbol symbol, int bubbleFactor, int threshold) implements GameEvent {}
 
   record TickerDelisted(Symbol symbol) implements GameEvent {}
+
+  record DarkPoolActivated(
+      PlayerId player, String tierName, Symbol targetSymbol, int tokens, int ticks)
+      implements GameEvent {}
+
+  record DarkPoolExpired(PlayerId player) implements GameEvent {}
 }

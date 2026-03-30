@@ -84,7 +84,8 @@ public class GameEventSerializer {
       case GameEvent.OrderActivity oa ->
           new ServerMessage(
               "ORDER_ACTIVITY",
-              new OrderActivityData(oa.symbol().value(), oa.price().cents(), oa.side()));
+              new OrderActivityData(
+                  oa.symbol().value(), oa.price().cents(), oa.side(), oa.darkPool()));
       case GameEvent.OrderBlocked ob -> {
         Order order = ob.order();
         String side = order instanceof Order.Buy ? "BUY" : "SELL";
@@ -106,6 +107,17 @@ public class GameEventSerializer {
               new BubbleWarningData(bw.symbol().value(), bw.bubbleFactor(), bw.threshold()));
       case GameEvent.TickerDelisted td ->
           new ServerMessage("TICKER_DELISTED", new TickerDelistedData(td.symbol().value()));
+      case GameEvent.DarkPoolActivated dp ->
+          new ServerMessage(
+              "DARK_POOL_ACTIVATED",
+              new DarkPoolActivatedData(
+                  dp.player().value(),
+                  dp.tierName(),
+                  dp.targetSymbol() != null ? dp.targetSymbol().value() : null,
+                  dp.tokens(),
+                  dp.ticks()));
+      case GameEvent.DarkPoolExpired dp ->
+          new ServerMessage("DARK_POOL_EXPIRED", new DarkPoolExpiredData(dp.player().value()));
     };
   }
 
@@ -166,7 +178,7 @@ public class GameEventSerializer {
 
   record OrderBlockedData(String playerId, String symbol, String side, String reason) {}
 
-  record OrderActivityData(String symbol, int price, String side) {}
+  record OrderActivityData(String symbol, int price, String side, boolean darkPool) {}
 
   record SentimentBoostActivatedData(String symbol, String tierName) {}
 
@@ -175,4 +187,9 @@ public class GameEventSerializer {
   record BubbleWarningData(String symbol, int bubbleFactor, int threshold) {}
 
   record TickerDelistedData(String symbol) {}
+
+  record DarkPoolActivatedData(
+      String player, String tierName, String targetSymbol, int tokens, int ticks) {}
+
+  record DarkPoolExpiredData(String player) {}
 }
