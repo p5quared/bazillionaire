@@ -75,4 +75,34 @@ class TokenBucketLiquidityLimiterTest {
     }
     assertFalse(limiter.canFill(PLAYER_1, AAPL, 1000), "Should not exceed max tokens");
   }
+
+  @Test
+  void remainingTokensStartsAtMax() {
+    var limiter = new TokenBucketLiquidityLimiter(25, 5);
+    assertEquals(25, limiter.remainingTokens(PLAYER_1, AAPL));
+  }
+
+  @Test
+  void remainingTokensDecreasesAfterFill() {
+    var limiter = new TokenBucketLiquidityLimiter(25, 5);
+    limiter.recordFill(PLAYER_1, AAPL, 0);
+    assertEquals(24, limiter.remainingTokens(PLAYER_1, AAPL));
+  }
+
+  @Test
+  void remainingTokensIncreasesAfterRefill() {
+    var limiter = new TokenBucketLiquidityLimiter(25, 5);
+    for (int i = 0; i < 25; i++) {
+      limiter.recordFill(PLAYER_1, AAPL, 0);
+    }
+    assertEquals(0, limiter.remainingTokens(PLAYER_1, AAPL));
+    limiter.onTick(5);
+    assertEquals(1, limiter.remainingTokens(PLAYER_1, AAPL));
+  }
+
+  @Test
+  void maxTokensReturnsConfiguredValue() {
+    var limiter = new TokenBucketLiquidityLimiter(30, 5);
+    assertEquals(30, limiter.maxTokens());
+  }
 }

@@ -458,6 +458,36 @@ body {
     to { color: var(--game-fg); }
 }
 
+/* ---- liquidity gauge ---- */
+.ticker-card__liquidity {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.ticker-card__liquidity-track {
+    width: 50px;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.ticker-card__liquidity-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--game-green);
+    border-radius: 3px;
+}
+
+.ticker-card__liquidity-label {
+    font-size: 9px;
+    color: var(--game-muted);
+    font-family: var(--game-font);
+    min-width: 30px;
+}
+
 .price--up {
     animation: flash-up 200ms ease-out forwards;
 }

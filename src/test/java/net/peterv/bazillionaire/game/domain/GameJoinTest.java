@@ -41,7 +41,13 @@ class GameJoinTest {
   @Test
   void joinAfterGameStartedReturnsGameInProgress() {
     var game = startedGame(PLAYER_1, PLAYER_2);
-    check(game, PLAYER_1, JoinResult.GameInProgress.class, GameEvent.GameState.class);
+    check(
+        game,
+        PLAYER_1,
+        JoinResult.GameInProgress.class,
+        GameEvent.GameState.class,
+        GameEvent.MarketIndicators.class,
+        GameEvent.LiquidityUpdate.class);
   }
 
   @Test

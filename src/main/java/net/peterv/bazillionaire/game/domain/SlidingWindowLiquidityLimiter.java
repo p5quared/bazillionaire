@@ -40,6 +40,17 @@ public class SlidingWindowLiquidityLimiter implements LiquidityProvider {
         .forEach(symbolMap -> symbolMap.values().forEach(deque -> pruneDeque(deque, currentTick)));
   }
 
+  @Override
+  public int remainingTokens(PlayerId playerId, Symbol symbol) {
+    Deque<Integer> history = getHistory(playerId, symbol);
+    return Math.max(0, maxFills - history.size());
+  }
+
+  @Override
+  public int maxTokens() {
+    return maxFills;
+  }
+
   private Deque<Integer> getHistory(PlayerId playerId, Symbol symbol) {
     return fillHistory
         .computeIfAbsent(playerId, k -> new HashMap<>())

@@ -78,6 +78,19 @@ public class Market {
     }
   }
 
+  public Map<Symbol, GameEvent.BubbleIndicator> bubbleIndicators() {
+    Map<Symbol, GameEvent.BubbleIndicator> result = new HashMap<>();
+    tickers.forEach(
+        (symbol, ticker) -> {
+          if (!ticker.isDelisted()) {
+            result.put(
+                symbol,
+                new GameEvent.BubbleIndicator(ticker.bubbleFactor(), ticker.bubbleThreshold()));
+          }
+        });
+    return result;
+  }
+
   public List<GameMessage> evaluateBubbles(int currentTick) {
     List<GameMessage> messages = new ArrayList<>();
     tickers.forEach(

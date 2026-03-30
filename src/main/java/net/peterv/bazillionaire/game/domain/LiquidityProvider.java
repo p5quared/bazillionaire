@@ -9,4 +9,8 @@ public interface LiquidityProvider {
   void recordFill(PlayerId playerId, Symbol symbol, int currentTick);
 
   void onTick(int currentTick);
+
+  int remainingTokens(PlayerId playerId, Symbol symbol);
+
+  int maxTokens();
 }

@@ -49,6 +49,16 @@ public class TokenBucketLiquidityLimiter implements LiquidityProvider {
     lastTick = currentTick;
   }
 
+  @Override
+  public int remainingTokens(PlayerId playerId, Symbol symbol) {
+    return (int) getBucket(playerId, symbol);
+  }
+
+  @Override
+  public int maxTokens() {
+    return maxTokens;
+  }
+
   private double getBucket(PlayerId playerId, Symbol symbol) {
     return buckets
         .computeIfAbsent(playerId, k -> new HashMap<>())

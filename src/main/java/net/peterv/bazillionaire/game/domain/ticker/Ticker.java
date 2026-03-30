@@ -104,4 +104,12 @@ public class Ticker {
   public BubbleState bubbleState() {
     return bubbleTracker.state();
   }
+
+  public int bubbleFactor() {
+    return bubbleTracker.bubbleFactor();
+  }
+
+  public int bubbleThreshold() {
+    return bubbleTracker.threshold();
+  }
 }

@@ -118,6 +118,22 @@ public class GameEventSerializer {
                   dp.ticks()));
       case GameEvent.DarkPoolExpired dp ->
           new ServerMessage("DARK_POOL_EXPIRED", new DarkPoolExpiredData(dp.player().value()));
+      case GameEvent.MarketIndicators mi -> {
+        Map<String, BubbleIndicatorData> bubbles = new LinkedHashMap<>();
+        mi.bubbles()
+            .forEach(
+                (sym, b) ->
+                    bubbles.put(sym.value(), new BubbleIndicatorData(b.factor(), b.threshold())));
+        yield new ServerMessage("MARKET_INDICATORS", new MarketIndicatorsData(bubbles));
+      }
+      case GameEvent.LiquidityUpdate lu -> {
+        Map<String, LiquidityInfoData> liquidity = new LinkedHashMap<>();
+        lu.liquidity()
+            .forEach(
+                (sym, l) ->
+                    liquidity.put(sym.value(), new LiquidityInfoData(l.remaining(), l.max())));
+        yield new ServerMessage("LIQUIDITY_UPDATE", new LiquidityUpdateData(liquidity));
+      }
     };
   }
 
@@ -192,4 +208,12 @@ public class GameEventSerializer {
       String player, String tierName, String targetSymbol, int tokens, int ticks) {}
 
   record DarkPoolExpiredData(String player) {}
+
+  record BubbleIndicatorData(int factor, int threshold) {}
+
+  record MarketIndicatorsData(Map<String, BubbleIndicatorData> bubbles) {}
+
+  record LiquidityInfoData(int remaining, int max) {}
+
+  record LiquidityUpdateData(Map<String, LiquidityInfoData> liquidity) {}
 }

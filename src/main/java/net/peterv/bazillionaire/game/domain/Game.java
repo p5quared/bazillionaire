@@ -86,6 +86,7 @@ public class Game {
       market.evaluateBubbles(currentTick()).forEach(this::emit);
       applyEffects(powerupManager.tick(snapshot()));
       liquidityProvider.onTick(currentTick());
+      emitIndicators();
       tickCount++;
       emit(
           GameMessage.broadcast(new GameEvent.GameTickProgressed(currentTick(), ticksRemaining())));
@@ -122,6 +123,8 @@ public class Game {
               new GameEvent.GameState(
                   market.symbols(), currentPrices(), market.marketCaps(), playerPortfolios()),
               playerId));
+      emit(GameMessage.send(new GameEvent.MarketIndicators(market.bubbleIndicators()), playerId));
+      emit(GameMessage.send(liquidityUpdateFor(playerId), playerId));
       return new JoinResult.GameInProgress();
     }
 
@@ -196,6 +199,23 @@ public class Game {
     List<GameEvent> recentEvents = pendingMessages.stream().map(GameMessage::event).toList();
     return new GameContext(
         currentTick(), playerPortfolios(), currentPrices(), recentEvents, market.delistedSymbols());
+  }
+
+  private void emitIndicators() {
+    emit(GameMessage.broadcast(new GameEvent.MarketIndicators(market.bubbleIndicators())));
+    for (PlayerId playerId : players.keySet()) {
+      emit(GameMessage.send(liquidityUpdateFor(playerId), playerId));
+    }
+  }
+
+  private GameEvent.LiquidityUpdate liquidityUpdateFor(PlayerId playerId) {
+    Map<Symbol, GameEvent.LiquidityInfo> liquidity = new HashMap<>();
+    int max = liquidityProvider.maxTokens();
+    for (Symbol symbol : market.symbols()) {
+      int remaining = liquidityProvider.remainingTokens(playerId, symbol);
+      liquidity.put(symbol, new GameEvent.LiquidityInfo(remaining, max));
+    }
+    return new GameEvent.LiquidityUpdate(liquidity);
   }
 
   private void applyEffects(List<PowerupEffect> effects) {

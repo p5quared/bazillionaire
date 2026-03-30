@@ -31,6 +31,8 @@
         inventory: [],
         delistedSymbols: {},
         darkPool: null, // { tierName, targetSymbol, tokens, ticks }
+        bubbles: {},    // { symbol: { factor, threshold } }
+        liquidity: {},  // { symbol: { remaining, max } }
     };
 
     // --------------- helpers ---------------
@@ -352,6 +354,22 @@
         priceValue.textContent = "Waiting...";
         infoCol.appendChild(priceEl);
 
+        var liqRow = document.createElement("div");
+        liqRow.className = "ticker-card__liquidity";
+
+        var liqTrack = document.createElement("div");
+        liqTrack.className = "ticker-card__liquidity-track";
+        var liqFill = document.createElement("div");
+        liqFill.className = "ticker-card__liquidity-fill";
+        liqTrack.appendChild(liqFill);
+        liqRow.appendChild(liqTrack);
+
+        var liqLabel = document.createElement("span");
+        liqLabel.className = "ticker-card__liquidity-label";
+        liqRow.appendChild(liqLabel);
+
+        infoCol.appendChild(liqRow);
+
         root.appendChild(infoCol);
 
         var canvas = document.createElement("canvas");
@@ -395,7 +413,7 @@
         });
 
         document.getElementById("ticker-cards").appendChild(root);
-        tickerCardEls[symbol] = { root: root, priceEl: priceEl, priceCurrency: priceCurrency, priceValue: priceValue, canvas: canvas, hintEl: hintEl, marketCapEl: marketCapEl };
+        tickerCardEls[symbol] = { root: root, priceEl: priceEl, priceCurrency: priceCurrency, priceValue: priceValue, canvas: canvas, hintEl: hintEl, marketCapEl: marketCapEl, liqFill: liqFill, liqLabel: liqLabel };
 
         // sync canvas pixel buffer to CSS size
         requestAnimationFrame(function () {
@@ -531,6 +549,49 @@
             els.priceCurrency.textContent = "";
             els.priceValue.textContent = "DELISTED";
         }
+    }
+
+    function updateTickerBubbleTint(symbol) {
+        var els = tickerCardEls[symbol];
+        if (!els) return;
+        if (state.delistedSymbols[symbol]) return;
+        var b = state.bubbles[symbol];
+        if (!b || b.threshold <= 0) {
+            els.root.style.background = "";
+            return;
+        }
+        var ratio = b.factor / b.threshold;
+        if (ratio < 0.25) {
+            els.root.style.background = "";
+        } else if (ratio < 0.5) {
+            els.root.style.background = "rgba(255, 200, 0, 0.06)";
+        } else if (ratio < 0.75) {
+            els.root.style.background = "rgba(255, 140, 0, 0.12)";
+        } else {
+            els.root.style.background = "rgba(214, 40, 40, 0.18)";
+        }
+    }
+
+    function updateTickerLiquidity(symbol) {
+        var els = tickerCardEls[symbol];
+        if (!els) return;
+        var l = state.liquidity[symbol];
+        var remaining = 0;
+        var max = 1;
+        if (l) {
+            remaining = state.localFreezeActive ? 0 : l.remaining;
+            max = l.max;
+        }
+        var pct = max > 0 ? (remaining / max) * 100 : 0;
+        els.liqFill.style.width = pct + "%";
+        if (pct > 50) {
+            els.liqFill.style.background = "var(--game-green)";
+        } else if (pct > 20) {
+            els.liqFill.style.background = "var(--game-gold)";
+        } else {
+            els.liqFill.style.background = "var(--game-red)";
+        }
+        els.liqLabel.textContent = remaining + "/" + max;
     }
 
     function reorderTickerCards() {
@@ -691,6 +752,8 @@
             state.localFreezeActive = true;
             updatePlayerBox(playerId);
             updateHints();
+            var syms = Object.keys(tickerCardEls);
+            for (var k = 0; k < syms.length; k++) { updateTickerLiquidity(syms[k]); }
             var secs = data.durationSeconds ? data.durationSeconds + "s" : "a while";
             addNotification("Orders frozen for " + secs + "!", "negative");
         },
@@ -699,6 +762,8 @@
             state.localFreezeActive = false;
             updatePlayerBox(playerId);
             updateHints();
+            var syms = Object.keys(tickerCardEls);
+            for (var k = 0; k < syms.length; k++) { updateTickerLiquidity(syms[k]); }
             addNotification("Freeze expired \u2014 trading resumed", "positive");
         },
         SENTIMENT_BOOST_ACTIVATED: function (data) {
@@ -769,6 +834,32 @@
         ORDER_BLOCKED: function (data) {
             if (data.playerId === playerId) {
                 addNotification("Order blocked: " + data.reason, "negative");
+            }
+        },
+
+        MARKET_INDICATORS: function (data) {
+            if (data.bubbles) {
+                var symbols = Object.keys(data.bubbles);
+                for (var i = 0; i < symbols.length; i++) {
+                    state.bubbles[symbols[i]] = data.bubbles[symbols[i]];
+                }
+            }
+            var syms = Object.keys(tickerCardEls);
+            for (var j = 0; j < syms.length; j++) {
+                updateTickerBubbleTint(syms[j]);
+            }
+        },
+
+        LIQUIDITY_UPDATE: function (data) {
+            if (data.liquidity) {
+                var symbols = Object.keys(data.liquidity);
+                for (var i = 0; i < symbols.length; i++) {
+                    state.liquidity[symbols[i]] = data.liquidity[symbols[i]];
+                }
+            }
+            var syms = Object.keys(tickerCardEls);
+            for (var j = 0; j < syms.length; j++) {
+                updateTickerLiquidity(syms[j]);
             }
         },
 

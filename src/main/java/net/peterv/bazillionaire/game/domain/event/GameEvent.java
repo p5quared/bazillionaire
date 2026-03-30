@@ -30,7 +30,9 @@ public sealed interface GameEvent
         GameEvent.BubbleWarning,
         GameEvent.TickerDelisted,
         GameEvent.DarkPoolActivated,
-        GameEvent.DarkPoolExpired {
+        GameEvent.DarkPoolExpired,
+        GameEvent.MarketIndicators,
+        GameEvent.LiquidityUpdate {
   record OrderFilled(Order order, PlayerId playerId, Money fillPrice, Money costBasis)
       implements GameEvent {}
 
@@ -94,4 +96,12 @@ public sealed interface GameEvent
       implements GameEvent {}
 
   record DarkPoolExpired(PlayerId player) implements GameEvent {}
+
+  record BubbleIndicator(int factor, int threshold) {}
+
+  record LiquidityInfo(int remaining, int max) {}
+
+  record MarketIndicators(Map<Symbol, BubbleIndicator> bubbles) implements GameEvent {}
+
+  record LiquidityUpdate(Map<Symbol, LiquidityInfo> liquidity) implements GameEvent {}
 }
