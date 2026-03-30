@@ -80,6 +80,10 @@ public class PowerupManager {
         allEffects.add(
             new PowerupEffect.Emit(
                 GameMessage.broadcast(new GameEvent.PowerupActivated(playerId, powerupName))));
+      } else {
+        allEffects.add(
+            new PowerupEffect.Emit(
+                GameMessage.send(new GameEvent.PowerupActivated(playerId, powerupName), playerId)));
       }
     }
     return new UsePowerupResult.Activated(allEffects);

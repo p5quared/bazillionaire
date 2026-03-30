@@ -30,6 +30,7 @@
         tradingDisabledReason: "",
         inventory: [],
         delistedSymbols: {},
+        darkPool: null, // { tierName, targetSymbol, tokens, ticks }
     };
 
     // --------------- helpers ---------------
@@ -489,6 +490,38 @@
         renderPowerupTray();
     }
 
+    function updateDarkPoolStatus() {
+        var el = document.getElementById("dark-pool-status");
+        if (!el) {
+            el = document.createElement("div");
+            el.id = "dark-pool-status";
+            var timer = document.getElementById("game-timer");
+            timer.parentNode.insertBefore(el, timer.nextSibling);
+        }
+        if (!state.darkPool) {
+            el.textContent = "";
+            el.classList.remove("dark-pool-status--active");
+            return;
+        }
+        var dp = state.darkPool;
+        var target = dp.targetSymbol ? dp.targetSymbol : "ALL";
+        el.textContent = "Dark Pool [" + target + "] — " + dp.tokens + " trades left";
+        el.classList.add("dark-pool-status--active");
+    }
+
+    function setDarkPoolHighlight(targetSymbol, active) {
+        if (targetSymbol) {
+            var els = tickerCardEls[targetSymbol];
+            if (els) els.root.classList.toggle("ticker-card--dark-pool", active);
+        } else {
+            // Premium (all symbols)
+            var syms = Object.keys(tickerCardEls);
+            for (var i = 0; i < syms.length; i++) {
+                tickerCardEls[syms[i]].root.classList.toggle("ticker-card--dark-pool", active);
+            }
+        }
+    }
+
     function updateTickerDelisted(symbol) {
         var els = tickerCardEls[symbol];
         if (!els) return;
@@ -598,12 +631,16 @@
             updateHints();
         },
         ORDER_ACTIVITY: function (data) {
-            state.chart = chart.appendAnnotation(state.chart, data.symbol, data.side);
+            state.chart = chart.appendAnnotation(state.chart, data.symbol, data.side, data.darkPool);
             redrawSparkline(data.symbol);
         },
         ORDER_FILLED: function (data) {
             var verb = data.side === "BUY" ? "Bought" : "Sold";
             addNotification(verb + " " + data.symbol + " at " + formatPrice(data.price), "positive");
+            if (state.darkPool && state.darkPool.tokens > 0) {
+                state.darkPool.tokens--;
+                updateDarkPoolStatus();
+            }
         },
         GAME_TICK: function (data) {
             state.currentTick = data.tick;
@@ -706,6 +743,27 @@
                 }, { once: true });
             }
             addNotification(data.symbol + ' is overheating!', 'negative');
+        },
+
+        DARK_POOL_ACTIVATED: function (data) {
+            state.darkPool = {
+                tierName: data.tierName,
+                targetSymbol: data.targetSymbol,
+                tokens: data.tokens,
+                ticks: data.ticks
+            };
+            updateDarkPoolStatus();
+            setDarkPoolHighlight(data.targetSymbol, true);
+            var target = data.targetSymbol ? " on " + data.targetSymbol : " (all symbols)";
+            addNotification(data.tierName + " active" + target + " — " + data.tokens + " trades", "positive");
+        },
+        DARK_POOL_EXPIRED: function () {
+            if (state.darkPool) {
+                setDarkPoolHighlight(state.darkPool.targetSymbol, false);
+            }
+            state.darkPool = null;
+            updateDarkPoolStatus();
+            addNotification("Dark Pool expired", "neutral");
         },
 
         ORDER_BLOCKED: function (data) {

@@ -71,7 +71,7 @@ function appendPrice(chartState, symbol, price) {
         history = history.slice(history.length - prepared.maxPoints);
         annotations = annotations
             .map(function (annotation) {
-                return { index: annotation.index - 1, side: annotation.side };
+                return { index: annotation.index - 1, side: annotation.side, darkPool: annotation.darkPool };
             })
             .filter(function (annotation) {
                 return annotation.index >= 0;
@@ -85,12 +85,13 @@ function appendPrice(chartState, symbol, price) {
     };
 }
 
-function appendAnnotation(chartState, symbol, side) {
+function appendAnnotation(chartState, symbol, side, darkPool) {
     var history = chartState.historyBySymbol[symbol];
     if (!history || history.length === 0) return chartState;
     var annotations = (chartState.annotationsBySymbol[symbol] || []).concat([{
         index: history.length - 1,
         side: side,
+        darkPool: !!darkPool,
     }]);
     return {
         historyBySymbol: chartState.historyBySymbol,
@@ -154,6 +155,7 @@ function buildAnnotationMarkers(series, annotations, rect, maxPoints, range) {
         if (annotation.index < 0 || annotation.index >= series.length) continue;
         markers.push({
             side: annotation.side,
+            darkPool: annotation.darkPool,
             x: rect.x + annotation.index * stepX,
             y: priceToY(series[annotation.index], range.min, range.max, rect.y, rect.h),
         });

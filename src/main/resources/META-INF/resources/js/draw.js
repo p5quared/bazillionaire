@@ -27,15 +27,28 @@ function drawMarkers(ctx, markers) {
             ctx.lineTo(marker.x - sz, marker.y + 3 + sz * 2);
             ctx.lineTo(marker.x + sz, marker.y + 3 + sz * 2);
             ctx.closePath();
-            ctx.fillStyle = rgb(10, 143, 63);
+            if (marker.darkPool) {
+                ctx.strokeStyle = rgb(10, 143, 63);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = rgb(10, 143, 63);
+                ctx.fill();
+            }
         } else {
             ctx.moveTo(marker.x, marker.y - 3);
             ctx.lineTo(marker.x - sz, marker.y - 3 - sz * 2);
             ctx.lineTo(marker.x + sz, marker.y - 3 - sz * 2);
             ctx.closePath();
-            ctx.fillStyle = rgb(214, 40, 40);
+            if (marker.darkPool) {
+                ctx.strokeStyle = rgb(214, 40, 40);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = rgb(214, 40, 40);
+                ctx.fill();
+            }
         }
-        ctx.fill();
     }
 }
 
