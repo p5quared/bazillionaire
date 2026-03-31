@@ -14,6 +14,49 @@
         <button type="submit" class="btn">Save Changes</button>
     </form>
 
+    {#if careerStats}
+    <hr class="section-rule">
+    <h2>Career Stats</h2>
+    <div class="listings">
+        <div class="listing">
+            <div class="listing__label">Record</div>
+            <div class="listing__value">{careerStats.record}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Total Earnings</div>
+            <div class="listing__value">{careerStats.totalEarnings}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Best Game</div>
+            <div class="listing__value">{careerStats.bestGame}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Trades Made</div>
+            <div class="listing__value">{careerStats.totalTradesMade}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Orders Blocked</div>
+            <div class="listing__value">{careerStats.totalOrdersBlocked}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Powerups Received / Used</div>
+            <div class="listing__value">{careerStats.totalPowerupsReceived} / {careerStats.totalPowerupsUsed}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Dividends</div>
+            <div class="listing__value">{careerStats.dividends}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Times Frozen</div>
+            <div class="listing__value">{careerStats.timesFrozen}</div>
+        </div>
+        <div class="listing">
+            <div class="listing__label">Dark Pool Uses</div>
+            <div class="listing__value">{careerStats.darkPoolUses}</div>
+        </div>
+    </div>
+    {/if}
+
     <hr class="section-rule">
 
     <form action="/users/{user.id}/delete" method="post">

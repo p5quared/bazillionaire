@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Entity
-public class PlayerDividendResult extends PanacheEntity {
+public class PlayerPowerupResult extends PanacheEntity {
 
   @Column(nullable = false)
   public String username;
@@ -16,19 +16,25 @@ public class PlayerDividendResult extends PanacheEntity {
   public String gameId;
 
   @Column(nullable = false)
-  public int dividendsCollected;
+  public int powerupsReceived;
 
   @Column(nullable = false)
-  public int dividendCashCents;
+  public int powerupsUsed;
+
+  @Column(nullable = false)
+  public int timesFrozen;
+
+  @Column(nullable = false)
+  public int darkPoolUses;
 
   @Column(nullable = false)
   public Instant playedAt;
 
-  public static List<PlayerDividendResult> findByUsername(String username) {
+  public static List<PlayerPowerupResult> findByUsername(String username) {
     return list("username", username);
   }
 
-  public static List<PlayerDividendResult> findByGameId(String gameId) {
+  public static List<PlayerPowerupResult> findByGameId(String gameId) {
     return list("gameId", gameId);
   }
 }

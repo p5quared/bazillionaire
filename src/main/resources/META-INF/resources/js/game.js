@@ -717,6 +717,9 @@
             state.status = "Connected";
             updateHints();
             updateTimer();
+            setTimeout(function () {
+                window.location.href = "/game/" + gameId + "/recap";
+            }, 3000);
         },
         POWERUP_AWARDED: function (data) {
             if (data.recipient === playerId) {

@@ -1,0 +1,65 @@
+{#include tags/page}
+{#title}Leaderboard - Bazillionaire{/title}
+{#navigation}{#nav active="leaderboard" /}{/navigation}
+{#content}
+    <h1>Leaderboard</h1>
+    <p class="byline">The titans of speculative finance</p>
+
+    <h2>Most Wins</h2>
+    {#if mostWins.isEmpty}
+    <p class="lead">No games played yet.</p>
+    {#else}
+    <div class="listings">
+    {#for entry in mostWins}
+        <div class="listing">
+            <div class="listing__name">{entry.username}</div>
+            <div class="listing__value">{entry.displayValue}</div>
+        </div>
+    {/for}
+    </div>
+    {/if}
+
+    <h2>Highest Win Rate</h2>
+    <p class="byline">Minimum 3 games played</p>
+    {#if highestWinRate.isEmpty}
+    <p class="lead">Not enough games played.</p>
+    {#else}
+    <div class="listings">
+    {#for entry in highestWinRate}
+        <div class="listing">
+            <div class="listing__name">{entry.username}</div>
+            <div class="listing__value">{entry.displayValue}</div>
+        </div>
+    {/for}
+    </div>
+    {/if}
+
+    <h2>Best Single Game</h2>
+    {#if bestSingleGame.isEmpty}
+    <p class="lead">No games recorded yet.</p>
+    {#else}
+    <div class="listings">
+    {#for entry in bestSingleGame}
+        <div class="listing">
+            <div class="listing__name">{entry.username}</div>
+            <div class="listing__value">{entry.displayValue}</div>
+        </div>
+    {/for}
+    </div>
+    {/if}
+
+    <h2>Most Career Earnings</h2>
+    {#if mostEarnings.isEmpty}
+    <p class="lead">No earnings recorded yet.</p>
+    {#else}
+    <div class="listings">
+    {#for entry in mostEarnings}
+        <div class="listing">
+            <div class="listing__name">{entry.username}</div>
+            <div class="listing__value">{entry.displayValue}</div>
+        </div>
+    {/for}
+    </div>
+    {/if}
+{/content}
+{/include}

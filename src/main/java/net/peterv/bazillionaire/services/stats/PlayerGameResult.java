@@ -26,6 +26,10 @@ public class PlayerGameResult extends PanacheEntity {
     return list("username", username);
   }
 
+  public static List<PlayerGameResult> findByGameId(String gameId) {
+    return list("gameId", gameId);
+  }
+
   public static long countGames(String username) {
     return count("username", username);
   }

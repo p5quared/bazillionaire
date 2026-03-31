@@ -69,17 +69,24 @@ class GameResultListenerTest {
   }
 
   @Test
-  void holdingsDoNotAffectWinner() {
+  void holdingsAffectWinner() {
     var players = new LinkedHashMap<PlayerId, GameEvent.PlayerPortfolio>();
+    // alice: $100 cash + 100 shares of AAPL @ $5 = $600 total
     players.put(
         new PlayerId("alice"),
         new GameEvent.PlayerPortfolio(new Money(100_00), Map.of(new Symbol("AAPL"), 100)));
+    // bob: $200 cash, no holdings = $200 total
     players.put(new PlayerId("bob"), portfolio(200_00));
 
-    fireGameFinished("game1", players);
+    var finalPrices = Map.of(new Symbol("AAPL"), new Money(5_00));
+    fireGameFinished("game1", players, finalPrices);
+
+    var aliceCall =
+        recordedCalls.stream().filter(c -> c.username().equals("alice")).findFirst().get();
+    assertTrue(aliceCall.won());
 
     var bobCall = recordedCalls.stream().filter(c -> c.username().equals("bob")).findFirst().get();
-    assertTrue(bobCall.won());
+    assertFalse(bobCall.won());
   }
 
   @Test
@@ -109,7 +116,14 @@ class GameResultListenerTest {
   }
 
   private void fireGameFinished(String gameId, Map<PlayerId, GameEvent.PlayerPortfolio> players) {
-    var event = new GameEvent.GameFinished(players, Map.of());
+    fireGameFinished(gameId, players, Map.of());
+  }
+
+  private void fireGameFinished(
+      String gameId,
+      Map<PlayerId, GameEvent.PlayerPortfolio> players,
+      Map<Symbol, Money> finalPrices) {
+    var event = new GameEvent.GameFinished(players, finalPrices);
     var message = new GameMessage(event, new Audience.Everyone());
     listener.onGameEvents(new GameId(gameId), List.of(message));
   }

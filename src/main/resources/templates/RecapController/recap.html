@@ -1,0 +1,27 @@
+{#include tags/page}
+{#title}Game Recap - Bazillionaire{/title}
+{#navigation}{#nav active="home" /}{/navigation}
+{#content}
+    <h1>Market Close</h1>
+    <p class="byline">Final results for game {gameId}</p>
+
+    {#if winnerName}
+    <div class="callout">{winnerName} wins with a portfolio of {winnerValueDisplay}</div>
+    {/if}
+
+    <h2>Final Standings</h2>
+    <div class="listings">
+    {#for player in players}
+        <div class="listing">
+            <div class="listing__name">
+                {#if player.won}<strong>{player.username}</strong>{#else}{player.username}{/if}
+            </div>
+            <div class="listing__value">{player.valueDisplay}</div>
+        </div>
+    {/for}
+    </div>
+
+    <hr class="section-rule">
+    <p><a href="/lobby">Return to Lobbies</a></p>
+{/content}
+{/include}

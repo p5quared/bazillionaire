@@ -36,11 +36,13 @@ public class GameResultListener implements GameEventListener {
 
   private PlayerId determineWinner(GameEvent.GameFinished finished) {
     PlayerId winner = null;
-    int highestCash = Integer.MIN_VALUE;
+    long highestValue = Long.MIN_VALUE;
     for (var entry : finished.players().entrySet()) {
-      int cash = entry.getValue().cashBalance().cents();
-      if (cash > highestCash) {
-        highestCash = cash;
+      long value =
+          PortfolioValueCalculator.calculatePortfolioValueCents(
+              entry.getValue(), finished.finalPrices());
+      if (value > highestValue) {
+        highestValue = value;
         winner = entry.getKey();
       }
     }

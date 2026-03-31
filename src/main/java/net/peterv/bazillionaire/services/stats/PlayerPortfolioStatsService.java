@@ -5,15 +5,16 @@ import jakarta.transaction.Transactional;
 import java.time.Instant;
 
 @ApplicationScoped
-public class PlayerGameStatsService {
+public class PlayerPortfolioStatsService {
 
   @Transactional
-  public void recordGame(String username, String gameId, boolean won, int finalCashCents) {
-    var result = new PlayerGameResult();
+  public void recordPortfolio(
+      String username, String gameId, long finalPortfolioValueCents, int holdingsCount) {
+    var result = new PlayerPortfolioResult();
     result.username = username;
     result.gameId = gameId;
-    result.won = won;
-    result.finalCashCents = finalCashCents;
+    result.finalPortfolioValueCents = finalPortfolioValueCents;
+    result.holdingsCount = holdingsCount;
     result.playedAt = Instant.now();
     result.persist();
   }
