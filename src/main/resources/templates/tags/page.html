@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{#insert title}Bazillionaire{/insert}</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -10,25 +12,52 @@
     {#insert head}{/insert}
 </head>
 <body>
-    {#moneyBg /}
-    <div class="page {#insert pageClass}{/insert}">
-        <header class="masthead">
-            <div class="masthead-bulletin">The Journal of Speculative Finance</div>
-            <hr class="masthead-rule-top">
-            <div class="masthead-title">Bazillionaire</div>
-            <div class="masthead-subtitle">Est. 2025 &mdash; Where Fortunes Rise &amp; Fall</div>
-            <div class="masthead-meta">
-                <span class="edition">Vol. I, No. 1</span>
-                <span class="date" id="masthead-date"></span>
-                <span class="edition">Final Edition</span>
+    <div class="bz {#insert pageClass}{/insert}">
+        <div class="bz-bulletin">
+            <div class="bz-bulletin__brand">Bazillionaire Wire</div>
+            <div class="bz-ticker">
+                <div class="bz-ticker__track">
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">NVDA</span> 1,240.18 <span class="bz-ticker__up">&blacktriangle; +2.4%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">AAPL</span> 228.12 <span class="bz-ticker__up">&blacktriangle; +0.8%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">MSFT</span> 438.50 <span class="bz-ticker__down">&blacktriangledown; -0.3%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">TSLA</span> 252.66 <span class="bz-ticker__up">&blacktriangle; +5.1%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">AMZN</span> 186.40 <span class="bz-ticker__down">&blacktriangledown; -1.2%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">GOOG</span> 172.94 <span class="bz-ticker__up">&blacktriangle; +0.6%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">META</span> 512.88 <span class="bz-ticker__up">&blacktriangle; +1.9%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">JPM</span> 218.02 <span class="bz-ticker__up">&blacktriangle; +0.4%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">XOM</span> 118.55 <span class="bz-ticker__down">&blacktriangledown; -2.2%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">BAZL</span> 10,000,000 <span class="bz-ticker__up">&blacktriangle; +&infin;</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">NVDA</span> 1,240.18 <span class="bz-ticker__up">&blacktriangle; +2.4%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">AAPL</span> 228.12 <span class="bz-ticker__up">&blacktriangle; +0.8%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">MSFT</span> 438.50 <span class="bz-ticker__down">&blacktriangledown; -0.3%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">TSLA</span> 252.66 <span class="bz-ticker__up">&blacktriangle; +5.1%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">AMZN</span> 186.40 <span class="bz-ticker__down">&blacktriangledown; -1.2%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">GOOG</span> 172.94 <span class="bz-ticker__up">&blacktriangle; +0.6%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">META</span> 512.88 <span class="bz-ticker__up">&blacktriangle; +1.9%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">JPM</span> 218.02 <span class="bz-ticker__up">&blacktriangle; +0.4%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">XOM</span> 118.55 <span class="bz-ticker__down">&blacktriangledown; -2.2%</span><span class="bz-ticker__sep"></span></span>
+                    <span class="bz-ticker__item"><span class="bz-ticker__sym">BAZL</span> 10,000,000 <span class="bz-ticker__up">&blacktriangle; +&infin;</span><span class="bz-ticker__sep"></span></span>
+                </div>
             </div>
-            <hr class="masthead-rule-bottom">
-        </header>
-        <div class="page-inner">
-            {#insert navigation}{/insert}
-            {#insert content}{/insert}
         </div>
-        <div class="page-footer">&mdash;&#9670;&mdash; &copy; Bazillionaire MMXXV &mdash;&#9670;&mdash;</div>
+        <header class="bz-masthead">
+            <hr class="bz-masthead__rule-top">
+            <h1 class="bz-masthead__title"><em>Bazillion</em>aire</h1>
+            <div class="bz-masthead__subtitle">The Journal of Speculative Finance &amp; Dubious Fortune</div>
+            <div class="bz-masthead__meta">
+                <span>Vol. I &middot; No. 247</span>
+                <span id="masthead-date"></span>
+                <span>Markets Partly Bullish</span>
+            </div>
+            <div class="bz-masthead__rule-bottom"></div>
+        </header>
+        {#insert navigation}{/insert}
+        {#insert content}{/insert}
+        <div class="bz-footer">
+            <div class="bz-footer__dots"><span></span><span></span><span></span><span></span><span></span></div>
+            <div>&copy; Bazillionaire MMXXVI &middot; All speculation is hypothetical</div>
+            <div>Set in Fraunces &amp; Inter Tight</div>
+        </div>
     </div>
     <script>
     document.getElementById('masthead-date').textContent =

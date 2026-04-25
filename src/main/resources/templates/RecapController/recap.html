@@ -2,26 +2,42 @@
 {#title}Game Recap - Bazillionaire{/title}
 {#navigation}{#nav active="home" /}{/navigation}
 {#content}
-    <h1>Market Close</h1>
-    <p class="byline">Final results for game {gameId}</p>
-
-    {#if winnerName}
-    <div class="callout">{winnerName} wins with a portfolio of {winnerValueDisplay}</div>
-    {/if}
-
-    <h2>Final Standings</h2>
-    <div class="listings">
-    {#for player in players}
-        <div class="listing">
-            <div class="listing__name">
-                {#if player.won}<strong>{player.username}</strong>{#else}{player.username}{/if}
-            </div>
-            <div class="listing__value">{player.valueDisplay}</div>
+    <div class="bz-content">
+        <div class="bz-kicker">Market Close &middot; Game {gameId}</div>
+        <h1 class="bz-h1">The Bell <em>Has Rung.</em></h1>
+        <div class="bz-byline">
+            <span>Final results</span>
+            <span class="bz-byline__rule"></span>
         </div>
-    {/for}
-    </div>
 
-    <hr class="section-rule">
-    <p><a href="/lobby">Return to Lobbies</a></p>
+        {#if winnerName}
+        <div class="bz-callout">
+            <span class="bz-callout__mark">&diams; Winner &diams;</span>
+            {winnerName} wins with a portfolio of {winnerValueDisplay}
+        </div>
+        {/if}
+
+        <div class="bz-h2">
+            <span>Final Standings</span>
+            <span class="bz-h2__tag">{players.size} Traders</span>
+        </div>
+        <div class="bz-listings">
+        {#for player in players}
+            <div class="bz-listing">
+                <div class="bz-listing__idx">{player_count}</div>
+                <div class="bz-listing__name">
+                    {#if player.won}<strong>{player.username}</strong>{#else}{player.username}{/if}
+                </div>
+                <div class="bz-listing__value">{player.valueDisplay}</div>
+                <div>
+                    {#if player.won}<span class="bz-pill bz-pill--burgundy">Winner</span>{/if}
+                </div>
+            </div>
+        {/for}
+        </div>
+
+        <div class="bz-flourish">&diams; &diams; &diams;</div>
+        <p style="text-align: center;"><a href="/lobby" class="bz-btn bz-btn--ghost">Return to Lobbies &rarr;</a></p>
+    </div>
 {/content}
 {/include}

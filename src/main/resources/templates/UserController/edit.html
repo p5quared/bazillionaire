@@ -2,66 +2,94 @@
 {#title}Edit User - Bazillionaire{/title}
 {#navigation}{#nav active="players" /}{/navigation}
 {#content}
-    <h1>Edit Profile</h1>
-    {#if flash:error}
-    <p class="error">{flash:error}</p>
-    {/if}
+    <div class="bz-content">
+        <div class="bz-kicker">Profile</div>
+        <h1 class="bz-h1">Edit <em>Profile.</em></h1>
+        <div class="bz-byline">
+            <span>Manage your trading identity</span>
+            <span class="bz-byline__rule"></span>
+        </div>
 
-    <form action="/users/{user.id}" method="post">
-        {#authenticityToken/}
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" value="{user.username}">
-        <button type="submit" class="btn">Save Changes</button>
-    </form>
+        {#if flash:error}
+        <p class="bz-error">{flash:error}</p>
+        {/if}
 
-    {#if careerStats}
-    <hr class="section-rule">
-    <h2>Career Stats</h2>
-    <div class="listings">
-        <div class="listing">
-            <div class="listing__label">Record</div>
-            <div class="listing__value">{careerStats.record}</div>
+        <form action="/users/{user.id}" method="post" style="max-width: 400px;">
+            {#authenticityToken/}
+            <div class="bz-field">
+                <label class="bz-label" for="username">Username</label>
+                <input class="bz-input bz-input--mono" type="text" id="username" name="username" value="{user.username}">
+            </div>
+            <button type="submit" class="bz-btn bz-btn--primary">Save Changes</button>
+        </form>
+
+        {#if careerStats}
+        <hr class="bz-divider" style="margin: 28px 0;">
+
+        <div class="bz-h2">
+            <span>Career Stats</span>
         </div>
-        <div class="listing">
-            <div class="listing__label">Total Earnings</div>
-            <div class="listing__value">{careerStats.totalEarnings}</div>
+        <div class="bz-statgrid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="bz-statgrid__cell">
+                <div class="bz-statgrid__label">Record</div>
+                <div class="bz-statgrid__value" style="font-size: 22px;">{careerStats.record}</div>
+            </div>
+            <div class="bz-statgrid__cell">
+                <div class="bz-statgrid__label">Total Earnings</div>
+                <div class="bz-statgrid__value" style="font-size: 22px;">{careerStats.totalEarnings}</div>
+            </div>
+            <div class="bz-statgrid__cell">
+                <div class="bz-statgrid__label">Best Game</div>
+                <div class="bz-statgrid__value" style="font-size: 22px;">{careerStats.bestGame}</div>
+            </div>
         </div>
-        <div class="listing">
-            <div class="listing__label">Best Game</div>
-            <div class="listing__value">{careerStats.bestGame}</div>
+
+        <div class="bz-listings">
+            <div class="bz-listing">
+                <div></div>
+                <div class="bz-listing__label">Trades Made</div>
+                <div class="bz-listing__value" style="font-size: 16px;">{careerStats.totalTradesMade}</div>
+                <div></div>
+            </div>
+            <div class="bz-listing">
+                <div></div>
+                <div class="bz-listing__label">Orders Blocked</div>
+                <div class="bz-listing__value" style="font-size: 16px;">{careerStats.totalOrdersBlocked}</div>
+                <div></div>
+            </div>
+            <div class="bz-listing">
+                <div></div>
+                <div class="bz-listing__label">Powerups Received / Used</div>
+                <div class="bz-listing__value" style="font-size: 16px;">{careerStats.totalPowerupsReceived} / {careerStats.totalPowerupsUsed}</div>
+                <div></div>
+            </div>
+            <div class="bz-listing">
+                <div></div>
+                <div class="bz-listing__label">Dividends</div>
+                <div class="bz-listing__value" style="font-size: 16px;">{careerStats.dividends}</div>
+                <div></div>
+            </div>
+            <div class="bz-listing">
+                <div></div>
+                <div class="bz-listing__label">Times Frozen</div>
+                <div class="bz-listing__value" style="font-size: 16px;">{careerStats.timesFrozen}</div>
+                <div></div>
+            </div>
+            <div class="bz-listing">
+                <div></div>
+                <div class="bz-listing__label">Dark Pool Uses</div>
+                <div class="bz-listing__value" style="font-size: 16px;">{careerStats.darkPoolUses}</div>
+                <div></div>
+            </div>
         </div>
-        <div class="listing">
-            <div class="listing__label">Trades Made</div>
-            <div class="listing__value">{careerStats.totalTradesMade}</div>
-        </div>
-        <div class="listing">
-            <div class="listing__label">Orders Blocked</div>
-            <div class="listing__value">{careerStats.totalOrdersBlocked}</div>
-        </div>
-        <div class="listing">
-            <div class="listing__label">Powerups Received / Used</div>
-            <div class="listing__value">{careerStats.totalPowerupsReceived} / {careerStats.totalPowerupsUsed}</div>
-        </div>
-        <div class="listing">
-            <div class="listing__label">Dividends</div>
-            <div class="listing__value">{careerStats.dividends}</div>
-        </div>
-        <div class="listing">
-            <div class="listing__label">Times Frozen</div>
-            <div class="listing__value">{careerStats.timesFrozen}</div>
-        </div>
-        <div class="listing">
-            <div class="listing__label">Dark Pool Uses</div>
-            <div class="listing__value">{careerStats.darkPoolUses}</div>
-        </div>
+        {/if}
+
+        <hr class="bz-divider" style="margin: 28px 0;">
+
+        <form action="/users/{user.id}/delete" method="post">
+            {#authenticityToken/}
+            <button type="submit" class="bz-btn bz-btn--danger">Delete Account</button>
+        </form>
     </div>
-    {/if}
-
-    <hr class="section-rule">
-
-    <form action="/users/{user.id}/delete" method="post">
-        {#authenticityToken/}
-        <button type="submit" class="btn btn-danger">Delete Account</button>
-    </form>
 {/content}
 {/include}

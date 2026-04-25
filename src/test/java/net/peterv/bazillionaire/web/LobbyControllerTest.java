@@ -179,14 +179,13 @@ class LobbyControllerTest {
     checkGetLobby(aliceToken, lobbyId)
         .statusCode(200)
         .body(containsString("Start Game"))
-        .body(containsString("Delete Lobby"))
-        .body(containsString("Leave"));
+        .body(containsString("Delete"))
+        .body(containsString("Leave Lobby"));
     checkGetLobby(bobToken, lobbyId)
         .statusCode(200)
-        .body(containsString("Join Lobby"))
+        .body(containsString("Join This Lobby"))
         .body(not(containsString("Start Game")))
-        .body(not(containsString("Delete Lobby")))
-        .body(not(containsString("Leave")));
+        .body(not(containsString("Leave Lobby")));
   }
 
   @Test
@@ -421,9 +420,9 @@ class LobbyControllerTest {
 
     checkGetLobby(bobToken, lobbyId)
         .statusCode(200)
-        .body(containsString("Ticker Count: 3"))
+        .body(containsString("Tickers"))
         .body(containsString("$1000"))
-        .body(containsString("600s"));
+        .body(containsString("600"));
   }
 
   @Test

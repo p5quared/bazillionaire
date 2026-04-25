@@ -2,64 +2,86 @@
 {#title}Leaderboard - Bazillionaire{/title}
 {#navigation}{#nav active="leaderboard" /}{/navigation}
 {#content}
-    <h1>Leaderboard</h1>
-    <p class="byline">The titans of speculative finance</p>
-
-    <h2>Most Wins</h2>
-    {#if mostWins.isEmpty}
-    <p class="lead">No games played yet.</p>
-    {#else}
-    <div class="listings">
-    {#for entry in mostWins}
-        <div class="listing">
-            <div class="listing__name">{entry.username}</div>
-            <div class="listing__value">{entry.displayValue}</div>
+    <div class="bz-content">
+        <div class="bz-kicker">Rankings</div>
+        <h1 class="bz-h1">The <em>Leaderboard.</em></h1>
+        <div class="bz-byline">
+            <span>The titans of speculative finance</span>
+            <span class="bz-byline__rule"></span>
         </div>
-    {/for}
-    </div>
-    {/if}
 
-    <h2>Highest Win Rate</h2>
-    <p class="byline">Minimum 3 games played</p>
-    {#if highestWinRate.isEmpty}
-    <p class="lead">Not enough games played.</p>
-    {#else}
-    <div class="listings">
-    {#for entry in highestWinRate}
-        <div class="listing">
-            <div class="listing__name">{entry.username}</div>
-            <div class="listing__value">{entry.displayValue}</div>
+        <div class="bz-h2">
+            <span>Most Wins</span>
         </div>
-    {/for}
-    </div>
-    {/if}
+        {#if mostWins.isEmpty}
+        <p class="bz-lede">No games played yet.</p>
+        {#else}
+        <div class="bz-listings">
+        {#for entry in mostWins}
+            <div class="bz-listing">
+                <div class="bz-listing__idx">{entry_count}</div>
+                <div class="bz-listing__name">{entry.username}</div>
+                <div class="bz-listing__value">{entry.displayValue}</div>
+                <div></div>
+            </div>
+        {/for}
+        </div>
+        {/if}
 
-    <h2>Best Single Game</h2>
-    {#if bestSingleGame.isEmpty}
-    <p class="lead">No games recorded yet.</p>
-    {#else}
-    <div class="listings">
-    {#for entry in bestSingleGame}
-        <div class="listing">
-            <div class="listing__name">{entry.username}</div>
-            <div class="listing__value">{entry.displayValue}</div>
+        <div class="bz-h2">
+            <span>Highest Win Rate</span>
+            <span class="bz-h2__tag">Min. 3 games</span>
         </div>
-    {/for}
-    </div>
-    {/if}
+        {#if highestWinRate.isEmpty}
+        <p class="bz-lede">Not enough games played.</p>
+        {#else}
+        <div class="bz-listings">
+        {#for entry in highestWinRate}
+            <div class="bz-listing">
+                <div class="bz-listing__idx">{entry_count}</div>
+                <div class="bz-listing__name">{entry.username}</div>
+                <div class="bz-listing__value">{entry.displayValue}</div>
+                <div></div>
+            </div>
+        {/for}
+        </div>
+        {/if}
 
-    <h2>Most Career Earnings</h2>
-    {#if mostEarnings.isEmpty}
-    <p class="lead">No earnings recorded yet.</p>
-    {#else}
-    <div class="listings">
-    {#for entry in mostEarnings}
-        <div class="listing">
-            <div class="listing__name">{entry.username}</div>
-            <div class="listing__value">{entry.displayValue}</div>
+        <div class="bz-h2">
+            <span>Best Single Game</span>
         </div>
-    {/for}
+        {#if bestSingleGame.isEmpty}
+        <p class="bz-lede">No games recorded yet.</p>
+        {#else}
+        <div class="bz-listings">
+        {#for entry in bestSingleGame}
+            <div class="bz-listing">
+                <div class="bz-listing__idx">{entry_count}</div>
+                <div class="bz-listing__name">{entry.username}</div>
+                <div class="bz-listing__value">{entry.displayValue}</div>
+                <div></div>
+            </div>
+        {/for}
+        </div>
+        {/if}
+
+        <div class="bz-h2">
+            <span>Most Career Earnings</span>
+        </div>
+        {#if mostEarnings.isEmpty}
+        <p class="bz-lede">No earnings recorded yet.</p>
+        {#else}
+        <div class="bz-listings">
+        {#for entry in mostEarnings}
+            <div class="bz-listing">
+                <div class="bz-listing__idx">{entry_count}</div>
+                <div class="bz-listing__name">{entry.username}</div>
+                <div class="bz-listing__value">{entry.displayValue}</div>
+                <div></div>
+            </div>
+        {/for}
+        </div>
+        {/if}
     </div>
-    {/if}
 {/content}
 {/include}

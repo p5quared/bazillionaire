@@ -2,15 +2,78 @@
 {#title}Login - Bazillionaire{/title}
 {#pageClass}login-page{/pageClass}
 {#content}
-    <div class="banner">Markets are open</div>
-    {#if flash:error}
-    <p class="error">{flash:error}</p>
-    {/if}
-    <form action="{uri:AuthController.login()}" method="post">
-        {#authenticityToken/}
-        <label for="username">Choose a username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit" class="btn">Enter the Exchange</button>
-    </form>
+    <div class="bz-login-split">
+        <div class="bz-login-left">
+            <div class="bz-kicker">Front Desk &middot; New Account</div>
+            <h1 class="bz-h1">Enter the <em>Exchange.</em></h1>
+            <p class="bz-deck">
+                Choose a name. Pick a lobby. Out-trade the opposition before the closing bell.
+                No money down, no fortune too small to squander.
+            </p>
+
+            {#if flash:error}
+            <p class="bz-error">{flash:error}</p>
+            {/if}
+
+            <form action="{uri:AuthController.login()}" method="post" style="max-width: 380px; margin-top: 22px;">
+                {#authenticityToken/}
+                <div class="bz-field">
+                    <label class="bz-label" for="username">Trader Name</label>
+                    <input id="username" name="username" class="bz-input bz-input--mono" placeholder="e.g. WOLF_OF_WICHITA" required>
+                </div>
+                <button type="submit" class="bz-btn bz-btn--primary bz-btn--block" style="margin-top: 6px;">
+                    Enter the Exchange <span class="bz-btn__arrow">&rarr;</span>
+                </button>
+            </form>
+
+            <div class="bz-flourish">&diams; &diams; &diams;</div>
+
+            <div style="font-family: var(--ff-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.8;">
+                By entering you agree to play nice, heckle responsibly,<br>
+                and accept that all fortunes are imaginary.
+            </div>
+        </div>
+
+        <div class="bz-login-right">
+            <svg class="bz-login-right__chart" viewBox="0 0 600 400" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="bzgrad" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0" stop-color="#e4b62a" stop-opacity="0.6"/>
+                        <stop offset="1" stop-color="#e4b62a" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path class="bz-chart-path"
+                    d="M0,320 L40,310 L80,290 L120,305 L160,270 L200,280 L240,240 L280,250 L320,200 L360,220 L400,160 L440,180 L480,120 L520,140 L560,80 L600,100" />
+                <path d="M0,320 L40,310 L80,290 L120,305 L160,270 L200,280 L240,240 L280,250 L320,200 L360,220 L400,160 L440,180 L480,120 L520,140 L560,80 L600,100 L600,400 L0,400 Z"
+                    fill="url(#bzgrad)" />
+                <line x1="0" y1="0" x2="600" y2="0" stroke="#fff" stroke-opacity="0.1" stroke-dasharray="2 6"/>
+                <line x1="0" y1="80" x2="600" y2="80" stroke="#fff" stroke-opacity="0.1" stroke-dasharray="2 6"/>
+                <line x1="0" y1="160" x2="600" y2="160" stroke="#fff" stroke-opacity="0.1" stroke-dasharray="2 6"/>
+                <line x1="0" y1="240" x2="600" y2="240" stroke="#fff" stroke-opacity="0.1" stroke-dasharray="2 6"/>
+                <line x1="0" y1="320" x2="600" y2="320" stroke="#fff" stroke-opacity="0.1" stroke-dasharray="2 6"/>
+            </svg>
+
+            <div style="position: relative;">
+                <div class="bz-kicker">Today's Markets</div>
+                <h2>This is <strong>not</strong> a drill.<br>Ring <em>the bell</em>.</h2>
+                <p>Twelve players. Four minutes. One closing price. Buy low, sell loud, blame the liquidity provider.</p>
+            </div>
+
+            <div class="bz-login-right__stats">
+                <div>
+                    <div class="bz-login-right__stat-k">Traders Online</div>
+                    <div class="bz-login-right__stat-v">&mdash;</div>
+                </div>
+                <div>
+                    <div class="bz-login-right__stat-k">Lobbies Live</div>
+                    <div class="bz-login-right__stat-v">&mdash;</div>
+                </div>
+                <div>
+                    <div class="bz-login-right__stat-k">Vol. Traded Today</div>
+                    <div class="bz-login-right__stat-v">&mdash;</div>
+                </div>
+            </div>
+        </div>
+    </div>
 {/content}
 {/include}

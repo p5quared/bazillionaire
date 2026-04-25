@@ -2,7 +2,115 @@
 {#title}Bazillionaire{/title}
 {#navigation}{#nav active="home" /}{/navigation}
 {#content}
-    <h1>welcome, {username}</h1>
-    <p class="lead">Your trading desk awaits. Join a lobby to begin.</p>
+    <div class="bz-home-grid">
+        <main>
+            <div class="bz-kicker">Welcome Back</div>
+            <h1 class="bz-h1">Good to see you,<br><em>{username}.</em></h1>
+            <div class="bz-byline">
+                <span>By the Editorial Board</span>
+                <span class="bz-byline__rule"></span>
+            </div>
+
+            <div class="bz-hero">
+                <div class="bz-hero__image">
+                    <svg class="bz-hero__svg" viewBox="0 0 800 170" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="hg1" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0" stop-color="#8a1c1c" stop-opacity="0.15"/>
+                                <stop offset="1" stop-color="#8a1c1c" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,130 L50,115 L100,125 L150,100 L200,110 L250,75 L300,85 L350,50 L400,65 L450,40 L500,58 L550,30 L600,45 L650,20 L700,35 L750,15 L800,30 L800,170 L0,170 Z" fill="url(#hg1)"/>
+                        <path d="M0,130 L50,115 L100,125 L150,100 L200,110 L250,75 L300,85 L350,50 L400,65 L450,40 L500,58 L550,30 L600,45 L650,20 L700,35 L750,15 L800,30" fill="none" stroke="#8a1c1c" stroke-width="1.8"/>
+                        <line x1="0" y1="30" x2="800" y2="30" stroke="#141210" stroke-opacity="0.08" stroke-dasharray="2 4"/>
+                        <line x1="0" y1="60" x2="800" y2="60" stroke="#141210" stroke-opacity="0.08" stroke-dasharray="2 4"/>
+                        <line x1="0" y1="90" x2="800" y2="90" stroke="#141210" stroke-opacity="0.08" stroke-dasharray="2 4"/>
+                        <line x1="0" y1="120" x2="800" y2="120" stroke="#141210" stroke-opacity="0.08" stroke-dasharray="2 4"/>
+                    </svg>
+                    <span style="position: relative; background: var(--paper); padding: 3px 10px; border: 1px solid var(--ink);">YOUR PORTFOLIO</span>
+                </div>
+                <div class="bz-hero__caption">Fig. 1 &mdash; Your imaginary wealth, up and to the right (for now).</div>
+            </div>
+
+            <p class="bz-lede">
+                Your trading desk awaits. {#if lobbyCount > 0}{lobbyCount} {#if lobbyCount == 1}lobby is{#else}lobbies are{/if} open at this hour with {traderCount} traders seated.{#else}No lobbies are open yet &mdash; be the first to start one.{/if} The markets, as ever, are indifferent.
+            </p>
+
+            <div class="bz-callout">
+                <span class="bz-callout__mark">&diams; Today's Advice &diams;</span>
+                "Buy the rumor, sell the news, and always blame the liquidity provider."
+            </div>
+
+            {#if stats}
+            <div class="bz-h2">
+                <span>At a Glance</span>
+                <span class="bz-h2__tag">{stats.gamesPlayed} games played</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--ink);">
+                <div style="padding: 14px; border-right: 1px solid var(--rule); background: var(--paper);">
+                    <div style="font-family: var(--ff-body); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);">Record</div>
+                    <div style="font-family: var(--ff-display); font-size: 28px; font-weight: 500; line-height: 1.05; margin-top: 4px;">{stats.record}</div>
+                    <div style="font-family: var(--ff-mono); font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em;">{stats.winPct}%</div>
+                </div>
+                <div style="padding: 14px; border-right: 1px solid var(--rule); background: var(--paper);">
+                    <div style="font-family: var(--ff-body); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);">Best Game</div>
+                    <div style="font-family: var(--ff-display); font-size: 28px; font-weight: 500; line-height: 1.05; margin-top: 4px;">{stats.bestGame}</div>
+                </div>
+                <div style="padding: 14px; border-right: 1px solid var(--rule); background: var(--paper);">
+                    <div style="font-family: var(--ff-body); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);">Win Rate</div>
+                    <div style="font-family: var(--ff-display); font-size: 28px; font-weight: 500; line-height: 1.05; margin-top: 4px;">{stats.winPct}%</div>
+                    <div style="font-family: var(--ff-mono); font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em;">{stats.gamesPlayed} games</div>
+                </div>
+                <div style="padding: 14px; border-right: 1px solid var(--rule); background: var(--paper);">
+                    <div style="font-family: var(--ff-body); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);">Wins</div>
+                    <div style="font-family: var(--ff-display); font-size: 28px; font-weight: 500; line-height: 1.05; margin-top: 4px;">{stats.wins}</div>
+                </div>
+                <div style="padding: 14px; background: var(--paper);">
+                    <div style="font-family: var(--ff-body); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);">Earnings</div>
+                    <div style="font-family: var(--ff-display); font-size: 28px; font-weight: 500; line-height: 1.05; margin-top: 4px;">{stats.totalEarnings}</div>
+                </div>
+            </div>
+            {/if}
+        </main>
+
+        <aside>
+            <div class="bz-kicker">Opportunities</div>
+            {#if lobbies.size > 0}
+            {#let topLobby = lobbies.get(0)}
+            <a href="/lobby/{topLobby.id}" class="bz-action bz-action--dark">
+                <div class="bz-action__arrow">&nearr;</div>
+                <div class="bz-action__eyebrow">Hot &middot; {topLobby.members.size}/{topLobby.maxPlayers} Seated</div>
+                <div class="bz-action__title"><em>{topLobby.name}</em></div>
+                <div class="bz-action__meta">{topLobby.members.size} / {topLobby.maxPlayers} traders &middot; {topLobby.gameDurationSeconds}s game</div>
+            </a>
+            {/let}
+            {/if}
+            <a href="/lobby" class="bz-action">
+                <div class="bz-action__arrow">&rarr;</div>
+                <div class="bz-action__eyebrow">Browse</div>
+                <div class="bz-action__title">Join <em>any</em> lobby</div>
+                <div class="bz-action__meta">See all open trading floors</div>
+            </a>
+            <a href="/lobby" class="bz-action">
+                <div class="bz-action__arrow">+</div>
+                <div class="bz-action__eyebrow">Host</div>
+                <div class="bz-action__title">Open a new <em>floor</em></div>
+                <div class="bz-action__meta">Set your rules &middot; Invite friends</div>
+            </a>
+
+            <hr class="bz-divider">
+
+            <div class="bz-kicker">The Tape</div>
+            <div class="bz-tape">
+                {#if lobbies.size > 0}
+                {#for lobby in lobbies}
+                <div><span class="bz-tape__time">&bull;</span> &nbsp; <strong>{lobby.name}</strong> &mdash; {lobby.members.size}/{lobby.maxPlayers} seated</div>
+                {/for}
+                {#else}
+                <div><span class="bz-tape__time">&bull;</span> &nbsp; No activity yet today</div>
+                {/if}
+            </div>
+        </aside>
+    </div>
 {/content}
 {/include}

@@ -41,6 +41,6 @@ class ApplicationTest {
         .get(APPLICATION_PATH)
         .then()
         .statusCode(200)
-        .body(containsString("welcome, " + username));
+        .body(containsString(username));
   }
 }

@@ -1,23 +1,37 @@
 {#include tags/page}
-{#title}Users - Bazillionaire{/title}
+{#title}Players - Bazillionaire{/title}
 {#navigation}{#nav active="players" /}{/navigation}
 {#content}
-    <h1>Exchange Members</h1>
-    <p class="byline">The directory of registered traders</p>
-    {#if flash:error}
-    <p class="error">{flash:error}</p>
-    {/if}
-
-    {#if users.empty}
-    <p class="lead">No registered traders at this time.</p>
-    {#else}
-    <div class="listings">
-    {#for user in users}
-        <div class="listing">
-            <div class="listing__name"><a href="/users/{user.id}">{user.username}</a></div>
+    <div class="bz-content">
+        <div class="bz-kicker">Directory</div>
+        <h1 class="bz-h1">Exchange <em>Members.</em></h1>
+        <div class="bz-byline">
+            <span>The directory of registered traders</span>
+            <span class="bz-byline__rule"></span>
         </div>
-    {/for}
+
+        {#if flash:error}
+        <p class="bz-error">{flash:error}</p>
+        {/if}
+
+        {#if users.empty}
+        <p class="bz-lede">No registered traders at this time.</p>
+        {#else}
+        <div class="bz-h2">
+            <span>Registered Traders</span>
+            <span class="bz-h2__tag">{users.size} Members</span>
+        </div>
+        <div class="bz-listings">
+        {#for user in users}
+            <div class="bz-listing">
+                <div class="bz-listing__idx">{user_count}</div>
+                <div class="bz-listing__name"><a href="/users/{user.id}">{user.username}</a></div>
+                <div></div>
+                <div></div>
+            </div>
+        {/for}
+        </div>
+        {/if}
     </div>
-    {/if}
 {/content}
 {/include}

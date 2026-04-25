@@ -2,40 +2,111 @@
 {#title}Lobbies - Bazillionaire{/title}
 {#navigation}{#nav active="lobbies" /}{/navigation}
 {#content}
-    <h1>Trading Floor</h1>
-    <p class="byline">Where fortunes are made &amp; lost</p>
-    {#if flash:error}
-    <p class="error">{flash:error}</p>
-    {/if}
+    <div class="bz-content">
+        {#if flash:error}
+        <p class="bz-error">{flash:error}</p>
+        {/if}
 
-    <h2>Create a Lobby</h2>
-    <form action="/lobby" method="post">
-        {#authenticityToken/}
-        <label for="name">Name</label>
-        <input type="text" id="name" name="name">
-        <label for="maxPlayers">Max Players (1-16)</label>
-        <input type="number" id="maxPlayers" name="maxPlayers" min="1" max="16" value="8">
-        <button type="submit" class="btn">Create</button>
-    </form>
-
-    <h2>Open Lobbies</h2>
-    {#if lobbies.empty}
-    <p class="lead">No open lobbies at present. Be the first to start one.</p>
-    {#else}
-    <div class="listings">
-    {#for lobby in lobbies}
-        <div class="listing">
-            <div class="listing__name"><a href="/lobby/{lobby.id}">{lobby.name}</a></div>
-            <span class="status">{lobby.members.size}/{lobby.maxPlayers} players</span>
-            {#if !lobby.full}
-            <form action="/lobby/{lobby.id}/join" method="post" class="inline-form">
-                {#authenticityToken/}
-                <button type="submit" class="btn btn-inline">Join</button>
-            </form>
-            {/if}
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 8px;">
+            <div>
+                <div class="bz-kicker">Lobbies &middot; Live Now</div>
+                <h1 class="bz-h1">The <em>Trading Floor.</em></h1>
+                <p class="bz-deck" style="margin-top: 6px;">Open a floor. Take a seat. Bring your conviction, leave your scruples.</p>
+            </div>
+            <a href="#create-section" class="bz-btn bz-btn--primary">+ Open a Lobby</a>
         </div>
-    {/for}
+
+        <div class="bz-byline">
+            <span>{lobbies.size} Active {#if lobbies.size == 1}Lobby{#else}Lobbies{/if}</span>
+            <span class="bz-byline__rule"></span>
+        </div>
+
+        <div class="bz-h2">
+            <span>Open Lobbies</span>
+            <span class="bz-h2__tag">Sorted by Creation</span>
+        </div>
+
+        {#if lobbies.empty}
+        <p class="bz-lede">No open lobbies at present. Be the first to open the floor.</p>
+        {#else}
+        <div>
+            {#for lobby in lobbies}
+            <div class="bz-lobby-row">
+                <div class="bz-lobby-row__idx">{lobby_count}</div>
+                <div>
+                    <div class="bz-lobby-row__name"><a href="/lobby/{lobby.id}" style="color: var(--ink); text-decoration: none;">{lobby.name}</a></div>
+                    <div class="bz-lobby-row__meta">
+                        <span>{lobby.gameDurationSeconds}s</span>
+                        <span>{lobby.tickerCount} tickers</span>
+                        <span>${lobby.initialBalanceDollars} start</span>
+                    </div>
+                </div>
+                <div class="bz-lobby-row__bar">
+                    <div class="bz-lobby-row__bar-track">
+                        <div class="bz-lobby-row__bar-fill" data-n="{lobby.members.size}" data-max="{lobby.maxPlayers}" {#if lobby.full}style="background: var(--rule-2);"{/if}></div>
+                    </div>
+                    <div class="bz-lobby-row__bar-count">{lobby.members.size}<small>/{lobby.maxPlayers}</small></div>
+                </div>
+                <div>
+                    {#if lobby.full}
+                    <span class="bz-pill bz-pill--full">Full</span>
+                    {#else}
+                    <span class="bz-pill bz-pill--open">Open</span>
+                    {/if}
+                </div>
+                <div style="text-align: right;">
+                    {#if lobby.full}
+                    <button class="bz-btn bz-btn--ghost" disabled style="opacity: 0.4; cursor: not-allowed;">Full</button>
+                    {#else}
+                    <form action="/lobby/{lobby.id}/join" method="post" class="bz-inline-form">
+                        {#authenticityToken/}
+                        <button type="submit" class="bz-btn">Join &rarr;</button>
+                    </form>
+                    {/if}
+                </div>
+            </div>
+            {/for}
+        </div>
+        {/if}
+
+        <div class="bz-flourish">&diams; &diams; &diams;</div>
+
+        <div id="create-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 8px;">
+            <div>
+                <div class="bz-h2">
+                    <span>New Here?</span>
+                    <span class="bz-h2__tag">How It Works</span>
+                </div>
+                <p class="bz-lede">
+                    Each lobby opens a private market. Buy, sell, and sabotage your way to the top before the closing bell. Powerups drop throughout. Winner takes the bragging rights.
+                </p>
+            </div>
+            <div>
+                <div class="bz-h2">
+                    <span>Open Your Own</span>
+                    <span class="bz-h2__tag">Quickstart</span>
+                </div>
+                <form action="/lobby" method="post">
+                    {#authenticityToken/}
+                    <div class="bz-field">
+                        <label class="bz-label">Lobby Name</label>
+                        <input class="bz-input" name="name" placeholder="e.g. Sunday Bloodbath">
+                    </div>
+                    <div class="bz-field">
+                        <label class="bz-label">Max Players (1&ndash;16)</label>
+                        <input class="bz-input bz-input--mono" name="maxPlayers" type="number" min="1" max="16" value="8">
+                    </div>
+                    <button type="submit" class="bz-btn bz-btn--primary">Create Lobby</button>
+                </form>
+            </div>
+        </div>
     </div>
-    {/if}
+    <script>
+    document.querySelectorAll('.bz-lobby-row__bar-fill').forEach(function(el) {
+        var n = parseInt(el.dataset.n, 10);
+        var max = parseInt(el.dataset.max, 10);
+        el.style.right = (100 - Math.round(n * 100 / max)) + '%';
+    });
+    </script>
 {/content}
 {/include}

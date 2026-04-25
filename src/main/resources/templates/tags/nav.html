@@ -1,6 +1,23 @@
-<div class="nav">
-    <a href="/" class="{#if active == 'home'}active{/if}">Home</a>
-    <a href="/lobby" class="{#if active == 'lobbies'}active{/if}">Lobbies</a>
-    <a href="/users" class="{#if active == 'players'}active{/if}">Players</a>
-    <a href="/leaderboard" class="{#if active == 'leaderboard'}active{/if}">Leaderboard</a>
-</div>
+<nav class="bz-nav">
+    <a href="/" class="{#if active == 'home'}is-active{/if}">Home</a>
+    <a href="/lobby" class="{#if active == 'lobbies'}is-active{/if}">Lobbies</a>
+    <a href="/users" class="{#if active == 'players'}is-active{/if}">Players</a>
+    <a href="/leaderboard" class="{#if active == 'leaderboard'}is-active{/if}">Leaderboard</a>
+    <div class="bz-nav__spacer"></div>
+    <div class="bz-nav__time" id="nav-clock">Markets Open</div>
+</nav>
+<script>
+(function() {
+    var el = document.getElementById('nav-clock');
+    function tick() {
+        var now = new Date();
+        var h = now.getHours();
+        var m = String(now.getMinutes()).padStart(2, '0');
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        var h12 = h % 12 || 12;
+        el.textContent = 'Markets Open \u00B7 ' + h12 + ':' + m + ' ' + ampm;
+    }
+    tick();
+    setInterval(tick, 30000);
+})();
+</script>

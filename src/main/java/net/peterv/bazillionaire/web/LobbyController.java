@@ -30,7 +30,7 @@ public class LobbyController extends Controller {
     public static native TemplateInstance list(List<Lobby> lobbies);
 
     public static native TemplateInstance detail(
-        Lobby lobby, boolean currentPlayerIsMember, int minPlayers);
+        Lobby lobby, boolean currentPlayerIsMember, int minPlayers, String currentUsername);
   }
 
   @GET
@@ -68,8 +68,8 @@ public class LobbyController extends Controller {
     if (lobby.status == Lobby.LobbyStatus.STARTED) {
       throw redirect("/game/" + id);
     }
-    return Templates.detail(
-        lobby, lobby.hasMember(currentSession.getUsername()), Lobby.MIN_PLAYERS);
+    String username = currentSession.getUsername();
+    return Templates.detail(lobby, lobby.hasMember(username), Lobby.MIN_PLAYERS, username);
   }
 
   @POST

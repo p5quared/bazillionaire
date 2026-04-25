@@ -2,60 +2,148 @@
 {#title}{lobby.name} - Bazillionaire{/title}
 {#navigation}{#nav active="lobbies" /}{/navigation}
 {#content}
-    <h1>{lobby.name}</h1>
-    <p class="byline">Status: {lobby.status}</p>
-    {#if flash:error}
-    <p class="error">{flash:error}</p>
-    {/if}
+    <div class="bz-content">
+        {#if flash:error}
+        <p class="bz-error">{flash:error}</p>
+        {/if}
 
-    <h2>Players ({lobby.members.size} / {lobby.maxPlayers})</h2>
-    <div class="listings">
-    {#for member in lobby.members}
-        <div class="listing">{member.displayName}</div>
-    {/for}
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 8px;">
+            <div>
+                <div class="bz-kicker">Lobby &middot; {lobby.id}</div>
+                <h1 class="bz-h1"><em>{lobby.name}</em></h1>
+            </div>
+            <span class="bz-pill bz-pill--live">Awaiting Bell</span>
+        </div>
+
+        <div class="bz-byline">
+            <span>{lobby.members.size} of {lobby.maxPlayers} Seated &middot; {minPlayers} minimum to start</span>
+            <span class="bz-byline__rule"></span>
+        </div>
+
+        <div class="bz-callout" style="margin-top: 18px; margin-bottom: 28px;">
+            <span class="bz-callout__mark">&diams; On the Record &diams;</span>
+            "Fortune favors the bold &mdash; and occasionally the lucky."
+        </div>
+
+        <div class="bz-h2">
+            <span>Traders</span>
+            <span class="bz-h2__tag">{lobby.members.size} / {lobby.maxPlayers} Seated</span>
+        </div>
+        <div class="bz-seats">
+            {#for member in lobby.members}
+            <div class="bz-seat {#if member.displayName == currentUsername}bz-seat--you{#else if member_index == 0}bz-seat--host{/if}">
+                <div class="bz-seat__num">{member_count}</div>
+                <div class="bz-seat__avatar">{member.displayName.charAt(0)}</div>
+                <div class="bz-seat__name">{member.displayName}</div>
+                <div class="bz-seat__tag">
+                    {#if member.displayName == currentUsername}You{#else if member_index == 0}Host{/if} &middot; Ready
+                </div>
+            </div>
+            {/for}
+            {#for i in lobby.maxPlayers - lobby.members.size}
+            <div class="bz-seat bz-seat--empty">
+                <div style="text-align: center;">
+                    <div style="font-size: 18px; color: var(--rule-2); margin-bottom: 4px;">+</div>
+                    <div>Open</div>
+                </div>
+            </div>
+            {/for}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; margin-top: 24px;">
+            <div>
+                <div class="bz-h2">
+                    <span>Game Settings</span>
+                    <span class="bz-h2__tag">{#if currentPlayerIsMember}Editable{#else}Read Only{/if}</span>
+                </div>
+                <div class="bz-statgrid">
+                    <div class="bz-statgrid__cell">
+                        <div class="bz-statgrid__label">Tickers</div>
+                        <div class="bz-statgrid__value">{lobby.tickerCount}</div>
+                    </div>
+                    <div class="bz-statgrid__cell">
+                        <div class="bz-statgrid__label">Initial Balance</div>
+                        <div class="bz-statgrid__value">${lobby.initialBalanceDollars}</div>
+                    </div>
+                    <div class="bz-statgrid__cell">
+                        <div class="bz-statgrid__label">Duration</div>
+                        <div class="bz-statgrid__value">{lobby.gameDurationSeconds}<small>sec</small></div>
+                    </div>
+                </div>
+
+                {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
+                <form action="/lobby/{lobby.id}/settings" method="post" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+                    {#authenticityToken/}
+                    <div class="bz-field" style="margin: 0;">
+                        <label class="bz-label">Ticker Count</label>
+                        <input class="bz-input bz-input--mono" name="tickerCount" type="number" value="{lobby.tickerCount}" min="1" required>
+                    </div>
+                    <div class="bz-field" style="margin: 0;">
+                        <label class="bz-label">Balance ($)</label>
+                        <input class="bz-input bz-input--mono" name="initialBalance" type="number" value="{lobby.initialBalanceDollars}" min="1" required>
+                    </div>
+                    <div class="bz-field" style="margin: 0;">
+                        <label class="bz-label">Duration (s)</label>
+                        <input class="bz-input bz-input--mono" name="gameDuration" type="number" value="{lobby.gameDurationSeconds}" min="1" required>
+                    </div>
+                    <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 6px;">
+                        <button type="submit" class="bz-btn bz-btn--ghost">Save Settings</button>
+                    </div>
+                </form>
+                <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+                    <form action="/lobby/{lobby.id}/start" method="post" class="bz-inline-form">
+                        {#authenticityToken/}
+                        <button type="submit" class="bz-btn bz-btn--primary">Ring the Bell &middot; Start Game &rarr;</button>
+                    </form>
+                </div>
+                {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember}
+                    {#if !lobby.full}
+                    <form action="/lobby/{lobby.id}/join" method="post">
+                        {#authenticityToken/}
+                        <button type="submit" class="bz-btn bz-btn--primary bz-btn--block">Join This Lobby &rarr;</button>
+                    </form>
+                    {/if}
+                {/if}
+            </div>
+
+            <div>
+                <div class="bz-h2">
+                    <span>House Rules</span>
+                </div>
+                <ul class="bz-rules">
+                    <li>
+                        <span class="bz-rules__key">Powerups</span>
+                        <span class="bz-rules__val">Enabled</span>
+                    </li>
+                    <li>
+                        <span class="bz-rules__key">Dark Pool</span>
+                        <span class="bz-rules__val">Triggers below 20% liquidity</span>
+                    </li>
+                    <li>
+                        <span class="bz-rules__key">Freeze Orders</span>
+                        <span class="bz-rules__val">Allowed, once per player</span>
+                    </li>
+                    <li>
+                        <span class="bz-rules__key">Dividends</span>
+                        <span class="bz-rules__val">Quarterly-ish</span>
+                    </li>
+                </ul>
+
+                {#if currentPlayerIsMember}
+                <div style="display: flex; gap: 8px; margin-top: 18px;">
+                    <form action="/lobby/{lobby.id}/leave" method="post" class="bz-inline-form" style="flex: 1;">
+                        {#authenticityToken/}
+                        <button type="submit" class="bz-btn bz-btn--ghost" style="width: 100%;">Leave Lobby</button>
+                    </form>
+                    <form action="/lobby/{lobby.id}/delete" method="post" class="bz-inline-form" style="flex: 1;">
+                        {#authenticityToken/}
+                        <button type="submit" class="bz-btn bz-btn--danger" style="width: 100%;">Delete</button>
+                    </form>
+                </div>
+                {/if}
+            </div>
+        </div>
     </div>
-
-    <div class="callout">Awaiting traders &mdash; {minPlayers} minimum to open the floor.</div>
-
-    <h2>Game Settings</h2>
-    {#if lobby.status.name == "WAITING" && currentPlayerIsMember}
-    <form action="/lobby/{lobby.id}/settings" method="post">
-        {#authenticityToken/}
-        <label>Ticker Count</label>
-        <input type="number" name="tickerCount" value="{lobby.tickerCount}" min="1" required>
-        <label>Initial Balance ($)</label>
-        <input type="number" name="initialBalance" value="{lobby.initialBalanceDollars}" min="1" required>
-        <label>Game Duration (seconds)</label>
-        <input type="number" name="gameDuration" value="{lobby.gameDurationSeconds}" min="1" required>
-        <button type="submit" class="btn btn-secondary">Save Settings</button>
-    </form>
-    <hr class="section-rule">
-    <form action="/lobby/{lobby.id}/start" method="post">
-        {#authenticityToken/}
-        <button type="submit" class="btn">Start Game</button>
-    </form>
-    <hr class="section-rule">
-    <form action="/lobby/{lobby.id}/leave" method="post">
-        {#authenticityToken/}
-        <button type="submit" class="btn btn-secondary">Leave</button>
-    </form>
-    <form action="/lobby/{lobby.id}/delete" method="post">
-        {#authenticityToken/}
-        <button type="submit" class="btn btn-danger">Delete Lobby</button>
-    </form>
-    {#else if lobby.status.name == "WAITING" && !currentPlayerIsMember}
-    <div class="listings">
-        <div class="listing">Ticker Count: {lobby.tickerCount}</div>
-        <div class="listing">Initial Balance: ${lobby.initialBalanceDollars}</div>
-        <div class="listing">Game Duration: {lobby.gameDurationSeconds}s</div>
-    </div>
-    {#if !lobby.full}
-    <form action="/lobby/{lobby.id}/join" method="post">
-        {#authenticityToken/}
-        <button type="submit" class="btn">Join Lobby</button>
-    </form>
-    {/if}
-    {/if}
 {/content}
 {#scripts}
     <div id="lobby-data" data-lobby-id="{lobby.id}"></div>

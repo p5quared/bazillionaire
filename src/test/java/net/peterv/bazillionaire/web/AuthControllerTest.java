@@ -22,12 +22,7 @@ class AuthControllerTest {
 
   @Test
   void showsLoginPage() {
-    given()
-        .when()
-        .get(LOGIN_PATH)
-        .then()
-        .statusCode(200)
-        .body(containsString("Choose a username:"));
+    given().when().get(LOGIN_PATH).then().statusCode(200).body(containsString("Trader Name"));
   }
 
   @Test
