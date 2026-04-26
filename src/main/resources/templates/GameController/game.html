@@ -2,26 +2,125 @@
 <html>
 <head>
     <title>Game - Bazillionaire</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/game.css">
 </head>
 <body>
-    <div id="notifications"></div>
     <div id="game-data" data-game-id="{gameId}" data-player-id="{playerId}"></div>
-    <div id="game-timer"></div>
-    <div id="player-bar"></div>
-    <div id="ticker-cards"></div>
-    <footer id="powerup-footer">
-        <div id="powerup-footer__label">
-            Powerups &amp; Consumables
-            <span id="powerup-footer__count"></span>
-        </div>
-        <div id="powerup-desc"></div>
-        <div id="powerup-tray"></div>
-    </footer>
+
+    <div id="game-dashboard" class="bz">
+        <!-- === Top bar (spans 3 cols) === -->
+        <header id="topbar">
+            <div id="topbar-brand">
+                <div class="topbar-brand__title"><em>Bazillion</em>aire</div>
+                <div class="topbar-brand__sub" id="topbar-brand-sub">Connecting...</div>
+            </div>
+
+            <div id="topbar-timer">
+                <div class="topbar-timer__label">Closing Bell</div>
+                <div class="topbar-timer__digits" id="topbar-timer-digits">--:--</div>
+                <div class="topbar-timer__bar">
+                    <div class="topbar-timer__fill" id="topbar-timer-progress"></div>
+                </div>
+            </div>
+
+            <div id="topbar-portfolio">
+                <div class="topbar-stat">
+                    <div class="topbar-stat__label">Your Portfolio</div>
+                    <div class="topbar-stat__value topbar-stat__value--lg" id="topbar-portfolio-value">--</div>
+                </div>
+                <div class="topbar-stat">
+                    <div class="topbar-stat__label">Session P/L</div>
+                    <div class="topbar-stat__value topbar-stat__value--pl" id="topbar-portfolio-pl">--</div>
+                </div>
+                <div class="topbar-stat">
+                    <div class="topbar-stat__label">Cash</div>
+                    <div class="topbar-stat__value topbar-stat__value--cash" id="topbar-portfolio-cash">--</div>
+                </div>
+                <div class="topbar-stat">
+                    <div class="topbar-stat__label">Standing</div>
+                    <div class="topbar-stat__value topbar-stat__value--rank" id="topbar-portfolio-rank">--</div>
+                </div>
+            </div>
+
+            <div id="topbar-status">
+                <span class="bz-pill bz-pill--live" id="topbar-status-pill">Connecting</span>
+            </div>
+        </header>
+
+        <!-- === Left rail: standings + tape === -->
+        <aside id="left-rail">
+            <section id="standings">
+                <div class="bz-kicker">Standings</div>
+                <div id="standings-list"></div>
+            </section>
+
+            <hr class="bz-divider">
+
+            <section id="the-tape">
+                <div class="bz-kicker">The Tape</div>
+                <div id="tape-list"></div>
+            </section>
+        </aside>
+
+        <!-- === Center: ticker grid === -->
+        <main id="center">
+            <div id="center-header">
+                <div>
+                    <div class="bz-kicker" id="center-kicker">Live Quotes</div>
+                    <div class="center-header__instruction">
+                        Hover a ticker. Hold <kbd>B</kbd> to buy or <kbd>S</kbd> to sell.
+                    </div>
+                </div>
+                <div class="center-header__pills">
+                    <span class="bz-pill bz-pill--navy">Sort: Rank</span>
+                    <span class="bz-pill">Filter: All</span>
+                </div>
+            </div>
+            <div id="ticker-cards"></div>
+        </main>
+
+        <!-- === Right rail: powerups + effects + notifications === -->
+        <aside id="right-rail">
+            <section id="arsenal">
+                <div class="arsenal__header">
+                    <div>
+                        <div class="bz-kicker"><span id="arsenal-kicker">Arsenal</span></div>
+                        <div class="arsenal__title">Powerups</div>
+                    </div>
+                    <span class="arsenal__hint">Hold <kbd>U</kbd></span>
+                </div>
+                <div id="arsenal-grid"></div>
+            </section>
+
+            <section id="in-effect">
+                <div class="bz-kicker">In Effect</div>
+                <div id="in-effect-list"></div>
+            </section>
+
+            <section id="wire-feed">
+                <div class="bz-kicker">Hot off the Wire</div>
+                <div id="wire-feed-list"></div>
+            </section>
+        </aside>
+
+        <!-- === Bottom: keyboard shortcuts === -->
+        <footer id="shortcut-bar">
+            <span class="shortcut-bar__label">Keyboard</span>
+            <span><kbd>B</kbd> Buy hovered</span>
+            <span><kbd>S</kbd> Sell hovered</span>
+            <span><kbd>U</kbd> Use first powerup</span>
+            <span><kbd>Esc</kbd> Cancel target</span>
+        </footer>
+    </div>
+
+    <div id="notifications"></div>
+
     <script src="/js/chart.js"></script>
     <script src="/js/draw.js"></script>
     <script src="/js/game.js"></script>
