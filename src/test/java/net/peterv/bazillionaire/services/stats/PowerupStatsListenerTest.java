@@ -10,6 +10,7 @@ import net.peterv.bazillionaire.game.domain.event.GameEvent;
 import net.peterv.bazillionaire.game.domain.event.GameMessage;
 import net.peterv.bazillionaire.game.domain.types.Audience;
 import net.peterv.bazillionaire.game.domain.types.GameId;
+import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.PlayerId;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 import org.junit.jupiter.api.BeforeEach;
@@ -183,7 +184,7 @@ class PowerupStatsListenerTest {
 
   private void fireGameFinished(GameId gameId) {
     var players = new LinkedHashMap<PlayerId, GameEvent.PlayerPortfolio>();
-    var event = new GameEvent.GameFinished(players, Map.of());
+    var event = new GameEvent.GameFinished(players, Map.of(), new Money(0));
     var message = new GameMessage(event, new Audience.Everyone());
     listener.onGameEvents(gameId, List.of(message));
   }

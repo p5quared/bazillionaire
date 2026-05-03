@@ -16,13 +16,15 @@ public class PlayerCareerStatsService {
 
     var portfolioResults = PlayerPortfolioResult.findByUsername(username);
     long totalEarningsCents = 0;
-    long bestGameValueCents = 0;
+    Long bestEarnings = null;
     for (var pr : portfolioResults) {
-      totalEarningsCents += pr.finalPortfolioValueCents;
-      if (pr.finalPortfolioValueCents > bestGameValueCents) {
-        bestGameValueCents = pr.finalPortfolioValueCents;
+      long earnings = pr.finalPortfolioValueCents - pr.startingBalanceCents;
+      totalEarningsCents += earnings;
+      if (bestEarnings == null || earnings > bestEarnings) {
+        bestEarnings = earnings;
       }
     }
+    long bestGameEarningsCents = bestEarnings == null ? 0 : bestEarnings;
 
     var tradeResults = PlayerTradeResult.findByUsername(username);
     long totalTradesMade = 0;
@@ -59,7 +61,7 @@ public class PlayerCareerStatsService {
             wins,
             winRate,
             totalEarningsCents,
-            bestGameValueCents,
+            bestGameEarningsCents,
             totalTradesMade,
             totalOrdersBlocked,
             totalPowerupsReceived,

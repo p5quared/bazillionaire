@@ -22,7 +22,11 @@ class PortfolioStatsListenerTest {
   private List<RecordedCall> recordedCalls;
 
   record RecordedCall(
-      String username, String gameId, long finalPortfolioValueCents, int holdingsCount) {}
+      String username,
+      String gameId,
+      long finalPortfolioValueCents,
+      long startingBalanceCents,
+      int holdingsCount) {}
 
   @BeforeEach
   void setUp() {
@@ -32,9 +36,18 @@ class PortfolioStatsListenerTest {
         new PlayerPortfolioStatsService() {
           @Override
           public void recordPortfolio(
-              String username, String gameId, long finalPortfolioValueCents, int holdingsCount) {
+              String username,
+              String gameId,
+              long finalPortfolioValueCents,
+              long startingBalanceCents,
+              int holdingsCount) {
             recordedCalls.add(
-                new RecordedCall(username, gameId, finalPortfolioValueCents, holdingsCount));
+                new RecordedCall(
+                    username,
+                    gameId,
+                    finalPortfolioValueCents,
+                    startingBalanceCents,
+                    holdingsCount));
           }
         };
   }
@@ -112,11 +125,32 @@ class PortfolioStatsListenerTest {
     assertEquals(1, recordedCalls.get(0).holdingsCount());
   }
 
+  @Test
+  void capturesStartingBalanceFromEvent() {
+    var players = new LinkedHashMap<PlayerId, GameEvent.PlayerPortfolio>();
+    players.put(new PlayerId("alice"), new GameEvent.PlayerPortfolio(new Money(750_00), Map.of()));
+    players.put(new PlayerId("bob"), new GameEvent.PlayerPortfolio(new Money(1200_00), Map.of()));
+
+    fireGameFinished("game1", players, Map.of(), new Money(1000_00));
+
+    assertEquals(2, recordedCalls.size());
+    assertEquals(1000_00, recordedCalls.get(0).startingBalanceCents());
+    assertEquals(1000_00, recordedCalls.get(1).startingBalanceCents());
+  }
+
   private void fireGameFinished(
       String gameId,
       Map<PlayerId, GameEvent.PlayerPortfolio> players,
       Map<Symbol, Money> finalPrices) {
-    var event = new GameEvent.GameFinished(players, finalPrices);
+    fireGameFinished(gameId, players, finalPrices, new Money(0));
+  }
+
+  private void fireGameFinished(
+      String gameId,
+      Map<PlayerId, GameEvent.PlayerPortfolio> players,
+      Map<Symbol, Money> finalPrices,
+      Money initialBalance) {
+    var event = new GameEvent.GameFinished(players, finalPrices, initialBalance);
     var message = new GameMessage(event, new Audience.Everyone());
     listener.onGameEvents(new GameId(gameId), List.of(message));
   }

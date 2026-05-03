@@ -123,7 +123,7 @@ class GameResultListenerTest {
       String gameId,
       Map<PlayerId, GameEvent.PlayerPortfolio> players,
       Map<Symbol, Money> finalPrices) {
-    var event = new GameEvent.GameFinished(players, finalPrices);
+    var event = new GameEvent.GameFinished(players, finalPrices, new Money(0));
     var message = new GameMessage(event, new Audience.Everyone());
     listener.onGameEvents(new GameId(gameId), List.of(message));
   }

@@ -57,10 +57,10 @@ public class LeaderboardController extends Controller {
 
     var bestSingleGame =
         allStats.stream()
-            .filter(s -> s.bestGameValueCents() > 0)
-            .sorted(Comparator.comparingLong(PlayerCareerStats::bestGameValueCents).reversed())
+            .filter(s -> s.bestGameEarningsCents() > 0)
+            .sorted(Comparator.comparingLong(PlayerCareerStats::bestGameEarningsCents).reversed())
             .limit(10)
-            .map(s -> new LeaderboardEntry(s.username(), "$" + s.bestGameValueCents() / 100))
+            .map(s -> new LeaderboardEntry(s.username(), "$" + s.bestGameEarningsCents() / 100))
             .toList();
 
     var mostEarnings =

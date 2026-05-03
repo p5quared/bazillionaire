@@ -126,7 +126,7 @@ class DividendStatsListenerTest {
 
   private void fireGameFinished(GameId gameId) {
     var players = new LinkedHashMap<PlayerId, GameEvent.PlayerPortfolio>();
-    var event = new GameEvent.GameFinished(players, Map.of());
+    var event = new GameEvent.GameFinished(players, Map.of(), new Money(0));
     var message = new GameMessage(event, new Audience.Everyone());
     listener.onGameEvents(gameId, List.of(message));
   }

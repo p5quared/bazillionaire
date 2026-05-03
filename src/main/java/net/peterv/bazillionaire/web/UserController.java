@@ -47,7 +47,7 @@ public class UserController extends Controller {
       return new CareerStatsDisplay(
           stats.wins() + "W - " + losses + "L (" + winPct + "%)",
           formatDollars(stats.totalEarningsCents()),
-          formatDollars(stats.bestGameValueCents()),
+          formatDollars(stats.bestGameEarningsCents()),
           stats.totalTradesMade(),
           stats.totalOrdersBlocked(),
           stats.totalPowerupsReceived(),
@@ -61,6 +61,9 @@ public class UserController extends Controller {
     }
 
     private static String formatDollars(long cents) {
+      if (cents < 0) {
+        return "-" + formatDollars(-cents);
+      }
       return String.format("$%,d.%02d", cents / 100, cents % 100);
     }
   }

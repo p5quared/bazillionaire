@@ -31,6 +31,7 @@ public class Game {
   private final OrderProcessor orderProcessor;
   private final Set<PlayerId> readyPlayers = new HashSet<>();
   private final int totalDuration;
+  private final Money initialBalance;
   private int tickCount = 0;
   private GameStatus status = GameStatus.PENDING;
 
@@ -56,6 +57,11 @@ public class Game {
     this.totalDuration = totalDuration;
     this.liquidityProvider = liquidityProvider;
     this.orderProcessor = new OrderProcessor(powerupManager, liquidityProvider);
+    this.initialBalance = players.values().iterator().next().initialBalance();
+  }
+
+  public Money initialBalance() {
+    return initialBalance;
   }
 
   public OrderResult placeOrder(Order order, PlayerId playerId) {
@@ -93,7 +99,8 @@ public class Game {
       if (tickCount >= totalDuration) {
         status = GameStatus.FINISHED;
         emit(
-            GameMessage.broadcast(new GameEvent.GameFinished(playerPortfolios(), currentPrices())));
+            GameMessage.broadcast(
+                new GameEvent.GameFinished(playerPortfolios(), currentPrices(), initialBalance)));
       }
     }
   }

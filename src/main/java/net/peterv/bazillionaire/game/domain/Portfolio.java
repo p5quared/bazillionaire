@@ -9,14 +9,20 @@ import net.peterv.bazillionaire.game.domain.types.Money;
 import net.peterv.bazillionaire.game.domain.types.Symbol;
 
 public class Portfolio {
+  private final Money initialBalance;
   private Money cashBalance;
   private final Map<Symbol, Integer> holdings;
   private final Map<Symbol, Money> totalCost;
 
   public Portfolio(Money initialBalance) {
+    this.initialBalance = initialBalance;
     this.cashBalance = initialBalance;
     this.holdings = new HashMap<>();
     this.totalCost = new HashMap<>();
+  }
+
+  public Money initialBalance() {
+    return initialBalance;
   }
 
   public OrderResult fill(Order order, Money fillPrice) {

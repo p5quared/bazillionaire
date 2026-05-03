@@ -24,6 +24,7 @@ public class PortfolioStatsListener implements GameEventListener {
   }
 
   private void recordPortfolios(GameId gameId, GameEvent.GameFinished finished) {
+    long startingBalanceCents = finished.initialBalance().cents();
     for (var entry : finished.players().entrySet()) {
       var portfolio = entry.getValue();
       long valueCents =
@@ -31,7 +32,7 @@ public class PortfolioStatsListener implements GameEventListener {
       int holdingsCount =
           (int) portfolio.holdings().entrySet().stream().filter(e -> e.getValue() > 0).count();
       portfolioStatsService.recordPortfolio(
-          entry.getKey().value(), gameId.value(), valueCents, holdingsCount);
+          entry.getKey().value(), gameId.value(), valueCents, startingBalanceCents, holdingsCount);
     }
   }
 }

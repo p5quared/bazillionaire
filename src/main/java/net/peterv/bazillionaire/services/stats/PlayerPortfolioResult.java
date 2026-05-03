@@ -19,6 +19,9 @@ public class PlayerPortfolioResult extends PanacheEntity {
   public long finalPortfolioValueCents;
 
   @Column(nullable = false)
+  public long startingBalanceCents;
+
+  @Column(nullable = false)
   public int holdingsCount;
 
   @Column(nullable = false)

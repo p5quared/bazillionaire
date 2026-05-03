@@ -6,7 +6,7 @@ public record PlayerCareerStats(
     long wins,
     double winRate,
     long totalEarningsCents,
-    long bestGameValueCents,
+    long bestGameEarningsCents,
     long totalTradesMade,
     long totalOrdersBlocked,
     long totalPowerupsReceived,

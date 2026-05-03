@@ -40,12 +40,13 @@ public class Application extends Controller {
           s.wins(),
           losses,
           winPct,
-          formatDollars(s.bestGameValueCents()),
+          formatDollars(s.bestGameEarningsCents()),
           s.wins() + "W\u2013" + losses + "L",
           formatDollars(s.totalEarningsCents()));
     }
 
     private static String formatDollars(long cents) {
+      if (cents < 0) return "-" + formatDollars(-cents);
       if (cents == 0) return "$0";
       long dollars = cents / 100;
       if (dollars >= 1_000_000) {
